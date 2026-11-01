@@ -321,6 +321,8 @@ textarea.big{min-height:320px;font:500 13.5px/1.6 var(--font)}
   #paper,#paper *{visibility:visible!important}
   #paper{position:absolute;left:0;top:0;width:100%;max-width:none;box-shadow:none;border:0;border-radius:0;padding:0}
 }
+.legal h3{font-size:16px;margin:20px 0 6px}
+.legal p{margin:0;line-height:1.65;font-size:14.5px;max-width:72ch}
 </style>
 </head>
 <body>
@@ -329,6 +331,43 @@ textarea.big{min-height:320px;font:500 13.5px/1.6 var(--font)}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="config.js"></script>
 <script>
+/* ---------- Termos de Uso e Política de Privacidade ---------- */
+const TERMOS_VER="2026-11-01";
+const contatoHTML=()=>`${esc(CFG.vendedor)}${CFG.emailSuporte?` · e-mail <b>${esc(CFG.emailSuporte)}</b>`:""}${CFG.suporteWhatsApp?` · WhatsApp <b>${esc(CFG.suporteWhatsApp)}</b>`:""}`;
+function termosHTML(){const P=esc(CFG.produto);return `
+<h3>1. Sobre o ${P}</h3><p>O ${P} é um sistema online para gestão de clínicas e consultórios odontológicos, fornecido por ${esc(CFG.vendedor)} ("nós"). Contato: ${contatoHTML()}.</p>
+<h3>2. Quem pode usar</h3><p>O sistema é destinado a profissionais e clínicas de odontologia ("Clínica"). Quem cria a conta declara ter poderes para representar a Clínica e é o responsável pela conta. A Clínica pode dar acesso à sua equipe e responde pelo uso feito por ela.</p>
+<h3>3. Acesso e senha</h3><p>O acesso é feito com e-mail e senha, que são pessoais. A Clínica deve manter a senha em sigilo, remover o acesso de quem deixar a equipe e nos avisar se suspeitar de uso indevido.</p>
+<h3>4. Teste grátis, mensalidade e bloqueio</h3><p>Novas clínicas têm um período de teste grátis. Depois dele, o uso depende do pagamento da mensalidade informada no sistema, por Pix. Com ${CFG.carencia} dias de atraso, o acesso é suspenso até o pagamento. A suspensão não apaga os dados da Clínica. O valor pode ser reajustado com aviso prévio de 30 dias.</p>
+<h3>5. Responsabilidades da Clínica</h3><p>A Clínica é a <b>controladora</b> dos dados dos seus pacientes, nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD). Cabe a ela: ter base legal para cadastrar e tratar os dados; informar seus pacientes sobre esse tratamento; responder aos pedidos dos pacientes; revisar o conteúdo dos contratos e termos que usar; e cumprir os prazos legais de guarda do prontuário e as normas do Conselho Federal de Odontologia.</p>
+<h3>6. Nossas responsabilidades</h3><p>Atuamos como <b>operador</b> dos dados dos pacientes: tratamos esses dados apenas para fazer o sistema funcionar e conforme as instruções da Clínica. Adotamos medidas de segurança razoáveis, descritas na Política de Privacidade. Trabalhamos para manter o sistema disponível, mas podem ocorrer interrupções por manutenção, falhas de internet ou de fornecedores.</p>
+<h3>7. Cancelamento e exclusão</h3><p>A Clínica pode cancelar quando quiser, sem multa. Antes de cancelar, pode exportar seus dados em Configurações › Privacidade. Após o pedido de exclusão, os dados são apagados em até 90 dias, exceto quando a lei exigir que sejam mantidos.</p>
+<h3>8. Limitação de responsabilidade</h3><p>Não respondemos por decisões clínicas, pelo conteúdo inserido pela Clínica, por mensagens enviadas pela Clínica aos pacientes nem por prejuízos causados por uso indevido da senha. Nossa responsabilidade, quando existir, fica limitada ao valor pago nos últimos 12 meses.</p>
+<h3>9. Mudanças nestes termos</h3><p>Podemos atualizar estes termos. Quando houver mudança relevante, a Clínica será avisada no sistema e precisará aceitar a nova versão para continuar.</p>
+<h3>10. Foro</h3><p>Fica eleito o foro da comarca de Mauriti, CE, salvo regra legal diferente.</p>`}
+function privHTML(){const P=esc(CFG.produto);return `
+<h3>1. Quem é responsável pelos dados</h3><p>Para os <b>dados dos pacientes</b>, a controladora é a Clínica que os cadastrou, e o ${P} atua como operador. Para os <b>dados da própria Clínica e dos seus usuários</b> (cadastro, acesso e cobrança), o controlador é o ${P}. Contato do encarregado: ${contatoHTML()}.</p>
+<h3>2. Quais dados são tratados</h3><p><b>Da Clínica e da equipe:</b> nome da clínica, nome do responsável, CRO, e-mail, telefone, cidade, logo, assinatura desenhada e histórico de pagamentos.<br><b>Dos pacientes, inseridos pela Clínica:</b> nome, telefone, CPF, data de nascimento, endereço, informações de saúde (anamnese, odontograma, histórico de atendimentos, fotos clínicas), orçamentos, pagamentos e documentos assinados (imagem da assinatura, data, hora e dispositivo usado).</p>
+<h3>3. Para que usamos e com qual base legal</h3><p>Prestar o serviço contratado pela Clínica (execução de contrato, art. 7º, V, da LGPD). Cobrar a mensalidade. Os dados de saúde dos pacientes são tratados pela Clínica para a tutela da saúde, em procedimento realizado por profissional de saúde (art. 11, II, "f"), e para cumprir obrigações legais, como a guarda do prontuário. O uso de imagens do paciente em divulgação depende do consentimento dele (art. 11, I), que pode ser registrado no próprio sistema.</p>
+<h3>4. Com quem os dados são compartilhados</h3><p>Usamos o <b>Google Firebase</b> para login e banco de dados. Os servidores podem estar fora do Brasil, com as garantias contratuais do fornecedor (transferência internacional, art. 33). O site é publicado no <b>GitHub Pages</b>, que não recebe dados de pacientes. Mensagens de WhatsApp são enviadas pela própria Clínica, a partir do aparelho dela. <b>Não vendemos nem alugamos dados.</b></p>
+<h3>5. Como protegemos</h3><p>Conexão criptografada (HTTPS); acesso por e-mail e senha; separação total entre clínicas por regras de segurança no banco de dados; perfis de acesso (a equipe não vê o financeiro); encerramento da sessão por inatividade; registro de atividades importantes; e código de verificação nos documentos assinados.</p>
+<h3>6. Por quanto tempo guardamos</h3><p>Enquanto a conta da Clínica estiver ativa. A Clínica é responsável por observar os prazos legais de guarda do prontuário (por exemplo, a Lei nº 13.787/2018). Após o cancelamento e o pedido de exclusão, os dados são apagados em até 90 dias, salvo obrigação legal.</p>
+<h3>7. Direitos dos titulares</h3><p>Pacientes podem pedir confirmação do tratamento, acesso, correção, cópia e outras medidas do art. 18 da LGPD <b>diretamente à Clínica</b>, que pode gerar no sistema a cópia do prontuário e o arquivo com os dados do paciente. Clínicas e usuários podem exercer seus direitos pelo contato acima.</p>
+<h3>8. Armazenamento no navegador</h3><p>O sistema guarda informações no navegador apenas para manter o login e funcionar com internet fraca. Não usamos cookies de propaganda.</p>
+<h3>9. Atualizações</h3><p>Esta política pode ser atualizada. A versão em vigor fica sempre disponível nesta página.</p>`}
+function vLegal(){const k=LEGAL;const t=k==="termos"?"Termos de Uso":"Política de Privacidade";
+ return `<div class="signwrap"><div class="inner stack" style="max-width:780px">
+ <div class="row" style="justify-content:space-between"><div class="row"><div class="mark" style="width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--hero-a),var(--hero-b));display:grid;place-items:center;color:var(--hero-ink)">${ic("tooth",1.8)}</div><b>${esc(CFG.produto)}</b></div><button class="btn sm" data-act="legalBack">${ic("back")}Voltar</button></div>
+ <article class="card legal"><h1 class="page">${t}</h1><p class="sub">Versão de ${br(TERMOS_VER)}</p>${k==="termos"?termosHTML():privHTML()}
+ <p class="small muted mt">Leia também: <button class="link" data-legal="${k==="termos"?"privacidade":"termos"}">${k==="termos"?"Política de Privacidade":"Termos de Uso"}</button></p></article></div></div>`}
+function vAceite(){return `<div class="lockscreen"><div class="card" style="max-width:560px;text-align:left"><div class="bigic t-info" style="margin:0 0 12px">${ic("lock")}</div>
+ <h1 class="page">${C.aceite?"Atualizamos nossos termos":"Proteção de dados (LGPD)"}</h1>
+ <p class="sub" style="margin-bottom:12px">Para continuar usando o ${esc(CFG.produto)}, leia e aceite os documentos abaixo. Em resumo:</p>
+ <ul class="small" style="margin:0 0 14px;padding-left:18px;display:grid;gap:6px;color:var(--ink)"><li>A clínica é a responsável (controladora) pelos dados dos pacientes. O ${esc(CFG.produto)} só processa esses dados para o sistema funcionar.</li><li>Os dados de cada clínica ficam separados e protegidos por senha.</li><li>Você pode exportar os dados da clínica e a cópia do prontuário de qualquer paciente.</li><li>Não vendemos dados.</li></ul>
+ <div class="row" style="margin-bottom:14px"><button class="btn sm" data-legal="termos">${ic("doc")}Termos de Uso</button><button class="btn sm" data-legal="privacidade">${ic("doc")}Política de Privacidade</button></div>
+ <label class="check" style="background:var(--surface-2)"><input type="checkbox" id="acOk" style="accent-color:var(--accent)">Li e aceito os Termos de Uso e a Política de Privacidade</label>
+ <div class="row mt"><button class="btn pri" data-act="aceitar">Aceitar e continuar</button><button class="btn" data-act="logout">Sair</button></div></div></div>`}
+
 /* =========================================================
    CLINIX ODONTO — sistema para clínicas odontológicas
    Login, várias clínicas, mensalidade com bloqueio e Pix.
@@ -338,7 +377,7 @@ textarea.big{min-height:320px;font:500 13.5px/1.6 var(--font)}
 const CFG=Object.assign({
   produto:"Clinix Odonto", valor:99, diasTeste:14, carencia:5,
   admins:[], vendedor:"Jefferson Ramalho", suporteWhatsApp:"",
-  pix:{chave:"",nome:"",cidade:""}, firebase:null, appUrl:""
+  pix:{chave:"",nome:"",cidade:""}, firebase:null, appUrl:"", emailSuporte:""
 },window.CLINIX_CONFIG||{});
 const DEMO=!(CFG.firebase&&CFG.firebase.apiKey);
 if(DEMO){CFG.admins=[...CFG.admins,"admin@demo.com"];if(!CFG.pix.chave)CFG.pix={chave:"chave-pix-de-exemplo@clinix.com",nome:CFG.vendedor||"CLINIX",cidade:"MAURITI"};if(!CFG.suporteWhatsApp)CFG.suporteWhatsApp="(83) 9 2141-8988"}
@@ -409,7 +448,7 @@ const ANAM=["Alergia a medicamentos","Diabetes","Hipertensão","Problema cardía
 const ALERTA=["Alergia a medicamentos","Problema cardíaco","Usa anticoagulante","Gestante","Já teve reação à anestesia","Diabetes","Hipertensão"];
 const DST=[{k:"",n:"Saudável",c:"var(--surface)"},{k:"carie",n:"Cárie",c:"var(--bad)"},{k:"rest",n:"Restaurado",c:"var(--info)"},{k:"canal",n:"Canal",c:"var(--warn)"},{k:"coroa",n:"Coroa",c:"var(--accent-2)"},{k:"impl",n:"Implante",c:"var(--ok)"},{k:"ext",n:"Ausente",c:"var(--line)"}];
 const UP=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LO=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
-const COLS=["pac","ag","fin","ret","lab","fotos","meta","docs"];
+const COLS=["pac","ag","fin","ret","lab","fotos","meta","docs","log"];
 const DEF_MODELOS=[
 {id:"contrato",nome:"Contrato de prestação de serviços odontológicos",texto:`CONTRATADA: {{clinica}}, neste ato representada por {{dentista}}, com sede em {{cidade}}.
 CONTRATANTE (PACIENTE): {{paciente}}, CPF {{cpf}}, nascido(a) em {{nascimento}}, residente em {{endereco}}, telefone {{telefone}}.
@@ -447,6 +486,15 @@ Declaro que:
 3. Estou ciente de que poderão ser necessários ajustes no plano durante o tratamento, que me serão comunicados antes.
 4. Autorizo fotografias e radiografias para diagnóstico, documentação do prontuário e acompanhamento do tratamento.
 5. Posso retirar este consentimento a qualquer momento antes do início de cada procedimento.
+
+{{cidade}}, {{data}}.`},
+{id:"lgpd",nome:"Termo de ciência sobre dados pessoais (LGPD)",texto:`Eu, {{paciente}}, CPF {{cpf}}, declaro que fui informado(a) pela {{clinica}} de que:
+
+1. Meus dados pessoais (nome, contato, CPF, endereço) e dados de saúde (anamnese, exames, fotos clínicas, radiografias e histórico de tratamento) são registrados no prontuário para a realização e o acompanhamento do meu tratamento odontológico, conforme a Lei nº 13.709/2018 (LGPD).
+2. Esses dados são guardados em sistema protegido por senha e acessados apenas pela equipe da clínica.
+3. A clínica é obrigada por lei a guardar o prontuário pelo prazo legal, mesmo após o fim do tratamento.
+4. Meus dados não serão vendidos nem usados para propaganda sem a minha autorização.
+5. Posso pedir à clínica, a qualquer momento, confirmação, acesso, correção ou cópia dos meus dados, e uma cópia do meu prontuário.
 
 {{cidade}}, {{data}}.`},
 {id:"imagem",nome:"Autorização de uso de imagem",texto:`Eu, {{paciente}}, CPF {{cpf}}, autorizo a {{clinica}} a utilizar fotografias do meu sorriso e dos resultados do meu tratamento (antes e depois) em suas redes sociais, site e materiais de divulgação, sem identificação do meu nome completo.
@@ -503,7 +551,7 @@ const LocalBE={
  async init(cb){this.cb=cb;this.load();this.emit()},
  async login(e,p){const u=this.db.users.find(x=>x.email===e.trim().toLowerCase());if(!u||u.senha!==p)throw{code:"auth/invalid-credential"};this.setSess(u.uid);this.emit()},
  async signup(f){if(this.db.users.find(x=>x.email===f.email))throw{code:"auth/email-already-in-use"};const cid="c"+uid(),u="u"+uid();
-  this.db.clinics[cid]={doc:{id:cid,nome:f.clinica,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email,status:"teste",valor:CFG.valor,vencimento:addDays(new Date(),CFG.diasTeste).toISOString(),criadoEm:new Date().toISOString(),pagamentos:[],logo:"",foto:""},data:emptyData()};
+  this.db.clinics[cid]={doc:{id:cid,nome:f.clinica,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email,status:"teste",valor:CFG.valor,vencimento:addDays(new Date(),CFG.diasTeste).toISOString(),criadoEm:new Date().toISOString(),pagamentos:[],logo:"",foto:"",aceite:f.aceite||null},data:emptyData()};
   this.db.users.push({uid:u,email:f.email,senha:f.senha,cid,papel:"dono",nome:f.dentista});this.persist();this.setSess(u);this.emit()},
  async logout(){this.close();this.setSess(null);this.emit()},
  async reset(){},
@@ -533,7 +581,7 @@ const FireBE={
   this.cb({uid:u.uid,email:u.email,admin,cid:d&&d.cid,papel:d?d.papel:null,nome:d?d.nome:""})},
  login(e,p){return this.auth.signInWithEmailAndPassword(e.trim(),p)},
  async signup(f){this.busy=true;try{const cr=await this.auth.createUserWithEmailAndPassword(f.email,f.senha);const u=cr.user.uid;const ref=this.db.collection("clinicas").doc();
-  await ref.set({nome:f.clinica,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email,dono:u,status:"teste",valor:CFG.valor,vencimento:firebase.firestore.Timestamp.fromDate(addDays(new Date(),Math.min(CFG.diasTeste,14))),criadoEm:firebase.firestore.FieldValue.serverTimestamp(),pagamentos:[],logo:"",foto:""});
+  await ref.set({nome:f.clinica,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email,dono:u,status:"teste",valor:CFG.valor,vencimento:firebase.firestore.Timestamp.fromDate(addDays(new Date(),Math.min(CFG.diasTeste,14))),criadoEm:firebase.firestore.FieldValue.serverTimestamp(),pagamentos:[],logo:"",foto:"",aceite:f.aceite||null});
   await this.db.collection("usuarios").doc(u).set({cid:ref.id,papel:"dono",nome:f.dentista,email:f.email});
   await ref.collection("meta").doc("procs").set({list:DEF_PROCS.map(p=>({n:p[0],v:p[1]}))});
   this.busy=false;await this.emit(cr.user)}finally{this.busy=false}},
@@ -591,25 +639,31 @@ function fillTemplate(texto,p){const o=ORC();const own=o.pid===p.id&&o.items&&o.
   procedimentos:own?o.items.map(i=>`• ${i.proc}${i.dente&&i.dente!=="—"?(/^[0-9]+$/.test(i.dente)?` (dente ${i.dente})`:` (${i.dente})`):""}: ${brl(i.v)}`).join("\n"):"Conforme plano de tratamento apresentado ao paciente.",
   total:own?brl(tot):"conforme orçamento aprovado",pagamento:own?`à vista por ${brl(tot*(1-o.desc/100))} (${o.desc}% de desconto) ou em até ${o.np}x de ${brl(tot/o.np)} sem juros no cartão`:"conforme combinado com a clínica"};
  return texto.replace(/\{\{(\w+)\}\}/g,(m,k)=>v[k]!==undefined?v[k]:m)}
+function logAct(acao,det){if(!S.log)S.log=[];S.log.push({id:uid(),data:new Date().toISOString(),quem:(U&&(U.nome||U.email))||"",email:U?U.email:"",acao,det:det||""});if(S.log.length>300){S.log.sort((a,b)=>a.data.localeCompare(b.data));S.log=S.log.slice(-300)}save()}
+function download(nome,obj){try{const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);toast("Arquivo baixado")}catch(e){toast("Não consegui gerar o arquivo")}}
+const slug=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase();
+function pacDados(p){return{exportadoEm:new Date().toISOString(),clinica:C.nome,paciente:p,consultas:S.ag.filter(x=>x.pid===p.id),financeiro:S.fin.filter(x=>x.pid===p.id),retornos:S.ret.filter(x=>x.pid===p.id),laboratorio:S.lab.filter(x=>x.pid===p.id),documentos:S.docs.filter(x=>x.pid===p.id),fotos:S.fotos.filter(x=>x.pid===p.id)}}
 async function syncDocs(force){if(!force&&Date.now()-lastSync<20000)return;lastSync=Date.now();const pend=S.docs.filter(d=>d.status!=="assinado"&&d.enviado&&d.token).slice(0,30);let ch=false;
- for(const d of pend){try{const r=await BE.getPublic(d.token);if(r&&r.status==="assinado"&&r.assinatura){d.assinatura=r.assinatura;d.status="assinado";ch=true}}catch(e){}}
+ for(const d of pend){try{const r=await BE.getPublic(d.token);if(r&&r.status==="assinado"&&r.assinatura){d.assinatura=r.assinatura;d.status="assinado";ch=true;S.log=S.log||[];S.log.push({id:uid(),data:r.assinatura.data,quem:r.assinatura.nome,email:"",acao:"Paciente assinou pelo link",det:d.titulo})}}catch(e){}}
  if(ch){save();toast("Documento assinado pelo paciente");scheduleRender()}}
 const CLINICA=()=>C?C.nome:"";
 function resetSync(){SYNC={};COLS.forEach(k=>SYNC[k]={})}
-function onData(col,arr){S[col]=arr;SYNC[col]={};arr.forEach(x=>SYNC[col][x.id]=stable(x));READY=true;scheduleRender()}
+function onData(col,arr){S[col]=arr;SYNC[col]={};arr.forEach(x=>SYNC[col][x.id]=stable(x));READY=true;if(col==="log"&&U&&!U.admin&&!onData.logged){onData.logged=U.uid;setTimeout(()=>logAct("Entrou no sistema"),300)}scheduleRender()}
 function save(){const ch=[];COLS.forEach(k=>{const seen=new Set();(S[k]||[]).forEach(x=>{if(!x.id)x.id=uid();seen.add(x.id);const s=stable(x);if(SYNC[k][x.id]!==s){ch.push({col:k,id:x.id,data:x});SYNC[k][x.id]=s}});Object.keys(SYNC[k]).forEach(id=>{if(!seen.has(id)){ch.push({col:k,id,data:null});delete SYNC[k][id]}})});
  if(ch.length)BE.write(ch).catch(e=>{console.error(e);toast("Não consegui salvar: verifique a internet")})}
 let saveT;const saveSoon=()=>{clearTimeout(saveT);saveT=setTimeout(save,500)};
-let pendRender=false;function scheduleRender(){if(SIGN)return;if($("pad")&&!PAD.empty){pendRender=true;return}const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$("root").contains(a)){pendRender=true;return}render()}
+let pendRender=false;function scheduleRender(){if(SIGN||LEGAL)return;if($("pad")&&!PAD.empty){pendRender=true;return}const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$("root").contains(a)){pendRender=true;return}render()}
 document.addEventListener("focusout",()=>{if(pendRender){pendRender=false;setTimeout(()=>{const a=document.activeElement;if(!a||!/INPUT|TEXTAREA|SELECT/.test(a.tagName))render();else pendRender=true},50)}});
 
 /* ---------- autenticação ---------- */
-function onUser(u){BE.close&&BE.close();U=u;C=null;S=emptyData();resetSync();READY=false;route={v:"home"};
+function onUser(u){BE.close&&BE.close();U=u;onData.logged=null;C=null;S=emptyData();resetSync();READY=false;route={v:"home"};
  if(!u){render();return}
  if(u.admin){route={v:"admin"};BE.watchClinics(list=>{ADM=list;scheduleRender()});render();return}
  if(!u.cid){render();return}
- BE.openClinic(u.cid,c=>{const was=C&&clinicActive(C);C=c;if(was===false&&clinicActive(c)){resetSync()}if(!clinicActive(c))READY=true;scheduleRender()},onData);
+ let logged=false;BE.openClinic(u.cid,c=>{const was=C&&clinicActive(C);C=c;if(was===false&&clinicActive(c)){resetSync()}if(!clinicActive(c))READY=true;scheduleRender()},onData);
  render()}
+let lastAct=Date.now();["click","keydown","pointerdown","scroll"].forEach(ev=>document.addEventListener(ev,()=>lastAct=Date.now(),{passive:true}));
+setInterval(()=>{if(U&&!SIGN&&Date.now()-lastAct>30*60*1000){lastAct=Date.now();BE.logout().then(()=>toast("Sessão encerrada por inatividade"))}},60000);
 const ERR={"auth/invalid-credential":"E-mail ou senha incorretos.","auth/wrong-password":"E-mail ou senha incorretos.","auth/user-not-found":"E-mail ou senha incorretos.","auth/email-already-in-use":"Este e-mail já tem conta. Use Entrar.","auth/weak-password":"A senha precisa de pelo menos 6 caracteres.","auth/invalid-email":"E-mail inválido.","auth/too-many-requests":"Muitas tentativas. Espere alguns minutos.","auth/network-request-failed":"Sem internet. Verifique a conexão."};
 const errMsg=e=>ERR[e&&e.code]||("Não foi possível concluir: "+((e&&e.message)||"erro desconhecido"));
 
@@ -625,6 +679,7 @@ function vAuth(){
   <div class="fgrid"><label class="f">WhatsApp<input id="aFone" inputmode="tel" required placeholder="(88) 9 0000-0000"></label><label class="f">Cidade<input id="aCid" required placeholder="Mauriti, CE"></label></div>
   <label class="f">E-mail<input id="aEmail" type="email" autocomplete="email" required></label>
   <label class="f">Crie uma senha<input id="aSenha" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres"></label>
+  <label class="check" style="background:var(--surface);font-size:13px"><input type="checkbox" id="aTermos" required style="accent-color:var(--accent)"><span>Li e aceito os <button class="link" type="button" data-legal="termos">Termos de Uso</button> e a <button class="link" type="button" data-legal="privacidade">Política de Privacidade</button></span></label>
   <button class="btn pri block" type="submit">Começar teste grátis de ${CFG.diasTeste} dias</button>`
  :`<p class="small muted" style="margin:0">Digite seu e-mail para receber o link de nova senha.</p>
   <label class="f">E-mail<input id="aEmail" type="email" required></label>
@@ -641,6 +696,7 @@ function vAuth(){
   <form id="authForm" class="stack">${authErr?`<div class="err">${esc(authErr)}</div>`:""}${form}</form>
   ${DEMO?`<div class="demo-box"><p>Modo demonstração: escolha um acesso de exemplo</p><div class="row">
    <button class="btn sm" data-demo="clinica@demo.com">Clínica (dona)</button><button class="btn sm" data-demo="secretaria@demo.com">Secretária</button><button class="btn sm" data-demo="admin@demo.com">Administrador</button><button class="btn sm" data-demo="bloqueada@demo.com">Clínica bloqueada</button></div></div>`:""}
+ <p class="small muted" style="text-align:center;margin-top:18px"><button class="link" data-legal="termos">Termos de Uso</button> · <button class="link" data-legal="privacidade">Política de Privacidade</button></p>
  </div></section></div>`}
 
 function vBlocked(){const sit=situacao(C);
@@ -656,7 +712,7 @@ function go(v,arg){route={v,arg};if(v==="ficha"&&!arg)route.v="pacientes";render
 function counts(){return{ret:S.ret.filter(r=>diff(iso(addDays(parse(r.ult),r.dias)))<0).length,fin:S.fin.filter(f=>!f.pago&&diff(f.venc)<0).length,lab:S.lab.filter(l=>l.st===1).length}}
 function brandHTML(){return `<div class="brand">${C&&C.logo?`<img class="logoimg" src="${C.logo}" alt="Logo">`:`<div class="mark">${ic("tooth",1.8)}</div>`}<div><b>${esc(C?C.nome:CFG.produto)}</b><small>${esc(CFG.produto)}</small></div></div>`}
 function shell(inner){
- const c=counts();const cnt={retornos:c.ret,financeiro:DONO()?c.fin:0,lab:c.lab};const cur=route.v==="ficha"?"pacientes":route.v==="doc"?"contratos":route.v;
+ const c=counts();const cnt={retornos:c.ret,financeiro:DONO()?c.fin:0,lab:c.lab};const cur=["ficha","prontuario"].includes(route.v)?"pacientes":route.v==="doc"?"contratos":route.v;
  const nav=NAV.filter(n=>!n[3]||DONO());
  const side=brandHTML()+nav.map(n=>`<button class="navbtn ${cur===n[0]?"on":""}" data-go="${n[0]}">${ic(n[2])}${n[1]}${cnt[n[0]]?`<span class="cnt">${cnt[n[0]]}</span>`:""}</button>`).join("")+
   `<div style="margin-top:auto"><div class="userbox">${avHTML({id:U.uid,nome:U.nome||U.email})}<div class="ubt"><b class="small">${esc(U.nome||"Usuário")}</b><small>${esc(U.email)}</small></div><button class="xbtn" style="background:var(--surface);color:var(--muted)" data-act="logout" aria-label="Sair" title="Sair">${ic("out")}</button></div></div>`;
@@ -743,7 +799,9 @@ function vFicha(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||
  if(fichaTab==="dados"){const nx=S.ag.filter(a=>a.pid===p.id&&a.data>=T).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
   body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Cadastro</h3><div class="fgrid"><label class="f">Nome<input data-pf="nome" value="${esc(p.nome)}"></label><label class="f">WhatsApp<input data-pf="fone" value="${esc(p.fone)}"></label><label class="f">Nascimento<input type="date" data-pf="nasc" value="${p.nasc||""}"></label><label class="f">CPF<input data-pf="cpf" inputmode="numeric" value="${esc(p.cpf||"")}" placeholder="000.000.000-00"></label><label class="f" style="grid-column:1/-1">Endereço<input data-pf="end" value="${esc(p.end)}" placeholder="Rua, número, bairro, cidade"></label></div>
   <div class="row mt"><a class="btn wa" target="_blank" rel="noopener" href="${wa(p.fone,"Olá, "+first(p.nome)+"! Aqui é da "+CLINICA()+".")}">${WAI}Abrir conversa</a>${DONO()?`<button class="btn" data-act="delPac">Excluir paciente</button>`:""}</div></div>
-  <div class="card"><h3 style="margin-bottom:12px">Próximas consultas</h3><div class="list">${nx.length?nx.map(a=>`<div class="li"><div class="av t-acc" style="width:40px;height:40px">${ic("cal")}</div><div class="who"><strong>${brShort(a.data)} · ${a.hora}</strong><small>${esc(a.proc)}</small></div><div class="end">${stPill(a.st)}</div></div>`).join(""):`<div class="empty">Nenhuma consulta marcada.</div>`}</div></div></div>`}
+  <div class="card"><h3 style="margin-bottom:12px">Próximas consultas</h3><div class="list">${nx.length?nx.map(a=>`<div class="li"><div class="av t-acc" style="width:40px;height:40px">${ic("cal")}</div><div class="who"><strong>${brShort(a.data)} · ${a.hora}</strong><small>${esc(a.proc)}</small></div><div class="end">${stPill(a.st)}</div></div>`).join(""):`<div class="empty">Nenhuma consulta marcada.</div>`}</div></div></div>
+  <div class="card mt"><div class="cardhead"><h3>Privacidade do paciente (LGPD)</h3>${ic("lock")}</div><p class="small muted" style="margin:0 0 12px">O paciente tem direito a uma cópia do prontuário e dos dados guardados. O prontuário deve ser guardado pelo prazo legal, mesmo depois do fim do tratamento.</p>
+  <div class="row"><button class="btn sm" data-go2="prontuario">${ic("doc")}Cópia do prontuário</button>${DONO()?`<button class="btn sm" data-act="expPac">Baixar todos os dados (arquivo)</button>`:""}<button class="btn sm" data-act="lgpdTerm">Gerar termo de ciência LGPD</button></div></div>`}
  if(fichaTab==="anamnese")body=`<div class="card"><div class="cardhead"><h3>Questionário de saúde</h3><span class="small muted">Marque o que o paciente informou</span></div><div class="checks">${ANAM.map(k=>`<label class="check ${p.anam[k]?"on":""}"><input type="checkbox" data-anam="${esc(k)}" ${p.anam[k]?"checked":""}>${esc(k)}</label>`).join("")}</div><label class="f mt">Observações (medicamentos, alergias, cirurgias)<textarea data-pf="obs">${esc(p.obs)}</textarea></label></div>`;
  if(fichaTab==="odonto"){const cnt={};Object.values(p.dentes).forEach(v=>cnt[v]=(cnt[v]||0)+1);
   const row=arr=>`<div class="arc">${arr.map((n,i)=>`<button class="tooth ${p.dentes[n]==="ext"?"x":""} ${i===8?"mid":""}" data-tooth="${n}" title="Dente ${n}">${n<30?`<small>${n}</small>`:""}${toothSVG(n,p.dentes[n])}${n>30?`<small>${n}</small>`:""}</button>`).join("")}</div>`;
@@ -786,6 +844,18 @@ function vDoc(){const d=S.docs.find(x=>x.id===route.arg);if(!d)return vPacientes
  ${pend&&!cliOk(d)?`<details class="card" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700">Editar o texto antes de assinar</summary><textarea class="big mt" data-doctext="${d.id}">${esc(d.texto)}</textarea><p class="small muted">As alterações são salvas sozinhas. Se o link já foi enviado, envie de novo para o paciente ver a versão nova.</p></details>`:""}
  ${docPaper(d)}
  ${(pend&&!cliOk(d))||DONO()?`<div class="row mt" style="justify-content:center"><button class="btn sm" data-docdel="${d.id}">Excluir documento</button></div>`:""}`}
+let LEGAL=null,legalBack=null;function vProntuario(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||{};const an=ANAM.filter(k=>p.anam[k]);const den=Object.entries(p.dentes||{}).sort((a,b)=>a[0]-b[0]);const ds=S.docs.filter(d=>d.pid===p.id);
+ return `<div class="row" style="margin-bottom:12px;justify-content:space-between"><button class="btn sm" data-ficha="${p.id}">${ic("back")}${esc(p.nome)}</button><button class="btn sm pri" data-act="print">${ic("doc")}Imprimir ou salvar PDF</button></div>
+ <article class="paper" id="paper"><header class="paperhead">${C.logo?`<img src="${C.logo}" alt="">`:""}<div><b>${esc(C.nome)}</b><small>${esc(C.cidade||"")}${C.cro?" · "+esc(C.cro):""}</small></div></header>
+ <h2>Cópia do prontuário odontológico</h2>
+ <div class="ptext" style="white-space:normal"><p><b>Paciente:</b> ${esc(p.nome)}${p.cpf?" · CPF "+esc(p.cpf):""}${p.nasc?" · Nascimento "+br(p.nasc):""}<br><b>Contato:</b> ${esc(p.fone)}${p.end?" · "+esc(p.end):""}</p>
+ <p><b>Anamnese:</b> ${an.length?esc(an.join("; ")):"nada informado"}.${p.obs?`<br><b>Observações:</b> ${esc(p.obs)}`:""}</p>
+ <p><b>Odontograma:</b> ${den.length?den.map(([n,st])=>`dente ${n}: ${(DST.find(x=>x.k===st)||{n:st}).n.toLowerCase()}`).join("; "):"sem marcações"}.</p>
+ <p><b>Histórico de atendimentos:</b></p>${(p.hist||[]).length?`<ul>${p.hist.slice().sort((a,b)=>a.data.localeCompare(b.data)).map(h=>`<li>${br(h.data)} · ${esc(h.proc)}${h.dente?` (dente ${esc(h.dente)})`:""}${h.obs?` · ${esc(h.obs)}`:""}</li>`).join("")}</ul>`:"<p>Nenhum atendimento registrado.</p>"}
+ <p><b>Documentos:</b> ${ds.length?ds.map(d=>`${esc(d.titulo)} (${fullOk(d)?"assinado":pacOk(d)?"assinado pelo paciente":"pendente"})`).join("; "):"nenhum"}.</p>
+ <p><b>Fotos clínicas:</b> ${S.fotos.filter(f=>f.pid===p.id).length} arquivo(s) guardado(s) no sistema.</p>
+ <p class="small" style="color:#5b7480">Emitido em ${new Date().toLocaleString("pt-BR")} pelo ${esc(CFG.produto)}, a pedido do paciente (art. 18 da Lei nº 13.709/2018).</p></div>
+ <div class="sigs"><div class="sig">${C.assinatura?`<img src="${C.assinatura}" alt="">`:`<div class="sigline"></div>`}<b>${esc(C.dentista||C.nome)}</b><small>${esc(C.nome)}${C.cro?" · "+esc(C.cro):""}</small></div></div></article>`}
 let docF="todos",sigEdit=false,sureClin=null;
 function vContratos(){syncDocs();const pend=S.docs.filter(d=>!pacOk(d)).length,fcli=S.docs.filter(d=>pacOk(d)&&!cliOk(d)).length,ok=S.docs.filter(fullOk).length;
  let its=S.docs.slice();if(docF==="pend")its=its.filter(d=>!fullOk(d));if(docF==="ok")its=its.filter(fullOk);its.sort((a,b)=>(b.criado||"").localeCompare(a.criado||""));
@@ -817,7 +887,7 @@ async function signSubmit(btn){const nome=$("sgNome").value.trim(),cpf=$("sgCpf"
  if(nome.split(" ").filter(Boolean).length<2){toast("Digite o nome completo");return}if(!$("sgOk").checked){toast("Marque que leu e concorda com o documento");return}if(PAD.empty){toast("Faça a assinatura no quadro");return}
  btn.disabled=true;btn.textContent="Registrando…";const data=new Date().toISOString();const hash=await sha256(SIGN.texto+"|"+nome+"|"+cpf+"|"+data);
  const a={img:padImage(),nome,cpf,data,hash,via:SIGN.mode==="local"?"presencial":"link",dispositivo:navigator.userAgent.slice(0,160)};
- try{if(SIGN.mode==="local"){const d=S.docs.find(x=>x.id===SIGN.did);d.assinatura=a;d.status="assinado";const p=P(d.pid);if(p&&cpf&&!p.cpf)p.cpf=cpf;save();if(d.enviado&&d.token)BE.signPublic(d.token,a).catch(()=>{})}
+ try{if(SIGN.mode==="local"){const d=S.docs.find(x=>x.id===SIGN.did);d.assinatura=a;d.status="assinado";logAct("Paciente assinou na clínica",d.titulo+" · "+nome);const p=P(d.pid);if(p&&cpf&&!p.cpf)p.cpf=cpf;save();if(d.enviado&&d.token)BE.signPublic(d.token,a).catch(()=>{})}
   else await BE.signPublic(SIGN.token,a);SIGN.done=a;render()}
  catch(e){console.error(e);btn.disabled=false;btn.textContent="Assinar documento";toast("Não foi possível registrar. Verifique a internet e tente de novo.")}}
 async function sendDoc(d){const p=P(d.pid);if(!d.token)d.token=newToken();
@@ -873,7 +943,7 @@ function vLab(){return `<div class="pagehead"><div><h1 class="page">Laboratório
 function vMais(){const c=counts();const T3=[["contratos","Contratos",S.docs.filter(d=>!fullOk(d)).length+" pendentes","check","t-ok"],["orcamento","Orçamento","Planos de tratamento","doc","t-acc"],["retornos","Retornos",c.ret+" atrasados","clock","t-bad"],["lab","Laboratório",c.lab+" prontos","lab","t-ok"]];if(DONO())T3.push(["config","Configurações","Clínica, preços, equipe e plano","gear","t-info"]);
  return `<div class="pagehead"><h1 class="page">Mais</h1></div><div class="tiles">${T3.map(t=>`<button class="tile" data-go="${t[0]}"><div class="ic ${t[4]}">${ic(t[3])}</div><b>${t[1]}</b><small>${t[2]}</small></button>`).join("")}<button class="tile" data-act="logout"><div class="ic t-bad">${ic("out")}</div><b>Sair</b><small>${esc(U.email)}</small></button></div>`}
 
-function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["precos","Preços"],["contratos","Contratos"],["equipe","Equipe"],["plano","Plano"]];let body="";
+function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["precos","Preços"],["contratos","Contratos"],["equipe","Equipe"],["privacidade","Privacidade"],["plano","Plano"]];let body="";
  if(cfgTab==="clinica")body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Dados da clínica</h3><div class="stack"><label class="f">Nome da clínica<input data-cf="nome" value="${esc(C.nome)}"></label><div class="fgrid"><label class="f">Responsável técnico (nome que assina)<input data-cf="dentista" value="${esc(C.dentista)}"></label><label class="f">CRO<input data-cf="cro" value="${esc(C.cro||"")}" placeholder="CRO-CE 00000"></label></div><div class="fgrid"><label class="f">WhatsApp<input data-cf="telefone" value="${esc(C.telefone)}"></label><label class="f">Cidade<input data-cf="cidade" value="${esc(C.cidade)}"></label></div></div></div>
   <div class="card"><h3 style="margin-bottom:12px">Logo e foto</h3><div class="row" style="gap:16px;align-items:flex-start"><div style="text-align:center"><label class="upav" style="display:inline-block">${C.logo?`<img src="${C.logo}" alt="Logo" style="width:88px;height:88px;border-radius:24px;object-fit:cover">`:`<div class="av lg t-acc">${ic("building")}</div>`}<span class="cam">${ic("cam")}</span><input type="file" accept="image/*" data-up="logo" hidden></label><p class="small muted">Logo</p></div>
   <div style="text-align:center"><label class="upav" style="display:inline-block">${C.foto?`<img src="${C.foto}" alt="Foto" style="width:88px;height:88px;border-radius:24px;object-fit:cover">`:`<div class="av lg t-acc">${ic("users")}</div>`}<span class="cam">${ic("cam")}</span><input type="file" accept="image/*" data-up="clinfoto" hidden></label><p class="small muted">Foto do painel</p></div></div>
@@ -889,6 +959,13 @@ function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["
   <p class="small muted" style="margin:0 0 8px">Escreva o texto uma vez. Estes campos são trocados pelos dados do paciente ao gerar o documento:</p><div class="chipset">${["paciente","cpf","nascimento","endereco","telefone","clinica","dentista","cidade","data","procedimentos","total","pagamento"].map(k=>`<code>{{${k}}}</code>`).join("")}</div>
   <p class="small muted" style="margin:10px 0 0">Os modelos que vêm prontos são uma base. Peça para um advogado revisar antes de usar com pacientes.</p></div>
   <div class="stack">${L.map((m,i)=>`<div class="card"><div class="row" style="margin-bottom:10px"><input data-mod="${i}" data-k="nome" value="${esc(m.nome)}" style="flex:1;font-weight:700"><button class="xbtn" data-moddel="${i}" aria-label="Remover modelo">×</button></div><textarea class="big" data-mod="${i}" data-k="texto">${esc(m.texto)}</textarea></div>`).join("")}</div>`}
+ if(cfgTab==="privacidade"){const L=(S.log||[]).slice().sort((a,b)=>b.data.localeCompare(a.data)).slice(0,60);
+  body=`<div class="cols half"><div class="stack"><div class="card"><h3 style="margin-bottom:10px">LGPD</h3><div class="stack" style="gap:10px"><div class="row" style="justify-content:space-between"><span class="muted">Termos aceitos</span><b class="small">${C.aceite?`versão ${br(C.aceite.versao)} em ${new Date(C.aceite.data).toLocaleDateString("pt-BR")}`:"não"}</b></div>${C.aceite&&C.aceite.por?`<div class="row" style="justify-content:space-between"><span class="muted">Por</span><b class="small">${esc(C.aceite.por)}</b></div>`:""}</div>
+   <div class="row mt"><button class="btn sm" data-legal="termos">Termos de Uso</button><button class="btn sm" data-legal="privacidade">Política de Privacidade</button></div></div>
+  <div class="card"><h3 style="margin-bottom:6px">Seus dados</h3><p class="small muted" style="margin:0 0 12px">Baixe uma cópia de todos os dados da clínica (pacientes, agenda, financeiro, documentos e fotos) em um arquivo.</p><button class="btn pri" data-act="expClinic">Exportar todos os dados</button></div>
+  <div class="card"><h3 style="margin-bottom:6px">Segurança</h3><ul class="small muted" style="margin:0;padding-left:18px;display:grid;gap:6px"><li>A sessão é encerrada sozinha após 30 minutos sem uso.</li><li>A equipe não vê o financeiro nem as configurações.</li><li>Cada clínica só acessa os próprios dados.</li><li>Ações importantes ficam registradas ao lado.</li></ul></div>
+  <div class="card"><h3 style="margin-bottom:6px">Encerrar a conta</h3><p class="small muted" style="margin:0 0 12px">Exporte seus dados antes. Depois do pedido, tudo é apagado em até 90 dias, exceto o que a lei obrigar a manter.</p>${CFG.suporteWhatsApp?`<a class="btn" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp,`Olá! Sou da ${C.nome} e quero solicitar o encerramento da conta e a exclusão dos dados no ${CFG.produto}.`)}">${WAI}Pedir encerramento</a>`:""}</div></div>
+  <div class="card" style="align-self:start"><h3 style="margin-bottom:12px">Registro de atividades</h3><div class="list">${L.map(l=>`<div class="li" style="grid-template-columns:1fr auto"><div class="who"><strong style="white-space:normal;font-size:14px">${esc(l.acao)}${l.det?` · <span class="muted" style="font-weight:600">${esc(l.det)}</span>`:""}</strong><small>${esc(l.quem)}</small></div><div class="end small muted" style="font-weight:600">${new Date(l.data).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</div></div>`).join("")||`<div class="empty">Nenhuma atividade registrada ainda.</div>`}</div></div></div>`}
  if(cfgTab==="plano"){const s=situacao(C);const pags=(C.pagamentos||[]).slice().reverse();
   body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Sua assinatura</h3><div class="stack" style="gap:10px"><div class="row" style="justify-content:space-between"><span class="muted">Situação</span><span class="pill dot ${s.cls}">${s.t}</span></div><div class="row" style="justify-content:space-between"><span class="muted">Plano</span><b>${esc(CFG.produto)} · ${brl(C.valor)}/mês</b></div><div class="row" style="justify-content:space-between"><span class="muted">${C.status==="teste"?"Teste termina em":"Próximo vencimento"}</span><b>${toD(C.vencimento).toLocaleDateString("pt-BR")}</b></div></div>
    <h3 style="margin:18px 0 10px">Pagamentos</h3><div class="list">${pags.map(p=>`<div class="li"><div class="av t-ok" style="width:36px;height:36px;border-radius:12px">${ic("check")}</div><div class="who"><strong>${brl(p.valor)}</strong><small>${br(p.data)}</small></div><div></div></div>`).join("")||`<div class="empty">Nenhum pagamento ainda.</div>`}</div></div>
@@ -920,8 +997,9 @@ function vAdmin(){
   <div class="inner foot"><span>${esc(CFG.produto)} · painel do administrador${DEMO?" · demonstração":""}</span>${DEMO?`<button class="link" data-act="resetDemo">Restaurar demonstração</button>`:""}</div></main></div>`}
 
 /* ---------- render ---------- */
-const VIEWS={contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,mais:vMais,config:vConfig};
+const VIEWS={prontuario:vProntuario,contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,mais:vMais,config:vConfig};
 function render(){const R=$("root");
+ if(LEGAL){R.innerHTML=vLegal();return}
  if(SIGN){R.innerHTML=vSign();requestAnimationFrame(initPad);return}
  if(U===undefined){R.innerHTML=`<div class="boot">Carregando ${esc(CFG.produto)}…</div>`;return}
  if(!U){R.innerHTML=vAuth();bindAuth();return}
@@ -929,11 +1007,12 @@ function render(){const R=$("root");
  if(!U.cid){R.innerHTML=`<div class="lockscreen"><div class="card"><div class="bigic t-warn">${ic("alert")}</div><h1 class="page">Conta sem clínica</h1><p class="sub">Este e-mail não está ligado a nenhuma clínica. Fale com o suporte${CFG.suporteWhatsApp?": "+esc(CFG.suporteWhatsApp):""}.</p><button class="btn mt" data-act="logout">Sair</button></div></div>`;return}
  if(!C||!READY){R.innerHTML=`<div class="boot">Abrindo a clínica…</div>`;return}
  if(!clinicActive(C)){R.innerHTML=vBlocked();return}
+ if(DONO()&&(!C.aceite||C.aceite.versao!==TERMOS_VER)){R.innerHTML=vAceite();return}
  if(!VIEWS[route.v])route={v:"home"};R.innerHTML=shell(VIEWS[route.v]());bindView();if($("pad"))requestAnimationFrame(initPad)}
 
 function bindAuth(){const f=$("authForm");if(!f)return;f.onsubmit=async e=>{e.preventDefault();authErr="";const b=f.querySelector("button[type=submit]");b.disabled=true;b.textContent="Aguarde…";
  try{if(authMode==="entrar")await BE.login($("aEmail").value,$("aSenha").value);
-  else if(authMode==="criar")await BE.signup({clinica:$("aClin").value.trim(),dentista:$("aDent").value.trim(),fone:$("aFone").value.trim(),cidade:$("aCid").value.trim(),email:$("aEmail").value.trim().toLowerCase(),senha:$("aSenha").value});
+  else if(authMode==="criar")await BE.signup({clinica:$("aClin").value.trim(),dentista:$("aDent").value.trim(),fone:$("aFone").value.trim(),cidade:$("aCid").value.trim(),email:$("aEmail").value.trim().toLowerCase(),senha:$("aSenha").value,aceite:{versao:TERMOS_VER,data:new Date().toISOString(),por:$("aEmail").value.trim().toLowerCase()}});
   else{await BE.reset($("aEmail").value);authMode="entrar";toast("Enviamos o link para o seu e-mail");render()}}
  catch(err){authErr=errMsg(err);render()}}}
 function bindAdmin(){const q=$("admQ");if(q)q.oninput=e=>{admQ=e.target.value;const pos=e.target.selectionStart;render();const n=$("admQ");n.focus();n.setSelectionRange(pos,pos)};
@@ -973,7 +1052,9 @@ document.addEventListener("change",async e=>{const t=e.target;
   if(t.dataset.up==="pac"){const tipo=$("phTipo").value;for(const f of t.files)S.fotos.push({id:uid(),pid:route.arg,src:await readImg(f,800),tipo,data:T});save();render();toast("Foto adicionada")}
  }catch(err){console.error(err);toast("Não consegui salvar essa imagem")}}});
 document.addEventListener("click",async e=>{
- const b=e.target.closest("[data-go],[data-ficha],[data-act],[data-dia],[data-ast],[data-adel],[data-ftab],[data-ctab],[data-tooth],[data-tool],[data-phdel],[data-pay],[data-finf],[data-orm],[data-approve],[data-labst],[data-retok],[data-auth],[data-demo],[data-copy],[data-pdel],[data-staffdel],[data-admf],[data-apay],[data-ablock],[data-aedit],[data-docview],[data-docsign],[data-docsend],[data-doccopy],[data-docsim],[data-docdel],[data-docback],[data-moddel],[data-docf],[data-docclin]");if(!b)return;const d=b.dataset;
+ const b=e.target.closest("[data-go],[data-ficha],[data-act],[data-dia],[data-ast],[data-adel],[data-ftab],[data-ctab],[data-tooth],[data-tool],[data-phdel],[data-pay],[data-finf],[data-orm],[data-approve],[data-labst],[data-retok],[data-auth],[data-demo],[data-copy],[data-pdel],[data-staffdel],[data-admf],[data-apay],[data-ablock],[data-aedit],[data-docview],[data-docsign],[data-docsend],[data-doccopy],[data-docsim],[data-docdel],[data-docback],[data-moddel],[data-docf],[data-docclin],[data-legal],[data-go2]");if(!b)return;const d=b.dataset;
+ if(d.legal){legalBack={route,scroll:scrollY};LEGAL=d.legal;render();window.scrollTo({top:0});return}
+ if(d.go2){const id=route.arg;go(d.go2,id);if(d.go2==="prontuario")logAct("Gerou cópia do prontuário",(P(id)||{}).nome);return}
  if(d.auth){authMode=d.auth;authErr="";render();return}
  if(d.demo){try{await BE.login(d.demo,"123456")}catch(err){authErr=errMsg(err);render()}return}
  if(d.copy){const el=$(d.copy);navigator.clipboard.writeText(el.textContent).then(()=>toast("Copiado")).catch(()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto selecionado, copie com Ctrl+C")});return}
@@ -1005,7 +1086,7 @@ document.addEventListener("click",async e=>{
  if(d.docf){docF=d.docf;render();return}
  if(d.docclin){const doc=S.docs.find(x=>x.id===d.docclin);if(!C.assinatura){sigEdit=true;cfgTab="clinica";go("config");toast("Primeiro desenhe a assinatura da clínica");setTimeout(()=>{const c=$("sigcard");c&&c.scrollIntoView({behavior:"smooth",block:"center"})},100);return}
   if(sureClin!==doc.id){sureClin=doc.id;render();return}
-  sureClin=null;const data=new Date().toISOString();const nome=C.dentista||C.nome;doc.assClinica={img:C.assinatura,nome,cro:C.cro||"",data,por:U.email,hash:await sha256(doc.texto+"|"+C.nome+"|"+nome+"|"+(C.cro||"")+"|"+data)};save();render();toast(pacOk(doc)?"Documento assinado por todos":"Clínica assinou. Falta o paciente.");return}
+  sureClin=null;const data=new Date().toISOString();const nome=C.dentista||C.nome;logAct("Assinou documento pela clínica",doc.titulo+" · "+((P(doc.pid)||{}).nome||""));doc.assClinica={img:C.assinatura,nome,cro:C.cro||"",data,por:U.email,hash:await sha256(doc.texto+"|"+C.nome+"|"+nome+"|"+(C.cro||"")+"|"+data)};save();render();toast(pacOk(doc)?"Documento assinado por todos":"Clínica assinou. Falta o paciente.");return}
  if(d.docview){go("doc",d.docview);return}
  if(d.docback){go("contratos");return}
  if(d.docsign){const doc=S.docs.find(x=>x.id===d.docsign),p=P(doc.pid);SIGN={mode:"local",did:doc.id,titulo:doc.titulo,texto:doc.texto,clinica:C.nome,logo:C.logo,nome:p?p.nome:"",cpf:p?p.cpf:"",back:route};render();window.scrollTo({top:0});return}
@@ -1025,13 +1106,18 @@ document.addEventListener("click",async e=>{
  if(A==="newFin")$("finForm").classList.remove("hide");if(A==="closeFin")$("finForm").classList.add("hide");
  if(A==="newLab")$("labForm").classList.remove("hide");if(A==="closeLab")$("labForm").classList.add("hide");
  if(A==="newRet")$("retForm").classList.remove("hide");if(A==="closeRet")$("retForm").classList.add("hide");
- if(A==="delPac"){if(b.dataset.sure){const id=route.arg;S.pac=S.pac.filter(p=>p.id!==id);["ag","fin","ret","lab","fotos"].forEach(k=>S[k]=S[k].filter(x=>x.pid!==id));save();go("pacientes");toast("Paciente excluído")}else{b.dataset.sure="1";b.textContent="Toque de novo para excluir";b.classList.add("pri")}}
+ if(A==="delPac"){if(b.dataset.sure){const id=route.arg;logAct("Excluiu paciente",(P(id)||{}).nome);S.pac=S.pac.filter(p=>p.id!==id);["ag","fin","ret","lab","fotos"].forEach(k=>S[k]=S[k].filter(x=>x.pid!==id));save();go("pacientes");toast("Paciente excluído")}else{b.dataset.sure="1";b.textContent="Excluir mesmo? O prontuário deve ser guardado pelo prazo legal";b.classList.add("pri")}}
  if(A==="orcFor"){const o=ORC();o.pid=route.arg;o.items=[];save();go("orcamento")}
  if(A==="odToOrc"){const p=P(route.arg);const m={carie:"Restauração em resina",canal:"Tratamento de canal"};const price=n=>(PR().find(x=>x[0]===n)||[n,0])[1];const items=Object.entries(p.dentes).filter(([n,s])=>m[s]).map(([n,s])=>({proc:m[s],dente:n,v:price(m[s])}));
   if(!items.length){toast("Marque dentes com cárie ou canal primeiro");return}const o=ORC();o.pid=p.id;o.items=items;save();go("orcamento");toast(items.length+" procedimentos levados ao orçamento")}
  if(A==="oAdd"){const v=+$("oVal").value||0;if(!v){toast("Informe o valor");return}ORC().items.push({proc:PR()[$("oProc").value][0],dente:$("oDente").value.trim()||"—",v});save();render();toast("Adicionado ao plano")}
  if(A==="addHist"){const p=P(route.arg);p.hist.push({data:$("hData").value||T,proc:$("hProc").value,dente:$("hDente").value.trim(),obs:$("hObs").value.trim()});save();render();toast("Atendimento salvo")}
  if(A==="addProc"){const m=meta("procs");if(!m.list)m.list=DEF_PROCS.map(x=>x.slice());m.list.push(["Novo procedimento",100]);save();render()}
+ if(A==="legalBack"){LEGAL=null;render();if(legalBack)window.scrollTo({top:legalBack.scroll||0});return}
+ if(A==="aceitar"){if(!$("acOk").checked){toast("Marque que leu e aceita os documentos");return}const ac={versao:TERMOS_VER,data:new Date().toISOString(),por:U.email};await BE.updateClinic({aceite:ac});C.aceite=ac;logAct("Aceitou os Termos e a Política de Privacidade","versão "+br(TERMOS_VER));render();return}
+ if(A==="expPac"){const p=P(route.arg);download("paciente-"+slug(p.nome)+"-"+T+".json",pacDados(p));logAct("Exportou dados do paciente",p.nome);return}
+ if(A==="expClinic"){const out={exportadoEm:new Date().toISOString(),clinica:{nome:C.nome,responsavel:C.dentista,cro:C.cro||"",cidade:C.cidade,telefone:C.telefone}};COLS.forEach(k=>out[k]=S[k]||[]);download("dados-"+slug(C.nome)+"-"+T+".json",out);logAct("Exportou todos os dados da clínica");return}
+ if(A==="lgpdTerm"){docModel="lgpd";fichaTab="docs";render();setTimeout(()=>{const s=$("docModel");if(s){s.value=MODELOS().some(m=>m.id==="lgpd")?"lgpd":s.value}},0);toast("Escolha o termo LGPD e toque em Gerar documento");return}
  if(A==="sigEdit"){sigEdit=true;render();return}
  if(A==="sigCancel"){sigEdit=false;render();return}
  if(A==="sigSave"){if(PAD.empty){toast("Desenhe a assinatura no quadro");return}const img=padImage();PAD.empty=true;sigEdit=false;await BE.updateClinic({assinatura:img});C.assinatura=img;render();toast("Assinatura da clínica salva");return}
@@ -1048,6 +1134,8 @@ document.addEventListener("click",async e=>{
 /* ---------- início ---------- */
 U=undefined;
 const QS=new URLSearchParams(location.search).get("assinar");
+const QP=new URLSearchParams(location.search).get("pagina");
+if(QP==="termos"||QP==="privacidade")LEGAL=QP;
 if(QS){$("root").innerHTML=`<div class="boot">Abrindo documento…</div>`;U=null;
  BE.initPublic().then(()=>BE.getPublic(QS)).then(r=>{if(!r)SIGN={erro:"Documento não encontrado"};else if(r.status==="assinado")SIGN={erro:"Este documento já foi assinado"};else SIGN={mode:"public",token:QS,titulo:r.titulo,texto:r.texto,clinica:r.clinica,logo:r.logo,nome:r.paciente,cpf:r.cpf};render()})
  .catch(e=>{console.error(e);SIGN={erro:"Não foi possível abrir o documento"};render()})}

@@ -11,6 +11,7 @@ Sistema completo para clínicas odontológicas, vendido por assinatura mensal.
 - Orçamento com parcelamento, financeiro, retornos e laboratório
 - Contratos e termos com assinatura do paciente (na clínica ou por link no WhatsApp)
 - Equipe (secretária) com acesso limitado
+- LGPD: termos de uso, política de privacidade, cópia do prontuário, exportação de dados e registro de atividades
 - Painel do administrador: clínicas, receita mensal, cobrança por Pix e bloqueio automático
 
 ## Tecnologias

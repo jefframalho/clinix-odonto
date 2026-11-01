@@ -16,6 +16,7 @@ window.CLINIX_CONFIG = {
 
   vendedor: "Jefferson Ramalho",
   suporteWhatsApp: "(83) 9 2141-8988",
+  emailSuporte: "jeffersonramalhopb@gmail.com",  // aparece nos Termos e na Política de Privacidade
 
   // Sua chave Pix para receber as mensalidades
   pix: {
