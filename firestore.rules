@@ -43,5 +43,17 @@ service cloud.firestore {
         allow read, write: if isAdmin() || (member(cid) && active(cid) && (col != 'fin' || me().papel == 'dono'));
       }
     }
+
+    // Documentos para o paciente assinar pelo link (o código do link é secreto e aleatório).
+    // Qualquer pessoa com o link lê; o paciente só pode marcar como assinado uma vez.
+    match /assinaturas/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if member(request.resource.data.cid) && active(request.resource.data.cid);
+      allow update: if member(resource.data.cid)
+        || (resource.data.status == 'pendente' && request.resource.data.status == 'assinado'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'assinatura']));
+      allow delete: if member(resource.data.cid) || isAdmin();
+    }
   }
 }

@@ -24,6 +24,9 @@ window.CLINIX_CONFIG = {
     cidade: "MAURITI"
   },
 
+  // Endereço do site publicado (usado nos links de assinatura)
+  appUrl: "https://jefframalho.github.io/clinix-odonto/",
+
   // Cole aqui o firebaseConfig do seu projeto (passo 5 do guia)
   firebase: {
     apiKey: "AIzaSyDhBKEhZEeNVRy6i1d4HZKq9Ga1lnvraOU",
