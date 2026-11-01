@@ -10,6 +10,10 @@ Sistema completo para clínicas odontológicas, vendido por assinatura mensal.
 - Ficha do paciente: anamnese, odontograma interativo, fotos de antes e depois, histórico
 - Orçamento com parcelamento, financeiro, retornos e laboratório
 - Contratos e termos com assinatura do paciente (na clínica ou por link no WhatsApp)
+- Vários dentistas: agenda por profissional, comissões e assinatura própria
+- Receitas (2 vias para antimicrobianos) e atestados
+- Anamnese respondida pelo paciente no celular
+- Agendamento online: o paciente escolhe o horário pelo link
 - Equipe (secretária) com acesso limitado
 - LGPD: termos de uso, política de privacidade, cópia do prontuário, exportação de dados e registro de atividades
 - Painel do administrador: clínicas, receita mensal, cobrança por Pix e bloqueio automático

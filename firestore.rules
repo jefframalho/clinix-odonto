@@ -55,5 +55,34 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'assinatura']));
       allow delete: if member(resource.data.cid) || isAdmin();
     }
+
+    // Ficha de saúde (anamnese) respondida pelo paciente pelo link. Só pode responder uma vez.
+    match /anamneses/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if member(request.resource.data.cid) && active(request.resource.data.cid);
+      allow update: if member(resource.data.cid)
+        || (resource.data.status == 'pendente' && request.resource.data.status == 'respondida'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'respostas']));
+      allow delete: if member(resource.data.cid) || isAdmin();
+    }
+
+    // Agendamento online: horários livres públicos (sem nomes de pacientes) e pedidos dos pacientes.
+    match /agendas/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if member(request.resource.data.cid) && active(request.resource.data.cid);
+      allow delete: if member(resource.data.cid) || isAdmin();
+      match /pedidos/{id} {
+        allow create: if get(/databases/$(db)/documents/agendas/$(token)).data.ativo == true
+          && request.resource.data.keys().hasOnly(['nome', 'fone', 'data', 'hora', 'proc', 'prof', 'obs', 'criado'])
+          && request.resource.data.nome is string && request.resource.data.nome.size() <= 100
+          && request.resource.data.fone is string && request.resource.data.fone.size() <= 20
+          && request.resource.data.obs is string && request.resource.data.obs.size() <= 200;
+        allow read, delete: if member(get(/databases/$(db)/documents/agendas/$(token)).data.cid)
+          || isAdmin();
+        allow update: if false;
+      }
+    }
   }
 }
