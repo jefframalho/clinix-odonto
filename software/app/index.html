@@ -651,12 +651,12 @@ function vBlocked(){const sit=situacao(C);
  <p class="small muted mt">Suporte: ${esc(CFG.suporteWhatsApp)}</p></div></div>`}
 
 /* ---------- navegação ---------- */
-const NAV=[["home","Início","home"],["agenda","Agenda","cal"],["pacientes","Pacientes","users"],["orcamento","Orçamento","doc"],["financeiro","Financeiro","money",1],["retornos","Retornos","clock"],["lab","Laboratório","lab"],["config","Configurações","gear",1]];
+const NAV=[["home","Início","home"],["agenda","Agenda","cal"],["pacientes","Pacientes","users"],["orcamento","Orçamento","doc"],["contratos","Contratos","check"],["financeiro","Financeiro","money",1],["retornos","Retornos","clock"],["lab","Laboratório","lab"],["config","Configurações","gear",1]];
 function go(v,arg){route={v,arg};if(v==="ficha"&&!arg)route.v="pacientes";render();window.scrollTo({top:0})}
 function counts(){return{ret:S.ret.filter(r=>diff(iso(addDays(parse(r.ult),r.dias)))<0).length,fin:S.fin.filter(f=>!f.pago&&diff(f.venc)<0).length,lab:S.lab.filter(l=>l.st===1).length}}
 function brandHTML(){return `<div class="brand">${C&&C.logo?`<img class="logoimg" src="${C.logo}" alt="Logo">`:`<div class="mark">${ic("tooth",1.8)}</div>`}<div><b>${esc(C?C.nome:CFG.produto)}</b><small>${esc(CFG.produto)}</small></div></div>`}
 function shell(inner){
- const c=counts();const cnt={retornos:c.ret,financeiro:DONO()?c.fin:0,lab:c.lab};const cur=["ficha","doc"].includes(route.v)?"pacientes":route.v;
+ const c=counts();const cnt={retornos:c.ret,financeiro:DONO()?c.fin:0,lab:c.lab};const cur=route.v==="ficha"?"pacientes":route.v==="doc"?"contratos":route.v;
  const nav=NAV.filter(n=>!n[3]||DONO());
  const side=brandHTML()+nav.map(n=>`<button class="navbtn ${cur===n[0]?"on":""}" data-go="${n[0]}">${ic(n[2])}${n[1]}${cnt[n[0]]?`<span class="cnt">${cnt[n[0]]}</span>`:""}</button>`).join("")+
   `<div style="margin-top:auto"><div class="userbox">${avHTML({id:U.uid,nome:U.nome||U.email})}<div class="ubt"><b class="small">${esc(U.nome||"Usuário")}</b><small>${esc(U.email)}</small></div><button class="xbtn" style="background:var(--surface);color:var(--muted)" data-act="logout" aria-label="Sair" title="Sair">${ic("out")}</button></div></div>`;
@@ -691,7 +691,7 @@ function vHome(){
   const pc={};S.fin.filter(f=>f.pago).forEach(f=>{const k=f.desc.split(" ·")[0];pc[k]=(pc[k]||0)+f.valor});const topP=Object.entries(pc).sort((a,b)=>b[1]-a[1]).slice(0,5),tmax=topP[0]?topP[0][1]:1;
   topHTML=`<div class="card"><h3 style="margin-bottom:12px">Procedimentos que mais faturam</h3><div class="stack" style="gap:10px">${topP.map(([n,v])=>`<div><div class="row" style="justify-content:space-between"><span class="small" style="font-weight:600">${esc(n)}</span><span class="small" style="font-weight:800">${brl(v)}</span></div><div class="progress"><i style="width:${v/tmax*100}%;background:var(--accent)"></i></div></div>`).join("")||`<p class="small muted">Os procedimentos pagos aparecem aqui.</p>`}</div></div>`}
  const alerts=[];if(c.ret)alerts.push(["t-bad","clock",`${c.ret} pacientes com retorno atrasado`,"retornos"]);if(DONO()&&c.fin)alerts.push(["t-warn","money",`${c.fin} pagamentos atrasados`,"financeiro"]);if(c.lab)alerts.push(["t-ok","lab",`${c.lab} trabalho(s) pronto(s) no laboratório`,"lab"]);
- syncDocs();const dp=S.docs.filter(d=>d.status!=="assinado").length;if(dp)alerts.push(["t-acc","doc",`${dp} documento(s) aguardando assinatura`,"pacientes"]);
+ syncDocs();const dp=S.docs.filter(d=>d.status!=="assinado").length;if(dp)alerts.push(["t-acc","doc",`${dp} documento(s) aguardando assinatura`,"contratos"]);
  const livres=hoje.filter(a=>a.st==="bad").length;if(livres)alerts.push(["t-info","cal",`${livres} horário livre hoje para encaixe`,"agenda"]);
  const empty=!S.pac.length;
  return `<section class="hero">
@@ -779,11 +779,21 @@ function docPaper(d){const p=P(d.pid)||{};const a=d.assinatura;
  <div class="sig"><div class="sigline"></div><b>${esc(C.dentista||C.nome)}</b><small>${esc(C.nome)}</small></div></div>
  ${a?`<div class="audit"><b>Documento assinado eletronicamente</b> por ${esc(a.nome)} em ${new Date(a.data).toLocaleString("pt-BR")}, ${a.via==="link"?"pelo link pessoal enviado ao paciente":"presencialmente na clínica"}.<br>Código de verificação (SHA-256): <code>${esc(a.hash)}</code></div>`:""}</article>`}
 function vDoc(){const d=S.docs.find(x=>x.id===route.arg);if(!d)return vPacientes();const p=P(d.pid);syncDocs();const pend=d.status!=="assinado";
- return `<div class="row" style="margin-bottom:12px;justify-content:space-between"><button class="btn sm" data-docback="${d.pid}">${ic("back")}${esc(p?p.nome:"Paciente")}</button>
+ return `<div class="row" style="margin-bottom:12px;justify-content:space-between"><button class="btn sm" data-docback="${d.pid}">${ic("back")}Contratos</button>
   <div class="row">${docSt(d)}<button class="btn sm" data-act="print">${ic("doc")}Imprimir ou salvar PDF</button>${pend?`<button class="btn sm pri" data-docsign="${d.id}">Assinar aqui</button><button class="btn sm wa" data-docsend="${d.id}">${WAI}Enviar link</button>${d.enviado?`<button class="btn sm" data-doccopy="${d.id}">Copiar link</button>`:""}${DEMO&&d.enviado?`<button class="btn sm" data-docsim="${d.id}">Simular paciente abrindo o link</button>`:""}`:""}</div></div>
  ${pend?`<details class="card" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700">Editar o texto antes de assinar</summary><textarea class="big mt" data-doctext="${d.id}">${esc(d.texto)}</textarea><p class="small muted">As alterações são salvas sozinhas. Se o link já foi enviado, envie de novo para o paciente ver a versão nova.</p></details>`:""}
  ${docPaper(d)}
  ${pend||DONO()?`<div class="row mt" style="justify-content:center"><button class="btn sm" data-docdel="${d.id}">Excluir documento</button></div>`:""}`}
+let docF="todos";
+function vContratos(){syncDocs();const pend=S.docs.filter(d=>d.status!=="assinado").length,ok=S.docs.length-pend;
+ let its=S.docs.slice();if(docF==="pend")its=its.filter(d=>d.status!=="assinado");if(docF==="ok")its=its.filter(d=>d.status==="assinado");its.sort((a,b)=>(b.criado||"").localeCompare(a.criado||""));
+ const pacs=S.pac.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+ return `<div class="pagehead"><div><h1 class="page">Contratos</h1><p class="sub">Contratos e termos assinados pelo paciente na clínica ou pelo link do WhatsApp.</p></div></div>
+ <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"><div class="kpi"><div class="ic t-warn">${ic("clock")}</div><b>${pend}</b><span>Aguardando assinatura</span></div><div class="kpi"><div class="ic t-ok">${ic("check")}</div><b>${ok}</b><span>Assinados</span></div></div>
+ <div class="cols two"><div class="card"><div class="chips" style="margin-bottom:12px">${[["todos","Todos"],["pend","Aguardando"],["ok","Assinados"]].map(c=>`<button class="chip ${docF===c[0]?"on":""}" data-docf="${c[0]}">${c[1]}</button>`).join("")}</div>
+  <div class="list">${its.map(d=>{const p=P(d.pid)||{id:"x",nome:"Paciente removido"};return `<div class="li">${avHTML(p)}<div class="who click" data-docview="${d.id}"><strong style="white-space:normal">${esc(d.titulo)}</strong><small>${esc(p.nome)} · ${br(d.criado)}</small></div><div></div><div class="acts">${docSt(d)}<button class="btn sm" data-docview="${d.id}">Abrir</button>${d.status!=="assinado"?`<button class="btn sm pri" data-docsign="${d.id}">Assinar aqui</button><button class="btn sm wa" data-docsend="${d.id}">${WAI}Enviar link</button>`:""}</div></div>`}).join("")||`<div class="empty">Nenhum documento ainda. Gere o primeiro ao lado.</div>`}</div></div>
+ <div class="card" style="align-self:start"><h3 style="margin-bottom:6px">Novo contrato ou termo</h3><p class="small muted" style="margin:0 0 12px">Sai preenchido com os dados do paciente e o orçamento dele.</p>
+  ${pacs.length?`<div class="stack"><label class="f">Paciente<select id="ncPac">${pacs.map(p=>`<option value="${p.id}">${esc(p.nome)}</option>`).join("")}</select></label><label class="f">Documento<select id="docModel">${MODELOS().map(m=>`<option value="${m.id}" ${m.id===docModel?"selected":""}>${esc(m.nome)}</option>`).join("")}</select></label><button class="btn pri block" data-act="genDocAny">Gerar documento</button>${DONO()?`<button class="link" data-act="editModelos" style="justify-self:center">Editar os modelos</button>`:""}</div>`:`<div class="empty">Cadastre um paciente primeiro.</div>`}</div></div>`}
 function vSign(){const g=SIGN;
  if(g.erro)return `<div class="lockscreen"><div class="card"><div class="bigic t-warn">${ic("alert")}</div><h1 class="page">${esc(g.erro)}</h1><p class="sub">Peça um novo link para a clínica.</p></div></div>`;
  if(g.done)return `<div class="lockscreen"><div class="card"><div class="bigic t-ok">${ic("check")}</div><h1 class="page">Documento assinado</h1><p class="sub">Obrigado, ${esc(first(g.done.nome))}! A ${esc(g.clinica)} já recebeu sua assinatura.</p><p class="small muted">Assinado em ${new Date(g.done.data).toLocaleString("pt-BR")}<br>Código de verificação: ${esc(g.done.hash.slice(0,16))}…</p>${U?`<button class="btn pri mt" data-act="signBack">Voltar ao sistema</button>`:""}</div></div>`;
@@ -858,7 +868,7 @@ function vLab(){return `<div class="pagehead"><div><h1 class="page">Laboratório
   return `<div class="li" style="background:var(--surface);box-shadow:var(--shadow)"><div class="click" data-ficha="${p.id}">${avHTML(p)}</div><div class="who"><strong>${esc(l.trab)} ${l.dente?`<span class="tn">${esc(l.dente)}</span>`:""}</strong><small>${esc(p.nome)} · ${esc(l.labn)}</small></div><div class="end">${DONO()?brl(l.valor):""}</div>
   <div class="acts" style="flex-direction:column;align-items:stretch"><div class="steps">${[0,1,2].map(i=>`<i class="${i<=l.st?"on":""}"></i>`).join("")}</div><div class="row"><span class="pill dot ${late?"t-bad":l.st===2?"t-ok":l.st===1?"t-info":"t-warn"}" style="margin-right:auto">${late?`Atrasado ${-d}d`:LST[l.st]}${l.st===0&&!late?` · ${br(l.prazo)}`:""}</span>${l.st<2?`<button class="btn sm" data-labst="${l.id}">${l.st===0?"Chegou":"Instalado"}</button>`:""}</div></div></div>`}).join("")||`<div class="empty">Nenhum trabalho enviado.</div>`}</div>`}
 
-function vMais(){const c=counts();const T3=[["orcamento","Orçamento","Planos de tratamento","doc","t-acc"],["retornos","Retornos",c.ret+" atrasados","clock","t-bad"],["lab","Laboratório",c.lab+" prontos","lab","t-ok"]];if(DONO())T3.push(["config","Configurações","Clínica, preços, equipe e plano","gear","t-info"]);
+function vMais(){const c=counts();const T3=[["contratos","Contratos",S.docs.filter(d=>d.status!=="assinado").length+" aguardando assinatura","check","t-ok"],["orcamento","Orçamento","Planos de tratamento","doc","t-acc"],["retornos","Retornos",c.ret+" atrasados","clock","t-bad"],["lab","Laboratório",c.lab+" prontos","lab","t-ok"]];if(DONO())T3.push(["config","Configurações","Clínica, preços, equipe e plano","gear","t-info"]);
  return `<div class="pagehead"><h1 class="page">Mais</h1></div><div class="tiles">${T3.map(t=>`<button class="tile" data-go="${t[0]}"><div class="ic ${t[4]}">${ic(t[3])}</div><b>${t[1]}</b><small>${t[2]}</small></button>`).join("")}<button class="tile" data-act="logout"><div class="ic t-bad">${ic("out")}</div><b>Sair</b><small>${esc(U.email)}</small></button></div>`}
 
 function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["precos","Preços"],["contratos","Contratos"],["equipe","Equipe"],["plano","Plano"]];let body="";
@@ -904,7 +914,7 @@ function vAdmin(){
   <div class="inner foot"><span>${esc(CFG.produto)} · painel do administrador${DEMO?" · demonstração":""}</span>${DEMO?`<button class="link" data-act="resetDemo">Restaurar demonstração</button>`:""}</div></main></div>`}
 
 /* ---------- render ---------- */
-const VIEWS={doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,mais:vMais,config:vConfig};
+const VIEWS={contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,mais:vMais,config:vConfig};
 function render(){const R=$("root");
  if(SIGN){R.innerHTML=vSign();requestAnimationFrame(initPad);return}
  if(U===undefined){R.innerHTML=`<div class="boot">Carregando ${esc(CFG.produto)}…</div>`;return}
@@ -957,7 +967,7 @@ document.addEventListener("change",async e=>{const t=e.target;
   if(t.dataset.up==="pac"){const tipo=$("phTipo").value;for(const f of t.files)S.fotos.push({id:uid(),pid:route.arg,src:await readImg(f,800),tipo,data:T});save();render();toast("Foto adicionada")}
  }catch(err){console.error(err);toast("Não consegui salvar essa imagem")}}});
 document.addEventListener("click",async e=>{
- const b=e.target.closest("[data-go],[data-ficha],[data-act],[data-dia],[data-ast],[data-adel],[data-ftab],[data-ctab],[data-tooth],[data-tool],[data-phdel],[data-pay],[data-finf],[data-orm],[data-approve],[data-labst],[data-retok],[data-auth],[data-demo],[data-copy],[data-pdel],[data-staffdel],[data-admf],[data-apay],[data-ablock],[data-aedit],[data-docview],[data-docsign],[data-docsend],[data-doccopy],[data-docsim],[data-docdel],[data-docback],[data-moddel]");if(!b)return;const d=b.dataset;
+ const b=e.target.closest("[data-go],[data-ficha],[data-act],[data-dia],[data-ast],[data-adel],[data-ftab],[data-ctab],[data-tooth],[data-tool],[data-phdel],[data-pay],[data-finf],[data-orm],[data-approve],[data-labst],[data-retok],[data-auth],[data-demo],[data-copy],[data-pdel],[data-staffdel],[data-admf],[data-apay],[data-ablock],[data-aedit],[data-docview],[data-docsign],[data-docsend],[data-doccopy],[data-docsim],[data-docdel],[data-docback],[data-moddel],[data-docf]");if(!b)return;const d=b.dataset;
  if(d.auth){authMode=d.auth;authErr="";render();return}
  if(d.demo){try{await BE.login(d.demo,"123456")}catch(err){authErr=errMsg(err);render()}return}
  if(d.copy){const el=$(d.copy);navigator.clipboard.writeText(el.textContent).then(()=>toast("Copiado")).catch(()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto selecionado, copie com Ctrl+C")});return}
@@ -986,10 +996,11 @@ document.addEventListener("click",async e=>{
   else for(let i=0;i<o.np;i++)S.fin.push({id:uid(),pid:o.pid,desc:`Plano de tratamento · parcela ${i+1}/${o.np}`,valor:Math.round(tot/o.np*100)/100,forma:"Cartão",venc:iso(addMonths(TODAY,i)),pago:false});
   save();toast("Parcelas criadas no financeiro");finF="receber";go("financeiro");return}
  if(d.labst){const l=S.lab.find(x=>x.id==d.labst);l.st=Math.min(2,l.st+1);if(l.st===2){const p=P(l.pid);if(p)p.hist.push({data:T,proc:"Instalação: "+l.trab,dente:l.dente,obs:l.labn})}save();render();toast(l.st===1?"Marcado como pronto":"Instalação registrada no histórico");return}
+ if(d.docf){docF=d.docf;render();return}
  if(d.docview){go("doc",d.docview);return}
- if(d.docback){fichaTab="docs";go("ficha",d.docback);return}
+ if(d.docback){go("contratos");return}
  if(d.docsign){const doc=S.docs.find(x=>x.id===d.docsign),p=P(doc.pid);SIGN={mode:"local",did:doc.id,titulo:doc.titulo,texto:doc.texto,clinica:C.nome,logo:C.logo,nome:p?p.nome:"",cpf:p?p.cpf:"",back:route};render();window.scrollTo({top:0});return}
- if(d.docsend){const doc=S.docs.find(x=>x.id===d.docsend),p=P(doc.pid);b.disabled=true;try{const link=await sendDoc(doc);const msg=`Olá, ${first(p.nome)}! Segue o documento "${doc.titulo}" da ${C.nome} para você ler e assinar pelo celular:\n\n${link}`;window.open(wa(p.fone,msg),"_blank");toast("Link criado. Se o WhatsApp não abrir, use Copiar link.");render()}catch(e){console.error(e);toast("Não consegui criar o link")}b.disabled=false;return}
+ if(d.docsend){const doc=S.docs.find(x=>x.id===d.docsend),p=P(doc.pid);if(!p){toast("Paciente não encontrado");return}b.disabled=true;try{const link=await sendDoc(doc);const msg=`Olá, ${first(p.nome)}! Segue o documento "${doc.titulo}" da ${C.nome} para você ler e assinar pelo celular:\n\n${link}`;window.open(wa(p.fone,msg),"_blank");toast("Link criado. Se o WhatsApp não abrir, use Copiar link.");render()}catch(e){console.error(e);toast("Não consegui criar o link")}b.disabled=false;return}
  if(d.doccopy){const doc=S.docs.find(x=>x.id===d.doccopy);const link=docLink(doc.token);navigator.clipboard.writeText(link).then(()=>toast("Link copiado")).catch(()=>toast(link));return}
  if(d.docsim){const doc=S.docs.find(x=>x.id===d.docsim);const r=await BE.getPublic(doc.token);SIGN={mode:"public",token:doc.token,titulo:r.titulo,texto:r.texto,clinica:r.clinica,logo:r.logo,nome:r.paciente,cpf:r.cpf,back:route};render();window.scrollTo({top:0});return}
  if(d.docdel){if(b.dataset.sure){const doc=S.docs.find(x=>x.id===d.docdel);S.docs=S.docs.filter(x=>x.id!==d.docdel);save();fichaTab="docs";go("ficha",doc&&doc.pid);toast("Documento excluído")}else{b.dataset.sure="1";b.textContent="Toque de novo para excluir";b.classList.add("pri")}return}
@@ -1012,7 +1023,8 @@ document.addEventListener("click",async e=>{
  if(A==="oAdd"){const v=+$("oVal").value||0;if(!v){toast("Informe o valor");return}ORC().items.push({proc:PR()[$("oProc").value][0],dente:$("oDente").value.trim()||"—",v});save();render();toast("Adicionado ao plano")}
  if(A==="addHist"){const p=P(route.arg);p.hist.push({data:$("hData").value||T,proc:$("hProc").value,dente:$("hDente").value.trim(),obs:$("hObs").value.trim()});save();render();toast("Atendimento salvo")}
  if(A==="addProc"){const m=meta("procs");if(!m.list)m.list=DEF_PROCS.map(x=>x.slice());m.list.push(["Novo procedimento",100]);save();render()}
- if(A==="genDoc"){const p=P(route.arg);const m=MODELOS().find(x=>x.id===($("docModel").value||docModel))||MODELOS()[0];docModel=m.id;const doc={id:uid(),pid:p.id,titulo:m.nome,texto:fillTemplate(m.texto,p),criado:T,status:"pendente",token:newToken(),enviado:false};S.docs.push(doc);save();go("doc",doc.id);toast("Documento gerado");return}
+ if(A==="editModelos"){cfgTab="contratos";go("config");return}
+ if(A==="genDocAny"||A==="genDoc"){const p=P(A==="genDoc"?route.arg:$("ncPac").value);const m=MODELOS().find(x=>x.id===($("docModel").value||docModel))||MODELOS()[0];docModel=m.id;const doc={id:uid(),pid:p.id,titulo:m.nome,texto:fillTemplate(m.texto,p),criado:T,status:"pendente",token:newToken(),enviado:false};S.docs.push(doc);save();go("doc",doc.id);toast("Documento gerado");return}
  if(A==="print"){window.print();return}
  if(A==="padClear"){initPad();return}
  if(A==="signSubmit"){signSubmit(b);return}
