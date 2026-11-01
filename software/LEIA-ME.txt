@@ -1,0 +1,5 @@
+Código do programa para Windows (Electron).
+Gerar instalador: instale o Node.js (nodejs.org), abra o terminal na pasta "app" e rode
+  npm install
+  npm run dist
+O instalador sai na pasta "dist". Para testar sem instalar: npm start

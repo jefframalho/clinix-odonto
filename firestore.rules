@@ -1,0 +1,47 @@
+rules_version = '2';
+// REGRAS DE SEGURANÇA DO CLINIX ODONTO
+// Cole no Firebase: Firestore Database > Regras > Publicar.
+// Troque o e-mail abaixo se o administrador for outro (o mesmo do config.js).
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.email in ['jeffersonramalhopb@gmail.com']; }
+    function myDoc() { return /databases/$(db)/documents/usuarios/$(request.auth.uid); }
+    function me() { return get(myDoc()).data; }
+    function member(cid) { return signedIn() && exists(myDoc()) && me().cid == cid; }
+    function isOwner(cid) { return member(cid) && me().papel == 'dono'; }
+    function clinic(cid) { return get(/databases/$(db)/documents/clinicas/$(cid)).data; }
+    // Clínica liberada: não bloqueada e vencimento há no máximo 5 dias (carência)
+    function active(cid) { return clinic(cid).status != 'bloqueado' && clinic(cid).vencimento > request.time - duration.value(5, 'd'); }
+
+    // Quem é quem: cada usuário aponta para a sua clínica
+    match /usuarios/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin() || (exists(myDoc()) && resource.data.cid == me().cid));
+      allow create: if isAdmin()
+        || (request.auth.uid == uid && request.resource.data.papel == 'dono'
+            && get(/databases/$(db)/documents/clinicas/$(request.resource.data.cid)).data.dono == uid)
+        || (isOwner(request.resource.data.cid) && request.resource.data.papel == 'equipe');
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (isOwner(resource.data.cid) && resource.data.papel == 'equipe');
+    }
+
+    // Clínicas: a dona edita nome/logo, mas só o administrador mexe em plano e vencimento
+    match /clinicas/{cid} {
+      allow read: if isAdmin() || member(cid);
+      allow create: if signedIn()
+        && request.resource.data.dono == request.auth.uid
+        && request.resource.data.status == 'teste'
+        && request.resource.data.vencimento <= request.time + duration.value(15, 'd');
+      allow update: if isAdmin() || (isOwner(cid)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'vencimento', 'valor', 'dono', 'pagamentos', 'criadoEm']));
+      allow delete: if isAdmin();
+
+      // Dados da clínica (pacientes, agenda, etc.): só a equipe da própria clínica, e só com mensalidade em dia.
+      // O financeiro ("fin") só a responsável vê.
+      match /{col}/{doc} {
+        allow read, write: if isAdmin() || (member(cid) && active(cid) && (col != 'fin' || me().papel == 'dono'));
+      }
+    }
+  }
+}

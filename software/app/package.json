@@ -1,0 +1,16 @@
+{
+  "name": "clinix-odonto",
+  "productName": "Clinix Odonto",
+  "version": "1.0.0",
+  "description": "Sistema completo para clínicas odontológicas",
+  "main": "main.js",
+  "author": "Jefferson Ramalho",
+  "scripts": { "start": "electron .", "dist": "electron-builder --win nsis" },
+  "devDependencies": { "electron": "33.2.1", "electron-builder": "25.1.8" },
+  "build": {
+    "appId": "br.com.clinixodonto.app",
+    "productName": "Clinix Odonto",
+    "win": { "icon": "icons/icon.ico", "target": "nsis" },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "shortcutName": "Clinix Odonto" }
+  }
+}

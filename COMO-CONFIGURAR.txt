@@ -1,0 +1,65 @@
+CLINIX ODONTO — COMO COLOCAR NO AR E COMEÇAR A COBRAR
+=====================================================
+
+O sistema já funciona em MODO DEMONSTRAÇÃO (dados só no aparelho).
+Para ter login de verdade e várias clínicas, siga os passos abaixo.
+Tudo é grátis para começar (plano Spark do Firebase).
+
+PASSO 1 — Criar o projeto no Firebase
+  1. Entre em console.firebase.google.com com sua conta Google.
+  2. "Criar um projeto" > nome: clinix-odonto > pode desativar o Google Analytics.
+
+PASSO 2 — Ligar o login por e-mail
+  Menu Criação (Build) > Authentication > Vamos começar >
+  aba "Método de login" > E-mail/senha > Ativar > Salvar.
+
+PASSO 3 — Criar o banco de dados
+  Menu Criação > Firestore Database > Criar banco de dados >
+  Local: southamerica-east1 (São Paulo) > "Iniciar no modo de produção".
+
+PASSO 4 — Colar as regras de segurança
+  Firestore Database > aba "Regras" > apague tudo > cole o conteúdo do
+  arquivo firestore.rules > Publicar.
+  (Elas garantem que uma clínica nunca veja os dados de outra e que
+   clínica bloqueada não acesse nada.)
+
+PASSO 5 — Pegar a configuração do app
+  Engrenagem (Configurações do projeto) > "Seus apps" > ícone </> (Web) >
+  apelido: Clinix > Registrar app. Copie os valores de firebaseConfig
+  (apiKey, authDomain, projectId...) e cole no arquivo site/config.js.
+  Preencha também sua chave Pix no config.js.
+
+PASSO 6 — Publicar o site
+  GitHub Pages: crie o repositório "clinix-odonto" (público) e envie
+  os arquivos da pasta "site". Em Settings > Pages escolha a branch main.
+  Endereço: https://jefframalho.github.io/clinix-odonto/
+  (ou arraste a pasta "site" em app.netlify.com/drop)
+
+PASSO 7 — Liberar o endereço no Firebase
+  Authentication > Configurações > Domínios autorizados > Adicionar
+  domínio > jefframalho.github.io  (ou o endereço do Netlify).
+
+PASSO 8 — Criar a SUA conta de administrador  (faça isto antes de divulgar)
+  Authentication > aba Usuários > Adicionar usuário >
+  e-mail: jeffersonramalhopb@gmail.com e uma senha forte.
+  Entre no site com esse e-mail: abre o PAINEL DO ADMINISTRADOR.
+  (Não use "Criar conta" com o seu e-mail: isso cria uma clínica.)
+
+COMO VENDER
+  - A clínica entra no site > "Criar conta" > ganha 14 dias grátis.
+  - No fim do teste ela vê o QR Code Pix com o valor da mensalidade.
+  - Você recebe o Pix e toca em "Recebi Pix" no painel: libera 1 mês.
+  - Com 5 dias de atraso o acesso é bloqueado sozinho (os dados ficam guardados).
+  - Para mudar o preço de uma clínica: painel > Editar.
+
+SOFTWARE PARA WINDOWS
+  O programa abre o site publicado (sempre atualizado). Se o endereço
+  for diferente de jefframalho.github.io/clinix-odonto, troque a linha
+  APP_URL no arquivo software/app/main.js e gere de novo:
+    npm install   e depois   npm run dist
+
+LIMITES DO PLANO GRÁTIS DO FIREBASE (aprox.)
+  50 mil leituras e 20 mil gravações por dia, 1 GB de dados.
+  Dá para várias dezenas de clínicas. Passando disso, ative o plano
+  Blaze (paga só o que usar, geralmente poucos reais por mês).
+  As fotos ficam guardadas comprimidas dentro do banco.
