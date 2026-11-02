@@ -14,6 +14,7 @@ Sistema completo para clínicas odontológicas, vendido por assinatura mensal.
 - Receitas (2 vias para antimicrobianos) e atestados
 - Anamnese respondida pelo paciente no celular
 - Agendamento online: o paciente escolhe o horário pelo link
+- Secretária IA no WhatsApp: responde dúvidas, mostra horários livres e cria pedidos de agendamento
 - Equipe (secretária) com acesso limitado
 - LGPD: termos de uso, política de privacidade, cópia do prontuário, exportação de dados e registro de atividades
 - Painel do administrador: clínicas, receita mensal, cobrança por Pix e bloqueio automático
@@ -28,6 +29,7 @@ HTML, CSS e JavaScript puro · Firebase Authentication · Cloud Firestore · PWA
 | `config.js` | Preço, dias de teste, chave Pix, administradores e Firebase |
 | `firestore.rules` | Regras de segurança do banco (cole no Firebase) |
 | `software/app` | Versão para Windows (Electron) |
+| `secretaria-ia` | Secretária IA no WhatsApp (Node + Gemini). Veja `secretaria-ia/COMO-ATIVAR.txt` |
 | `COMO-CONFIGURAR.txt` | Passo a passo de configuração |
 
 Desenvolvido por **Jefferson Ramalho** · WhatsApp (83) 9 2141-8988

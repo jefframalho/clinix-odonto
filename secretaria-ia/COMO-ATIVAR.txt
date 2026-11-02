@@ -1,0 +1,93 @@
+SECRETÁRIA IA DO CLINIX ODONTO — COMO COLOCAR NO AR
+===================================================
+
+O QUE ELA FAZ
+  - Atende os pacientes no WhatsApp da clínica, 24 horas.
+  - Responde dúvidas com o texto que a clínica escreveu (endereço, valores, convênios...).
+  - Mostra os horários livres da agenda e cria o PEDIDO de agendamento.
+    O pedido aparece na Agenda do Clinix para a clínica aceitar (igual ao agendamento online).
+  - Em urgência, reclamação ou dúvida que não sabe, avisa a recepção:
+    aparece na Agenda como "Pediu para falar com a recepção", com botão Responder.
+  - Nunca dá diagnóstico nem indica remédio. Não pede CPF nem dados de saúde.
+  - Só lê a agenda pública (horários livres, sem nomes). Não tem acesso a prontuários.
+
+COMO FUNCIONA
+  Paciente (WhatsApp) -> Meta -> este servidor (Render) -> Gemini -> agenda do Clinix (Firestore)
+
+-----------------------------------------------------------------
+PASSO 1 — Ligar na clínica (dentro do Clinix)
+  Configurações > Agendamento online:
+  1. Ligue o "Agendamento online" e confira os horários de atendimento.
+  2. No cartão "Secretária IA no WhatsApp", ligue a chave.
+  3. Escreva o que a secretária pode responder: endereço, valores, convênios,
+     formas de pagamento, estacionamento etc. (tudo que ela NÃO souber, ela passa para a recepção).
+  4. Copie o "Código para ativar o número". Você vai usar no Passo 4.
+
+PASSO 2 — Chave do Gemini (grátis para começar)
+  1. Entre em https://aistudio.google.com/apikey
+  2. "Criar chave de API" e copie.
+  ATENÇÃO (LGPD): no nível gratuito o Google pode usar as conversas para melhorar
+  os produtos dele. Para testar tudo bem. Antes de colocar pacientes reais, ative o
+  nível pago no AI Studio (precisa de faturamento no Google Cloud).
+
+PASSO 3 — WhatsApp oficial (Meta)
+  1. Entre em https://developers.facebook.com > Meus apps > Criar app > tipo "Empresa".
+  2. Adicione o produto "WhatsApp". A Meta já dá um NÚMERO DE TESTE grátis.
+  3. Em WhatsApp > Configuração da API anote:
+       - "Identificação do número de telefone" (phone number ID)
+       - o token de acesso (o temporário dura 24h; veja o Passo 6 para o definitivo)
+     e cadastre o seu celular como destinatário de teste.
+  4. Configurações do app > Básico > "Chave secreta do app": anote.
+
+PASSO 4 — Publicar o servidor no Render (grátis)
+  1. Entre em https://render.com com a conta do GitHub.
+  2. New > Web Service > escolha o repositório clinix-odonto.
+       Root Directory:  secretaria-ia
+       Build Command:   npm install
+       Start Command:   npm start
+       Instance Type:   Free
+  3. Em "Environment Variables" cadastre (modelo no arquivo .env.exemplo):
+       GEMINI_API_KEY        = chave do Passo 2
+       FIREBASE_API_KEY      = a apiKey do config.js
+       FIREBASE_PROJECT_ID   = clinix-odonto
+       WHATSAPP_TOKEN        = token do Passo 3
+       WHATSAPP_VERIFY_TOKEN = invente uma senha (ex.: clinix2026)
+       WHATSAPP_APP_SECRET   = chave secreta do Passo 3
+       CLINICAS              = {"ID_DO_NUMERO":"CODIGO_DA_AGENDA"}
+       TZ                    = America/Fortaleza
+  4. Deploy. O endereço fica parecido com https://clinix-secretaria.onrender.com
+     Abra no navegador: deve aparecer "Secretária IA do Clinix Odonto: no ar".
+
+PASSO 5 — Ligar a Meta ao servidor
+  WhatsApp > Configuração > Webhook > Editar:
+     URL de callback:      https://SEU-ENDERECO.onrender.com/webhook
+     Token de verificação: a mesma senha do WHATSAPP_VERIFY_TOKEN
+  Verificar e salvar. Depois, em "Campos do webhook", assine "messages".
+  Pronto: mande "Oi" do seu celular para o número de teste.
+
+PASSO 6 — Antes de vender para clientes
+  - Token definitivo: business.facebook.com > Configurações > Usuários do sistema >
+    Adicionar (Admin) > Gerar token com as permissões whatsapp_business_messaging e
+    whatsapp_business_management. Troque o WHATSAPP_TOKEN no Render.
+  - Número da clínica: em WhatsApp > Configuração da API > "Adicionar número".
+    Cada clínica precisa de um número próprio. Verificar a empresa no Gerenciador
+    de Negócios libera o nome da clínica e mais conversas por dia.
+  - Plano Free do Render "dorme" depois de 15 min sem uso: a primeira mensagem
+    pode demorar até 1 minuto. Com clientes pagantes, use o plano Starter.
+  - As conversas ficam na memória do servidor por 6 horas; se ele reiniciar,
+    a secretária "esquece" a conversa (os pedidos já criados continuam na Agenda).
+
+ADICIONAR OUTRA CLÍNICA
+  1. A clínica liga a secretária e te manda o código (Passo 1).
+  2. Você adiciona o número dela na Meta e coloca no CLINICAS do Render:
+     {"ID_NUMERO_CLINICA_1":"codigo1","ID_NUMERO_CLINICA_2":"codigo2"}
+  Dica: cobre um adicional na mensalidade por esse recurso.
+
+TESTAR SEM WHATSAPP (no seu PC, com Node 20 ou mais novo)
+  cd secretaria-ia
+  copie .env.exemplo para .env e preencha GEMINI_API_KEY
+  npm install
+  npm run testar -- CODIGO_DA_AGENDA
+  (os pedidos feitos no teste aparecem de verdade na Agenda; recuse depois)
+
+  npm run teste-auto   -> confere a lógica com simulações (não usa internet)
