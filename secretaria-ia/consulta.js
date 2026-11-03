@@ -7,7 +7,7 @@
 //   CONSULTA_MODO             "teste" (dados simulados) ou "real"
 //   CONSULTA_URL              endereço da API (padrão: APIBrasil https://gateway.apibrasil.io/api/v2/consulta/cpf/credits)
 //   CONSULTA_TOKEN            Bearer token da APIBrasil (menu Credenciais)
-//   CONSULTA_TIPO             qual consulta (padrão: spc-terceiros-pf)
+//   CONSULTA_TIPO             qual consulta (padrão: spc-boa-vista; outra opção: spc-terceiros-pf)
 //   CONSULTA_HOMOLOG          "true" = ambiente de testes da APIBrasil | "false" = produção
 //   CONSULTA_DEVICE_TOKEN     opcional: alguns agregadores pedem um "DeviceToken"
 //   CONSULTA_CAMPO_CPF        nome do campo do CPF no corpo da requisição (padrão: cpf)
@@ -74,7 +74,7 @@ function normalizar(r) {
 async function consultarFornecedor(cpf) {
   if (MODO !== "real") return simulado(cpf);
   const { CONSULTA_URL = "https://gateway.apibrasil.io/api/v2/consulta/cpf/credits", CONSULTA_TOKEN, CONSULTA_DEVICE_TOKEN,
-    CONSULTA_CAMPO_CPF = "cpf", CONSULTA_TIPO = "spc-terceiros-pf", CONSULTA_HOMOLOG = "false" } = process.env;
+    CONSULTA_CAMPO_CPF = "cpf", CONSULTA_TIPO = "spc-boa-vista", CONSULTA_HOMOLOG = "false" } = process.env;
   if (!CONSULTA_TOKEN) throw new Error("Fornecedor não configurado");
   const headers = { "Content-Type": "application/json", Authorization: "Bearer " + CONSULTA_TOKEN };
   if (CONSULTA_DEVICE_TOKEN) headers.DeviceToken = CONSULTA_DEVICE_TOKEN;
