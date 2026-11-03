@@ -353,6 +353,18 @@ textarea.big{min-height:320px;font:500 13.5px/1.6 var(--font)}
 .esthist{display:grid;gap:4px;font-size:13px}
 .esthist div{display:flex;justify-content:space-between;gap:8px;color:var(--muted)}
 .esthist b.e{color:var(--ok)} .esthist b.s{color:var(--bad)}
+
+/* odontograma por faces */
+.odwrap2{overflow-x:auto;margin:0 -4px;padding:0 4px}
+.odwrap2 .odg{min-width:760px}
+.odpanel{margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
+.odtable{overflow-x:auto}
+.odtable table{width:100%;border-collapse:collapse;font-size:14px}
+.odtable th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line)}
+.odtable td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.odtable .btn{margin-left:4px}
+.paper .odg{margin:8px 0}
+.paper .odtable td,.paper .odtable th{padding:6px 8px}
 </style>
 </head>
 <body>
@@ -548,7 +560,7 @@ Esta autorização é gratuita, válida por tempo indeterminado e pode ser cance
 function sampleData(){
  const P=[["Mariana Alves","(88) 9 0000-0004","1994-03-12"],["João Pereira","(88) 9 0000-0001","1981-07-02"],["Ana Clara Souza","(88) 9 0000-0002","2001-11-20"],["Francisco Lima","(88) 9 0000-0003","1968-01-15"],["Luiza Ferreira","(88) 9 0000-0005","1990-05-08"],["Pedro Henrique","(88) 9 0000-0006","2009-09-30"],["Cícera Santos","(88) 9 0000-0007","1975-12-03"],["Raimundo Nonato","(88) 9 0000-0008","1959-04-22"],["Josefa Bezerra","(88) 9 0000-0009","1963-08-17"],["Antônio Carlos","(88) 9 0000-0010","1987-02-11"]];
  const pac=P.map((p,i)=>({id:"p"+(i+1),nome:p[0],fone:p[1],nasc:p[2],end:"Mauriti, CE",foto:"",anam:{},obs:"",dentes:{},hist:[]}));
- pac[0].dentes={36:"carie",46:"canal",16:"rest",26:"rest"};pac[0].anam={"Bruxismo (range os dentes)":1};
+ pac[0].dentes={46:"canal"};pac[0].odp=[{id:"o1",data:iso(addDays(TODAY,-20)),dente:"14",faces:"C",proc:"Restauração em resina",st:"exist"},{id:"o2",data:iso(addDays(TODAY,-6)),dente:"44",faces:"D",proc:"Restauração em resina",st:"exec"},{id:"o3",data:T,dente:"12",faces:"D",proc:"Restauração em resina",st:"real"},{id:"o4",data:T,dente:"36",faces:"MO",proc:"Restauração em resina",st:"real"}];pac[0].anam={"Bruxismo (range os dentes)":1};
  pac[3].dentes={36:"ext",37:"impl",46:"coroa",14:"rest",25:"carie"};pac[3].anam={"Hipertensão":1,"Usa anticoagulante":1};
  pac[7].dentes={18:"ext",28:"ext",38:"ext",48:"ext",36:"impl",11:"coroa"};pac[7].anam={"Diabetes":1};
  pac[4].anam={"Alergia a medicamentos":1};pac[4].obs="Alergia a dipirona.";
@@ -868,10 +880,7 @@ function vFicha(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||
   <div class="card mt"><div class="cardhead"><h3>Privacidade do paciente (LGPD)</h3>${ic("lock")}</div><p class="small muted" style="margin:0 0 12px">O paciente tem direito a uma cópia do prontuário e dos dados guardados. O prontuário deve ser guardado pelo prazo legal, mesmo depois do fim do tratamento.</p>
   <div class="row"><button class="btn sm" data-go2="prontuario">${ic("doc")}Cópia do prontuário</button>${DONO()?`<button class="btn sm" data-act="expPac">Baixar todos os dados (arquivo)</button>`:""}<button class="btn sm" data-act="lgpdTerm">Gerar termo de ciência LGPD</button></div></div>`}
  if(fichaTab==="anamnese"){syncAnam();const al=p.anamLink;body=`<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><div style="min-width:0;flex:1"><h3>Anamnese pelo celular</h3><p class="small muted" style="margin:2px 0 0">${al&&al.status==="respondida"?`Respondida pelo paciente em ${new Date(al.resp).toLocaleDateString("pt-BR")}. As respostas já estão abaixo.`:al&&al.enviado?"Link enviado. As respostas entram aqui assim que o paciente terminar.":"Envie um link para o paciente responder antes da consulta."}</p></div><div class="row">${al&&al.status==="respondida"?`<span class="pill dot t-ok">Respondida</span>`:al&&al.enviado?`<span class="pill dot t-warn">Aguardando</span>`:""}<button class="btn sm wa" data-act="anamSend">${WAI}${al&&al.enviado&&al.status!=="respondida"?"Reenviar link":"Enviar link"}</button>${DEMO&&al&&al.enviado&&al.status!=="respondida"?`<button class="btn sm" data-act="anamSim">Simular paciente</button>`:""}</div></div></div>`+`<div class="card"><div class="cardhead"><h3>Questionário de saúde</h3><span class="small muted">Marque o que o paciente informou</span></div><div class="checks">${ANAM.map(k=>`<label class="check ${p.anam[k]?"on":""}"><input type="checkbox" data-anam="${esc(k)}" ${p.anam[k]?"checked":""}>${esc(k)}</label>`).join("")}</div><label class="f mt">Observações (medicamentos, alergias, cirurgias)<textarea data-pf="obs">${esc(p.obs)}</textarea></label></div>`}
- if(fichaTab==="odonto"){const cnt={};Object.values(p.dentes).forEach(v=>cnt[v]=(cnt[v]||0)+1);
-  const row=arr=>`<div class="arc">${arr.map((n,i)=>`<button class="tooth ${p.dentes[n]==="ext"?"x":""} ${i===8?"mid":""}" data-tooth="${n}" title="Dente ${n}">${n<30?`<small>${n}</small>`:""}${toothSVG(n,p.dentes[n])}${n>30?`<small>${n}</small>`:""}</button>`).join("")}</div>`;
-  body=`<div class="card"><div class="cardhead"><h3>Odontograma</h3><span class="small muted">Escolha a marcação e toque nos dentes</span></div><div class="legend">${DST.map(d=>`<button class="${odTool===d.k?"on":""}" data-tool="${d.k}"><i style="background:${d.c}"></i>${d.n}${cnt[d.k]?` (${cnt[d.k]})`:""}</button>`).join("")}</div>
-  <div class="odwrap"><div class="odonto"><div class="arcsep" style="border:0">Superior · lado direito do paciente à esquerda</div>${row(UP)}<div class="arcsep">Inferior</div>${row(LO)}</div></div><div class="row mt"><button class="btn sm" data-act="odToOrc">Levar dentes com cárie e canal para o orçamento</button></div></div>`}
+ if(fichaTab==="odonto"){body=odTab(p)}
  if(fichaTab==="fotos"){const fs=S.fotos.filter(f=>f.pid===p.id).sort((a,b)=>a.data.localeCompare(b.data));const an=fs.filter(f=>f.tipo==="Antes").slice(-1)[0],de=fs.filter(f=>f.tipo==="Depois").slice(-1)[0];
   body=`<div class="card"><div class="cardhead"><h3>Fotos clínicas</h3><select id="phTipo" style="width:auto"><option>Antes</option><option>Depois</option><option>Raio-X</option><option>Sorriso</option></select></div>
   ${an&&de?`<div class="compare"><div class="ph"><img src="${an.src}" alt="Antes"><span class="tag">Antes</span></div><div class="ph"><img src="${de.src}" alt="Depois"><span class="tag">Depois</span></div></div>`:""}
@@ -932,7 +941,7 @@ let LEGAL=null,legalBack=null,ANAMP=null,AGP=null,PEDS=[],pedWatch=null;function
  <h2>Cópia do prontuário odontológico</h2>
  <div class="ptext" style="white-space:normal"><p><b>Paciente:</b> ${esc(p.nome)}${p.cpf?" · CPF "+esc(p.cpf):""}${p.nasc?" · Nascimento "+br(p.nasc):""}<br><b>Contato:</b> ${esc(p.fone)}${p.end?" · "+esc(p.end):""}</p>
  <p><b>Anamnese:</b> ${an.length?esc(an.join("; ")):"nada informado"}.${p.obs?`<br><b>Observações:</b> ${esc(p.obs)}`:""}</p>
- <p><b>Odontograma:</b> ${den.length?den.map(([n,st])=>`dente ${n}: ${(DST.find(x=>x.k===st)||{n:st}).n.toLowerCase()}`).join("; "):"sem marcações"}.</p>
+ <p><b>Odontograma:</b> ${den.length?den.map(([n,st])=>`dente ${n}: ${(DST.find(x=>x.k===st)||{n:st}).n.toLowerCase()}`).join("; "):"sem marcações"}.</p>${(p.odp||[]).length||den.length?`${ODG.svg(p.odp||[],p.dentes||{},null)}${ODG.legend()}`:""}${(p.odp||[]).length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Dente</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>${p.odp.slice().sort((a,b)=>(a.data||"").localeCompare(b.data||"")).map(e=>`<tr><td>${br(e.data)}</td><td><b>${esc(ODG.label(e.dente,e.faces))}</b></td><td>${esc(e.proc)}</td><td>${ODG.STN[e.st]}</td></tr>`).join("")}</tbody></table></div>`:""}
  <p><b>Histórico de atendimentos:</b></p>${(p.hist||[]).length?`<ul>${p.hist.slice().sort((a,b)=>a.data.localeCompare(b.data)).map(h=>`<li>${br(h.data)} · ${esc(h.proc)}${h.dente?` (dente ${esc(h.dente)})`:""}${h.obs?` · ${esc(h.obs)}`:""}</li>`).join("")}</ul>`:"<p>Nenhum atendimento registrado.</p>"}
  <p><b>Documentos:</b> ${ds.length?ds.map(d=>`${esc(d.titulo)} (${fullOk(d)?"assinado":pacOk(d)?"assinado pelo paciente":"pendente"})`).join("; "):"nenhum"}.</p>
  <p><b>Fotos clínicas:</b> ${S.fotos.filter(f=>f.pid===p.id).length} arquivo(s) guardado(s) no sistema.</p>
@@ -1224,6 +1233,159 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||t.dataset
  x[k]=(k==="min"||k==="custo")?estNum(t.value):t.value.trim();save();render();toast("Salvo")});
 /* =================== FIM ESTOQUE =================== */
 
+/* ODG: odontograma anatômico por faces (desenho próprio, SVG) */
+const ODG=(()=>{
+ const COL={real:"#D64545",exec:"#2F80ED",exist:"#27AE60"};
+ const STN={real:"A realizar",exec:"Executado",exist:"Existente"};
+ const UPN=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LON=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+ const typ=n=>{const d=n%10;return d>=6?"m":d>=4?"p":d===3?"c":"i"};
+ const W=n=>{const t=typ(n),lo=n>30;return t==="m"?(n%10===8?40:44):t==="p"?33:t==="c"?31:(lo?25:(n%10===1?33:28))};
+ const roots=n=>{const t=typ(n),up=n<30,d=n%10;if(t==="m")return up?3:2;if(up&&d===4)return 2;return 1};
+ const anterior=n=>["i","c"].includes(typ(n));
+ /* nomes das faces conforme o dente */
+ const faceName=(n,f)=>({M:"Mesial",D:"Distal",O:anterior(n)?"Incisal":"Oclusal",V:"Vestibular",P:n<30?"Palatina":"Lingual",C:"Cervical"})[f];
+ const faceCode=(n,f)=>f==="O"&&anterior(n)?"I":f==="P"&&n>30?"L":f;
+ const label=(n,faces)=>String(n)+(faces||"").split("").map(f=>faceCode(n,f)).join("");
+ const FACES=["M","D","O","V","P","C"];
+ /* cor de cada face a partir das entradas do paciente (a última vence) */
+ function faceMap(entries,n){const m={};(entries||[]).filter(e=>String(e.dente)===String(n)).forEach(e=>{if(!e.faces){m._all=e.st}else e.faces.split("").forEach(f=>m[f]=e.st)});return m}
+ let uidc=0;
+ /* vista lateral: raiz em cima e coroa embaixo; flip = coroa em cima */
+ function side(n,x,y,w,flip,view,fm,whole){
+  const H=84,cx=x+w/2,cw=w*0.86,x0=cx-cw/2,x1=cx+cw/2,t=typ(n),d=n%10,third=d===8;
+  const mes=(n<20||(n>40&&n<50))?1:-1; /* 1 = mesial para a direita */
+  const yc=44,yb=t==="c"?80:t==="i"?79:78;
+  let crown;
+  if(t==="i")crown=`M${x0+cw*.14},${yc} C${x0},${yc+8} ${x0},${yc+22} ${x0+1},${yb} L${x1-1},${yb} C${x1},${yc+22} ${x1},${yc+8} ${x1-cw*.14},${yc} Z`;
+  else if(t==="c")crown=`M${x0+cw*.14},${yc} C${x0},${yc+8} ${x0},${yc+18} ${x0+2},${yc+26} L${cx},${yb+2} L${x1-2},${yc+26} C${x1},${yc+18} ${x1},${yc+8} ${x1-cw*.14},${yc} Z`;
+  else if(t==="p")crown=`M${x0+cw*.14},${yc} C${x0},${yc+8} ${x0},${yc+20} ${x0+2},${yc+28} Q${cx},${yb+6} ${x1-2},${yc+28} C${x1},${yc+20} ${x1},${yc+8} ${x1-cw*.14},${yc} Z`;
+  else crown=`M${x0+cw*.1},${yc} C${x0-1},${yc+8} ${x0-1},${yc+20} ${x0+1},${yc+28} Q${x0+cw*.25},${yb+6} ${cx},${yc+30} Q${x1-cw*.25},${yb+6} ${x1-1},${yc+28} C${x1+1},${yc+20} ${x1+1},${yc+8} ${x1-cw*.1},${yc} Z`;
+  const rt=(rc,rw,tip)=>`M${rc-rw/2},${yc+1} C${rc-rw/2},${yc-14} ${rc-2},${tip+8} ${rc},${tip} C${rc+2},${tip+8} ${rc+rw/2},${yc-14} ${rc+rw/2},${yc+1} Z`;
+  const tip=third?18:t==="c"?2:t==="m"?10:8;
+  let rpath="";const nr=roots(n);
+  if(nr===1)rpath=rt(cx,cw*(t==="p"?.6:.62),tip);
+  else{if(nr===3)rpath+=`<path d="${rt(cx,cw*.34,tip+4)}" class="r r2"/>`;rpath+=`<path d="${rt(cx-cw*.22,cw*.36,tip)}" class="r"/><path d="${rt(cx+cw*.22,cw*.36,tip+2)}" class="r"/>`}
+  const id="odc"+(++uidc);
+  const ext=whole==="ext",impl=whole==="impl";
+  let g=`<g transform="translate(0,${y})${flip?` translate(0,${H}) scale(1,-1)`:""}"${ext?' opacity=".28"':""}>`;
+  if(impl)g+=`<rect x="${cx-cw*.16}" y="${tip+6}" width="${cw*.32}" height="${yc-tip-4}" rx="3" class="impl"/>${[0,1,2,3,4].map(i=>`<line x1="${cx-cw*.2}" x2="${cx+cw*.2}" y1="${tip+12+i*6}" y2="${tip+14+i*6}" class="impl-l"/>`).join("")}`;
+  else g+=nr===1?`<path d="${rpath}" class="r"/>`:rpath;
+  if(whole==="canal"&&!impl)g+=`<path d="M${cx},${yc} L${cx},${tip+6}" class="canal"/>`;
+  g+=`<defs><clipPath id="${id}"><path d="${crown}"/></clipPath></defs><path d="${crown}" class="cr${whole==="coroa"?" coroa":""}"/>`;
+  /* faces */
+  const fc=f=>fm[f]?COL[fm[f]]:null;let ov="";
+  const center=view==="V"?"V":"P";
+  if(fm._all)ov+=`<rect x="${x0-2}" y="${yc}" width="${cw+4}" height="${H}" fill="${COL[fm._all]}" opacity=".55"/>`;
+  if(fc(center))ov+=`<rect x="${x0+cw*.26}" y="${yc+6}" width="${cw*.48}" height="${yb-yc-14}" fill="${fc(center)}"/>`;
+  const mx=mes>0?x1-cw*.28:x0-2,dx=mes>0?x0-2:x1-cw*.28;
+  if(fc("M"))ov+=`<rect x="${mx}" y="${yc}" width="${cw*.28+2}" height="${H}" fill="${fc("M")}"/>`;
+  if(fc("D"))ov+=`<rect x="${dx}" y="${yc}" width="${cw*.28+2}" height="${H}" fill="${fc("D")}"/>`;
+  if(fc("O"))ov+=`<rect x="${x0-2}" y="${yb-9}" width="${cw+4}" height="16" fill="${fc("O")}"/>`;
+  if(fc("C"))ov+=`<rect x="${x0-2}" y="${yc}" width="${cw+4}" height="5" fill="${fc("C")}"/>`;
+  if(whole==="carie")ov+=`<circle cx="${cx}" cy="${yc+18}" r="${cw*.16}" fill="${COL.real}"/>`;
+  if(whole==="rest")ov+=`<rect x="${x0+cw*.26}" y="${yc+8}" width="${cw*.48}" height="14" fill="${COL.exist}"/>`;
+  if(ov)g+=`<g clip-path="url(#${id})" opacity=".9">${ov}</g>`;
+  g+=`<path d="${crown}" class="cr-o"/></g>`;
+  if(ext)g+=`<path d="M${x0},${y+10} L${x1},${y+H-6} M${x1},${y+10} L${x0},${y+H-6}" class="xx"/>`;
+  return g}
+ /* vista oclusal com 5 regiões clicáveis */
+ function occ(n,x,y,w,fm,whole){
+  const H=46,cx=x+w/2,cy=y+H/2,cw=w*0.86,t=typ(n),up=n<30;
+  const ry=t==="m"?17:t==="p"?15:t==="c"?12:9,rx=cw/2;
+  const mes=(n<20||(n>40&&n<50))?1:-1;
+  const id="odo"+(++uidc);
+  const shape=t==="m"?`<rect x="${cx-rx}" y="${cy-ry}" width="${cw}" height="${ry*2}" rx="${ry*.7}"/>`:`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`;
+  const ix=rx*.42,iy=ry*.42,X0=cx-rx-2,X1=cx+rx+2,Y0=cy-ry-2,Y1=cy+ry+2;
+  const top=up?"V":"P",bot=up?"P":"V",right=mes>0?"M":"D",left=mes>0?"D":"M";
+  const zone=(f,pts)=>`<polygon points="${pts}" data-fz="${f}" class="fz" fill="${fm[f]?COL[fm[f]]:"transparent"}"><title>${faceName(n,f)}</title></polygon>`;
+  let z=zone(top,`${X0},${Y0} ${X1},${Y0} ${cx+ix},${cy-iy} ${cx-ix},${cy-iy}`)+zone(bot,`${X0},${Y1} ${X1},${Y1} ${cx+ix},${cy+iy} ${cx-ix},${cy+iy}`)+
+   zone(left,`${X0},${Y0} ${cx-ix},${cy-iy} ${cx-ix},${cy+iy} ${X0},${Y1}`)+zone(right,`${X1},${Y0} ${cx+ix},${cy-iy} ${cx+ix},${cy+iy} ${X1},${Y1}`)+
+   `<rect x="${cx-ix}" y="${cy-iy}" width="${ix*2}" height="${iy*2}" rx="2" data-fz="O" class="fz" fill="${fm.O?COL[fm.O]:"transparent"}"><title>${faceName(n,"O")}</title></rect>`;
+  let deco="";
+  if(t==="m")deco=`<path d="M${cx-rx*.55},${cy} L${cx+rx*.55},${cy} M${cx-rx*.1},${cy-ry*.6} L${cx-rx*.15},${cy+ry*.6} M${cx+rx*.25},${cy-ry*.5} L${cx+rx*.2},${cy+ry*.5}" class="fis"/>`;
+  else if(t==="p")deco=`<path d="M${cx-rx*.5},${cy} Q${cx},${cy+2} ${cx+rx*.5},${cy}" class="fis"/>`;
+  const ext=whole==="ext";
+  return `<g${ext?' opacity=".28"':""}><defs><clipPath id="${id}">${shape}</clipPath></defs><g class="oc">${shape}</g>${fm._all?`<g clip-path="url(#${id})"><rect x="${X0}" y="${Y0}" width="${X1-X0}" height="${Y1-Y0}" fill="${COL[fm._all]}" opacity=".55"/></g>`:""}<g clip-path="url(#${id})" opacity=".9">${z}</g>${deco}<path d="M${cx-ix},${cy-iy} L${X0},${Y0} M${cx+ix},${cy-iy} L${X1},${Y0} M${cx-ix},${cy+iy} L${X0},${Y1} M${cx+ix},${cy+iy} L${X1},${Y1}" class="zl" clip-path="url(#${id})"/><g class="oc-o">${shape}</g></g>${ext?`<path d="M${cx-rx},${cy-ry} L${cx+rx},${cy+ry} M${cx+rx},${cy-ry} L${cx-rx},${cy+ry}" class="xx"/>`:""}`}
+ /* odontograma completo */
+ function svg(entries,dentes,sel,opts){opts=opts||{};uidc=opts.seed||0;dentes=dentes||{};
+  const GAP=4,MID=18,LW=opts.labels===false?0:74;
+  const CW=UPN.map((n,i)=>Math.max(W(n),W(LON[i])));const cols=arr=>{let x=LW;return arr.map((n,i)=>{if(i===8)x+=MID;const w=W(n),o={n,x:x+(CW[i]-w)/2,w,cx:x,cw:CW[i]};x+=CW[i]+GAP;return o})};
+  const cu=cols(UPN),cl=cols(LON);const width=cu[15].cx+cu[15].cw+4;
+  const R={uv:0,uo:86,up:134,un:220,sep:242,ln:250,ll:270,lo:356,lv:404};const height=490;
+  const lab=(t,y)=>LW?`<text x="0" y="${y}" class="lb">${t}</text>`:"";
+  let s=`<svg class="odg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="Odontograma"><defs><linearGradient id="odgG" x1="0" x2="1"><stop offset="0" stop-color="#E3E7EA"/><stop offset=".35" stop-color="#FBFCFC"/><stop offset=".7" stop-color="#F3F5F6"/><stop offset="1" stop-color="#D9DEE2"/></linearGradient><linearGradient id="odgR" x1="0" x2="1"><stop offset="0" stop-color="#E9BE8E"/><stop offset=".45" stop-color="#F6D8B4"/><stop offset="1" stop-color="#E4B584"/></linearGradient></defs>`+
+   lab("Vestibular",R.uv+50)+lab("Oclusal",R.uo+28)+lab("Palatina",R.up+40)+lab("Lingual",R.ll+50)+lab("Oclusal",R.lo+28)+lab("Vestibular",R.lv+40);
+  const col=(o,up)=>{const fm=faceMap(entries,o.n),wh=dentes[o.n],y0=up?R.uv:R.ln;
+   let g=`<g class="odt${String(sel)===String(o.n)?" sel":""}" data-otooth="${o.n}" tabindex="0" role="button" aria-label="Dente ${o.n}"><rect x="${o.cx-2}" y="${up?R.uv-2:R.ln-2}" width="${o.cw+4}" height="${up?240:238}" rx="8" class="bgsel"/>`;
+   if(up)g+=side(o.n,o.x,R.uv,o.w,false,"V",fm,wh)+occ(o.n,o.x,R.uo,o.w,fm,wh)+side(o.n,o.x,R.up,o.w,true,"P",fm,wh)+`<rect x="${o.x+o.w/2-11}" y="${R.un}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.un+11}" class="nt">${o.n}</text>`;
+   else g+=`<rect x="${o.x+o.w/2-11}" y="${R.ln}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.ln+11}" class="nt">${o.n}</text>`+side(o.n,o.x,R.ll,o.w,false,"P",fm,wh)+occ(o.n,o.x,R.lo,o.w,fm,wh)+side(o.n,o.x,R.lv,o.w,true,"V",fm,wh);
+   return g+"</g>"};
+  s+=cu.map(o=>col(o,true)).join("")+cl.map(o=>col(o,false)).join("");
+  const midx=cu[7].cx+cu[7].cw+(MID+GAP)/2;
+  s+=`<line x1="${LW}" x2="${width}" y1="${R.sep}" y2="${R.sep}" class="sep"/><line x1="${midx}" x2="${midx}" y1="0" y2="${height}" class="sep"/>`;
+  return s+"</svg>"}
+ const CSS=`.odg{width:100%;height:auto;display:block;font-family:inherit}
+.odg .r{fill:url(#odgR);stroke:#D8AD7E;stroke-width:1}.odg .r2{opacity:.6}
+.odg .cr{fill:url(#odgG);stroke:none}.odg .cr.coroa{fill:#F6DE95}
+.odg .cr-o{fill:none;stroke:#B9C1C8;stroke-width:1.1}
+.odg .oc ellipse,.odg .oc rect{fill:url(#odgG)}.odg .oc-o ellipse,.odg .oc-o rect{fill:none;stroke:#B9C1C8;stroke-width:1.1}
+.odg .fz{cursor:pointer;stroke:none}.odg .fz:hover{fill:rgba(11,134,174,.18)}
+.odg .zl{stroke:#D3D9DE;stroke-width:.8;fill:none}.odg .fis{stroke:#C3CAD0;stroke-width:1;fill:none}
+.odg .impl{fill:#B8C2CC;stroke:#8C99A6}.odg .impl-l{stroke:#8C99A6;stroke-width:1.2}
+.odg .canal{stroke:#B33A3A;stroke-width:2.2}
+.odg .xx{stroke:#D64545;stroke-width:2.4;stroke-linecap:round}
+.odg .nb{fill:#fff;stroke:#D6DDE2}.odg .nt{font-size:9.5px;font-weight:800;text-anchor:middle;fill:#22313A}
+.odg .lb{font-size:11.5px;font-weight:600;fill:#22313A}
+.odg .sep{stroke:#AEB8BF;stroke-width:1;stroke-dasharray:4 4}
+.odg .odt{cursor:pointer;outline:none}.odg .bgsel{fill:transparent}.odg .odt:hover .bgsel{fill:rgba(11,134,174,.06)}.odg .odt.sel .bgsel{fill:rgba(11,134,174,.12);stroke:rgba(11,134,174,.5)}
+.odg .odt:focus-visible .bgsel{stroke:#0B86AE;stroke-width:2}
+.odg-legend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:13px;font-weight:600;margin-top:6px}
+.odg-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}`;
+ const legend=()=>`<div class="odg-legend">${Object.keys(COL).map(k=>`<span><i style="background:${COL[k]}"></i>${STN[k]}</span>`).join("")}</div>`;
+ return {svg,legend,CSS,COL,STN,FACES,faceName,faceCode,label,typ,anterior};
+})();
+
+function ODG_STYLE(){if(document.getElementById("odgcss"))return;const st=document.createElement("style");st.id="odgcss";st.textContent=ODG.CSS;document.head.appendChild(st)}
+ODG_STYLE();
+
+/* ============ ODONTOGRAMA POR FACES (tela do paciente) ============ */
+let odSel=null,odFz="",odSt="real",odProcV="";
+const ODP=p=>p.odp||(p.odp=[]);
+function odTab(p){const n=odSel,ents=ODP(p);
+ const F=ODG.FACES,fz=odFz;
+ const procs=PR().map(x=>x[0]);
+ const panel=n?`<div class="odpanel"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Dente ${n}</h3><button class="btn sm" data-odclose>Fechar</button></div>
+  <p class="small muted" style="margin:4px 0 10px">Escolha as faces (ou deixe sem nenhuma para o dente inteiro), o procedimento e a situação.</p>
+  <div class="chips">${F.map(f=>`<button class="chip ${fz.includes(f)?"on":""}" data-odface="${f}">${ODG.faceName(n,f)} (${ODG.faceCode(n,f)})</button>`).join("")}</div>
+  <div class="fgrid mt"><label class="f">Procedimento<input id="odProc" list="odProcL" value="${esc(odProcV||procs[0]||"")}" placeholder="ex.: Restauração em resina"><datalist id="odProcL">${procs.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></label></div>
+  <div class="chips mt">${Object.keys(ODG.STN).map(k=>`<button class="chip ${odSt===k?"on":""}" data-odst="${k}"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${ODG.COL[k]};margin-right:6px"></i>${ODG.STN[k]}</button>`).join("")}</div>
+  <div class="row mt"><button class="btn pri" data-odadd>Adicionar ${ODG.label(n,F.filter(f=>fz.includes(f)).join(""))}</button></div>
+  <div class="mt"><p class="small muted" style="margin:0 0 6px">Situação do dente inteiro</p><div class="chips">${DST.map(d=>`<button class="chip ${(p.dentes[n]||"")===d.k?"on":""}" data-odwhole="${d.k}">${d.n}</button>`).join("")}</div></div></div>`
+  :`<p class="small muted" style="margin:8px 0 0;text-align:center">Toque em um dente para marcar. Na vista oclusal, dá para tocar direto na face.</p>`;
+ const rows=ents.slice().sort((a,b)=>(b.data||"").localeCompare(a.data||"")).map(e=>`<tr><td>${br(e.data)}</td><td><b>${esc(ODG.label(e.dente,e.faces))}</b></td><td>${esc(e.proc)}</td><td><span class="pill" style="background:${ODG.COL[e.st]}22;color:${ODG.COL[e.st]}">${ODG.STN[e.st]}</span></td><td style="text-align:right;white-space:nowrap">${e.st==="real"?`<button class="btn sm" data-odexec="${e.id}">${ic("check")}Executado</button>`:""}<button class="btn sm" data-oddel="${e.id}" aria-label="Remover">×</button></td></tr>`).join("");
+ return `<div class="card"><div class="cardhead"><h3>Odontograma</h3><span class="small muted">Vestibular, oclusal e palatina/lingual</span></div>
+  <div class="odwrap2">${ODG.svg(ents,p.dentes,n)}</div>${ODG.legend()}${panel}</div>
+  <div class="card mt"><div class="cardhead"><h3>Procedimentos</h3><span class="small muted">${ents.length} registro(s)</span></div>
+  ${ents.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Dente</th><th>Procedimento</th><th>Situação</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">Nenhum procedimento marcado ainda.</div>`}
+  <div class="row mt"><button class="btn sm" data-act="odToOrc">Levar "A realizar" para o orçamento</button></div></div>`}
+document.addEventListener("click",e=>{if(route.v!=="ficha"||fichaTab!=="odonto")return;const p=P(route.arg);if(!p)return;
+ const t=e.target.closest("[data-otooth],[data-odface],[data-odst],[data-odadd],[data-odexec],[data-oddel],[data-odwhole],[data-odclose]");if(!t)return;const d=t.dataset;
+ const keep=()=>{const i=$("odProc");if(i)odProcV=i.value};
+ if(d.otooth){keep();const fzEl=e.target.closest("[data-fz]");const n=d.otooth;if(odSel!==n){odSel=n;odFz=""}if(fzEl){const f=fzEl.dataset.fz;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f}render();return}
+ if(d.odclose!==undefined){odSel=null;odFz="";render();return}
+ if(d.odface){keep();const f=d.odface;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f;render();return}
+ if(d.odst){keep();odSt=d.odst;render();return}
+ if(d.odwhole!==undefined){const n=odSel;if(!n)return;if(!d.odwhole)delete p.dentes[n];else p.dentes[n]=d.odwhole;save();render();return}
+ if(d.odadd!==undefined){const proc=($("odProc").value||"").trim();if(!proc){toast("Escolha o procedimento");return}odProcV=proc;
+  const faces=ODG.FACES.filter(f=>odFz.includes(f)).join("");const ent={id:uid(),data:T,dente:String(odSel),faces,proc,st:odSt};ODP(p).push(ent);
+  if(odSt==="exec")(p.hist=p.hist||[]).push({data:T,proc,dente:ODG.label(odSel,faces),obs:""});
+  logAct("Odontograma: "+ODG.STN[odSt].toLowerCase(),p.nome+" · "+ODG.label(odSel,faces)+" "+proc);odFz="";save();render();toast(ODG.label(ent.dente,faces)+" adicionado");return}
+ if(d.odexec){const x=ODP(p).find(i=>i.id===d.odexec);if(!x)return;x.st="exec";x.exec=T;(p.hist=p.hist||[]).push({data:T,proc:x.proc,dente:ODG.label(x.dente,x.faces),obs:""});save();render();toast("Marcado como executado e lançado no histórico");return}
+ if(d.oddel){if(t.dataset.sure){p.odp=ODP(p).filter(i=>i.id!==d.oddel);save();render();toast("Procedimento removido")}else{t.dataset.sure="1";t.textContent="Remover?";t.classList.add("pri")}return}
+});
+document.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.closest("[data-otooth]");if(!g||(e.key!=="Enter"&&e.key!==" "))return;e.preventDefault();g.dispatchEvent(new MouseEvent("click",{bubbles:true}))});
+/* ============ FIM ODONTOGRAMA POR FACES ============ */
+
 const VIEWS={prontuario:vProntuario,contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,estoque:vEstoque,mais:vMais,config:vConfig};
 function render(){const R=$("root");
  if(LEGAL){R.innerHTML=vLegal();return}
@@ -1372,8 +1534,8 @@ document.addEventListener("click",async e=>{
  if(A==="newRet")$("retForm").classList.remove("hide");if(A==="closeRet")$("retForm").classList.add("hide");
  if(A==="delPac"){if(b.dataset.sure){const id=route.arg;logAct("Excluiu paciente",(P(id)||{}).nome);S.pac=S.pac.filter(p=>p.id!==id);["ag","fin","ret","lab","fotos"].forEach(k=>S[k]=S[k].filter(x=>x.pid!==id));save();go("pacientes");toast("Paciente excluído")}else{b.dataset.sure="1";b.textContent="Excluir mesmo? O prontuário deve ser guardado pelo prazo legal";b.classList.add("pri")}}
  if(A==="orcFor"){const o=ORC();o.pid=route.arg;o.items=[];save();go("orcamento")}
- if(A==="odToOrc"){const p=P(route.arg);const m={carie:"Restauração em resina",canal:"Tratamento de canal"};const price=n=>(PR().find(x=>x[0]===n)||[n,0])[1];const items=Object.entries(p.dentes).filter(([n,s])=>m[s]).map(([n,s])=>({proc:m[s],dente:n,v:price(m[s])}));
-  if(!items.length){toast("Marque dentes com cárie ou canal primeiro");return}const o=ORC();o.pid=p.id;o.items=items;save();go("orcamento");toast(items.length+" procedimentos levados ao orçamento")}
+ if(A==="odToOrc"){const p=P(route.arg);const m={carie:"Restauração em resina",canal:"Tratamento de canal"};const price=n=>(PR().find(x=>x[0]===n)||[n,0])[1];const items=Object.entries(p.dentes).filter(([n,s])=>m[s]).map(([n,s])=>({proc:m[s],dente:n,v:price(m[s])})).concat((p.odp||[]).filter(e=>e.st==="real").map(e=>({proc:e.proc,dente:ODG.label(e.dente,e.faces),v:price(e.proc)})));
+  if(!items.length){toast("Marque procedimentos \"A realizar\" no odontograma primeiro");return}const o=ORC();o.pid=p.id;o.items=items;save();go("orcamento");toast(items.length+" procedimentos levados ao orçamento")}
  if(A==="oAdd"){const v=+$("oVal").value||0;if(!v){toast("Informe o valor");return}ORC().items.push({proc:PR()[$("oProc").value][0],dente:$("oDente").value.trim()||"—",v});save();render();toast("Adicionado ao plano")}
  if(A==="addHist"){const p=P(route.arg);p.hist.push({data:$("hData").value||T,proc:$("hProc").value,dente:$("hDente").value.trim(),obs:$("hObs").value.trim()});save();render();toast("Atendimento salvo")}
  if(A==="addProc"){const m=meta("procs");if(!m.list)m.list=DEF_PROCS.map(x=>x.slice());m.list.push(["Novo procedimento",100]);save();render()}

@@ -134,7 +134,7 @@ section{padding:96px 0}
 
 /* demonstração */
 .demo{background:var(--bg)}
-.demo .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.demo .wrap{display:grid;grid-template-columns:.75fr 1.25fr;gap:48px;align-items:center}
 .demo h2{font:800 clamp(28px,3.2vw,40px)/1.15 var(--font);letter-spacing:-.02em;margin:0 0 16px}
 .demo p{color:var(--muted);font-size:18px;margin:0 0 20px}
 .demo ul{margin:0 0 28px;padding:0;list-style:none;display:grid;gap:10px}
@@ -330,8 +330,8 @@ footer .logo{color:#fff;font-size:20px}
   <section class="demo" id="demonstracao" aria-labelledby="t-demo">
     <div class="wrap">
       <div>
-        <h2 id="t-demo">Experimente o odontograma agora</h2>
-        <p>Toque nos dentes ao lado. É assim que funciona dentro do sistema: cada marcação vira plano de tratamento e orçamento.</p>
+        <h2 id="t-demo">Odontograma por faces, igual ao do papel</h2>
+        <p>Cada dente em três vistas: vestibular, oclusal e palatina ou lingual. Marque a face e a situação, e o sistema monta a lista de procedimentos.</p>
         <ul>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Orçamento parcelado em um toque</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Contrato gerado para o paciente assinar</li>
@@ -340,9 +340,9 @@ footer .logo{color:#fff;font-size:20px}
         <a class="btn btn-blue" data-wa href="#"><span data-cta>Teste grátis</span></a>
       </div>
       <div class="chart" aria-label="Demonstração do odontograma">
-        <div class="chart-head"><strong>Prontuário: paciente de exemplo</strong><span>Toque nos dentes</span></div>
-        <div class="odonto-scroll"><svg class="odonto" id="odonto" viewBox="0 0 600 200" role="group" aria-label="Odontograma com 32 dentes"></svg></div>
-        <div class="legend"><span><i style="background:#fff"></i>Hígido</span><span><i style="background:var(--caries)"></i>Cárie</span><span><i style="background:var(--resto)"></i>Restaurado</span><span><i style="background:#fff;border-color:#C0394B"></i>Extração indicada</span></div>
+        <div class="chart-head"><strong>Prontuário: paciente de exemplo</strong><span>Toque nas faces da vista oclusal</span></div>
+        <div class="odg-demo" id="odgDemo"></div>
+        <div id="odgLegend"></div>
         <div id="plan" aria-live="polite"></div>
       </div>
     </div>
@@ -457,40 +457,136 @@ const mb = document.getElementById("menuBtn"), menu = document.getElementById("m
 mb.addEventListener("click", () => { const o = menu.classList.toggle("open"); mb.setAttribute("aria-expanded", o); });
 menu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => { menu.classList.remove("open"); mb.setAttribute("aria-expanded", "false"); }));
 
+/* ODG: odontograma anatômico por faces (desenho próprio, SVG) */
+const ODG=(()=>{
+ const COL={real:"#D64545",exec:"#2F80ED",exist:"#27AE60"};
+ const STN={real:"A realizar",exec:"Executado",exist:"Existente"};
+ const UPN=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LON=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+ const typ=n=>{const d=n%10;return d>=6?"m":d>=4?"p":d===3?"c":"i"};
+ const W=n=>{const t=typ(n),lo=n>30;return t==="m"?(n%10===8?40:44):t==="p"?33:t==="c"?31:(lo?25:(n%10===1?33:28))};
+ const roots=n=>{const t=typ(n),up=n<30,d=n%10;if(t==="m")return up?3:2;if(up&&d===4)return 2;return 1};
+ const anterior=n=>["i","c"].includes(typ(n));
+ /* nomes das faces conforme o dente */
+ const faceName=(n,f)=>({M:"Mesial",D:"Distal",O:anterior(n)?"Incisal":"Oclusal",V:"Vestibular",P:n<30?"Palatina":"Lingual",C:"Cervical"})[f];
+ const faceCode=(n,f)=>f==="O"&&anterior(n)?"I":f==="P"&&n>30?"L":f;
+ const label=(n,faces)=>String(n)+(faces||"").split("").map(f=>faceCode(n,f)).join("");
+ const FACES=["M","D","O","V","P","C"];
+ /* cor de cada face a partir das entradas do paciente (a última vence) */
+ function faceMap(entries,n){const m={};(entries||[]).filter(e=>String(e.dente)===String(n)).forEach(e=>{if(!e.faces){m._all=e.st}else e.faces.split("").forEach(f=>m[f]=e.st)});return m}
+ let uidc=0;
+ /* vista lateral: raiz em cima e coroa embaixo; flip = coroa em cima */
+ function side(n,x,y,w,flip,view,fm,whole){
+  const H=84,cx=x+w/2,cw=w*0.86,x0=cx-cw/2,x1=cx+cw/2,t=typ(n),d=n%10,third=d===8;
+  const mes=(n<20||(n>40&&n<50))?1:-1; /* 1 = mesial para a direita */
+  const yc=44,yb=t==="c"?80:t==="i"?79:78;
+  let crown;
+  if(t==="i")crown=`M${x0+cw*.14},${yc} C${x0},${yc+8} ${x0},${yc+22} ${x0+1},${yb} L${x1-1},${yb} C${x1},${yc+22} ${x1},${yc+8} ${x1-cw*.14},${yc} Z`;
+  else if(t==="c")crown=`M${x0+cw*.14},${yc} C${x0},${yc+8} ${x0},${yc+18} ${x0+2},${yc+26} L${cx},${yb+2} L${x1-2},${yc+26} C${x1},${yc+18} ${x1},${yc+8} ${x1-cw*.14},${yc} Z`;
+  else if(t==="p")crown=`M${x0+cw*.14},${yc} C${x0},${yc+8} ${x0},${yc+20} ${x0+2},${yc+28} Q${cx},${yb+6} ${x1-2},${yc+28} C${x1},${yc+20} ${x1},${yc+8} ${x1-cw*.14},${yc} Z`;
+  else crown=`M${x0+cw*.1},${yc} C${x0-1},${yc+8} ${x0-1},${yc+20} ${x0+1},${yc+28} Q${x0+cw*.25},${yb+6} ${cx},${yc+30} Q${x1-cw*.25},${yb+6} ${x1-1},${yc+28} C${x1+1},${yc+20} ${x1+1},${yc+8} ${x1-cw*.1},${yc} Z`;
+  const rt=(rc,rw,tip)=>`M${rc-rw/2},${yc+1} C${rc-rw/2},${yc-14} ${rc-2},${tip+8} ${rc},${tip} C${rc+2},${tip+8} ${rc+rw/2},${yc-14} ${rc+rw/2},${yc+1} Z`;
+  const tip=third?18:t==="c"?2:t==="m"?10:8;
+  let rpath="";const nr=roots(n);
+  if(nr===1)rpath=rt(cx,cw*(t==="p"?.6:.62),tip);
+  else{if(nr===3)rpath+=`<path d="${rt(cx,cw*.34,tip+4)}" class="r r2"/>`;rpath+=`<path d="${rt(cx-cw*.22,cw*.36,tip)}" class="r"/><path d="${rt(cx+cw*.22,cw*.36,tip+2)}" class="r"/>`}
+  const id="odc"+(++uidc);
+  const ext=whole==="ext",impl=whole==="impl";
+  let g=`<g transform="translate(0,${y})${flip?` translate(0,${H}) scale(1,-1)`:""}"${ext?' opacity=".28"':""}>`;
+  if(impl)g+=`<rect x="${cx-cw*.16}" y="${tip+6}" width="${cw*.32}" height="${yc-tip-4}" rx="3" class="impl"/>${[0,1,2,3,4].map(i=>`<line x1="${cx-cw*.2}" x2="${cx+cw*.2}" y1="${tip+12+i*6}" y2="${tip+14+i*6}" class="impl-l"/>`).join("")}`;
+  else g+=nr===1?`<path d="${rpath}" class="r"/>`:rpath;
+  if(whole==="canal"&&!impl)g+=`<path d="M${cx},${yc} L${cx},${tip+6}" class="canal"/>`;
+  g+=`<defs><clipPath id="${id}"><path d="${crown}"/></clipPath></defs><path d="${crown}" class="cr${whole==="coroa"?" coroa":""}"/>`;
+  /* faces */
+  const fc=f=>fm[f]?COL[fm[f]]:null;let ov="";
+  const center=view==="V"?"V":"P";
+  if(fm._all)ov+=`<rect x="${x0-2}" y="${yc}" width="${cw+4}" height="${H}" fill="${COL[fm._all]}" opacity=".55"/>`;
+  if(fc(center))ov+=`<rect x="${x0+cw*.26}" y="${yc+6}" width="${cw*.48}" height="${yb-yc-14}" fill="${fc(center)}"/>`;
+  const mx=mes>0?x1-cw*.28:x0-2,dx=mes>0?x0-2:x1-cw*.28;
+  if(fc("M"))ov+=`<rect x="${mx}" y="${yc}" width="${cw*.28+2}" height="${H}" fill="${fc("M")}"/>`;
+  if(fc("D"))ov+=`<rect x="${dx}" y="${yc}" width="${cw*.28+2}" height="${H}" fill="${fc("D")}"/>`;
+  if(fc("O"))ov+=`<rect x="${x0-2}" y="${yb-9}" width="${cw+4}" height="16" fill="${fc("O")}"/>`;
+  if(fc("C"))ov+=`<rect x="${x0-2}" y="${yc}" width="${cw+4}" height="5" fill="${fc("C")}"/>`;
+  if(whole==="carie")ov+=`<circle cx="${cx}" cy="${yc+18}" r="${cw*.16}" fill="${COL.real}"/>`;
+  if(whole==="rest")ov+=`<rect x="${x0+cw*.26}" y="${yc+8}" width="${cw*.48}" height="14" fill="${COL.exist}"/>`;
+  if(ov)g+=`<g clip-path="url(#${id})" opacity=".9">${ov}</g>`;
+  g+=`<path d="${crown}" class="cr-o"/></g>`;
+  if(ext)g+=`<path d="M${x0},${y+10} L${x1},${y+H-6} M${x1},${y+10} L${x0},${y+H-6}" class="xx"/>`;
+  return g}
+ /* vista oclusal com 5 regiões clicáveis */
+ function occ(n,x,y,w,fm,whole){
+  const H=46,cx=x+w/2,cy=y+H/2,cw=w*0.86,t=typ(n),up=n<30;
+  const ry=t==="m"?17:t==="p"?15:t==="c"?12:9,rx=cw/2;
+  const mes=(n<20||(n>40&&n<50))?1:-1;
+  const id="odo"+(++uidc);
+  const shape=t==="m"?`<rect x="${cx-rx}" y="${cy-ry}" width="${cw}" height="${ry*2}" rx="${ry*.7}"/>`:`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/>`;
+  const ix=rx*.42,iy=ry*.42,X0=cx-rx-2,X1=cx+rx+2,Y0=cy-ry-2,Y1=cy+ry+2;
+  const top=up?"V":"P",bot=up?"P":"V",right=mes>0?"M":"D",left=mes>0?"D":"M";
+  const zone=(f,pts)=>`<polygon points="${pts}" data-fz="${f}" class="fz" fill="${fm[f]?COL[fm[f]]:"transparent"}"><title>${faceName(n,f)}</title></polygon>`;
+  let z=zone(top,`${X0},${Y0} ${X1},${Y0} ${cx+ix},${cy-iy} ${cx-ix},${cy-iy}`)+zone(bot,`${X0},${Y1} ${X1},${Y1} ${cx+ix},${cy+iy} ${cx-ix},${cy+iy}`)+
+   zone(left,`${X0},${Y0} ${cx-ix},${cy-iy} ${cx-ix},${cy+iy} ${X0},${Y1}`)+zone(right,`${X1},${Y0} ${cx+ix},${cy-iy} ${cx+ix},${cy+iy} ${X1},${Y1}`)+
+   `<rect x="${cx-ix}" y="${cy-iy}" width="${ix*2}" height="${iy*2}" rx="2" data-fz="O" class="fz" fill="${fm.O?COL[fm.O]:"transparent"}"><title>${faceName(n,"O")}</title></rect>`;
+  let deco="";
+  if(t==="m")deco=`<path d="M${cx-rx*.55},${cy} L${cx+rx*.55},${cy} M${cx-rx*.1},${cy-ry*.6} L${cx-rx*.15},${cy+ry*.6} M${cx+rx*.25},${cy-ry*.5} L${cx+rx*.2},${cy+ry*.5}" class="fis"/>`;
+  else if(t==="p")deco=`<path d="M${cx-rx*.5},${cy} Q${cx},${cy+2} ${cx+rx*.5},${cy}" class="fis"/>`;
+  const ext=whole==="ext";
+  return `<g${ext?' opacity=".28"':""}><defs><clipPath id="${id}">${shape}</clipPath></defs><g class="oc">${shape}</g>${fm._all?`<g clip-path="url(#${id})"><rect x="${X0}" y="${Y0}" width="${X1-X0}" height="${Y1-Y0}" fill="${COL[fm._all]}" opacity=".55"/></g>`:""}<g clip-path="url(#${id})" opacity=".9">${z}</g>${deco}<path d="M${cx-ix},${cy-iy} L${X0},${Y0} M${cx+ix},${cy-iy} L${X1},${Y0} M${cx-ix},${cy+iy} L${X0},${Y1} M${cx+ix},${cy+iy} L${X1},${Y1}" class="zl" clip-path="url(#${id})"/><g class="oc-o">${shape}</g></g>${ext?`<path d="M${cx-rx},${cy-ry} L${cx+rx},${cy+ry} M${cx+rx},${cy-ry} L${cx-rx},${cy+ry}" class="xx"/>`:""}`}
+ /* odontograma completo */
+ function svg(entries,dentes,sel,opts){opts=opts||{};uidc=opts.seed||0;dentes=dentes||{};
+  const GAP=4,MID=18,LW=opts.labels===false?0:74;
+  const CW=UPN.map((n,i)=>Math.max(W(n),W(LON[i])));const cols=arr=>{let x=LW;return arr.map((n,i)=>{if(i===8)x+=MID;const w=W(n),o={n,x:x+(CW[i]-w)/2,w,cx:x,cw:CW[i]};x+=CW[i]+GAP;return o})};
+  const cu=cols(UPN),cl=cols(LON);const width=cu[15].cx+cu[15].cw+4;
+  const R={uv:0,uo:86,up:134,un:220,sep:242,ln:250,ll:270,lo:356,lv:404};const height=490;
+  const lab=(t,y)=>LW?`<text x="0" y="${y}" class="lb">${t}</text>`:"";
+  let s=`<svg class="odg" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="Odontograma"><defs><linearGradient id="odgG" x1="0" x2="1"><stop offset="0" stop-color="#E3E7EA"/><stop offset=".35" stop-color="#FBFCFC"/><stop offset=".7" stop-color="#F3F5F6"/><stop offset="1" stop-color="#D9DEE2"/></linearGradient><linearGradient id="odgR" x1="0" x2="1"><stop offset="0" stop-color="#E9BE8E"/><stop offset=".45" stop-color="#F6D8B4"/><stop offset="1" stop-color="#E4B584"/></linearGradient></defs>`+
+   lab("Vestibular",R.uv+50)+lab("Oclusal",R.uo+28)+lab("Palatina",R.up+40)+lab("Lingual",R.ll+50)+lab("Oclusal",R.lo+28)+lab("Vestibular",R.lv+40);
+  const col=(o,up)=>{const fm=faceMap(entries,o.n),wh=dentes[o.n],y0=up?R.uv:R.ln;
+   let g=`<g class="odt${String(sel)===String(o.n)?" sel":""}" data-otooth="${o.n}" tabindex="0" role="button" aria-label="Dente ${o.n}"><rect x="${o.cx-2}" y="${up?R.uv-2:R.ln-2}" width="${o.cw+4}" height="${up?240:238}" rx="8" class="bgsel"/>`;
+   if(up)g+=side(o.n,o.x,R.uv,o.w,false,"V",fm,wh)+occ(o.n,o.x,R.uo,o.w,fm,wh)+side(o.n,o.x,R.up,o.w,true,"P",fm,wh)+`<rect x="${o.x+o.w/2-11}" y="${R.un}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.un+11}" class="nt">${o.n}</text>`;
+   else g+=`<rect x="${o.x+o.w/2-11}" y="${R.ln}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.ln+11}" class="nt">${o.n}</text>`+side(o.n,o.x,R.ll,o.w,false,"P",fm,wh)+occ(o.n,o.x,R.lo,o.w,fm,wh)+side(o.n,o.x,R.lv,o.w,true,"V",fm,wh);
+   return g+"</g>"};
+  s+=cu.map(o=>col(o,true)).join("")+cl.map(o=>col(o,false)).join("");
+  const midx=cu[7].cx+cu[7].cw+(MID+GAP)/2;
+  s+=`<line x1="${LW}" x2="${width}" y1="${R.sep}" y2="${R.sep}" class="sep"/><line x1="${midx}" x2="${midx}" y1="0" y2="${height}" class="sep"/>`;
+  return s+"</svg>"}
+ const CSS=`.odg{width:100%;height:auto;display:block;font-family:inherit}
+.odg .r{fill:url(#odgR);stroke:#D8AD7E;stroke-width:1}.odg .r2{opacity:.6}
+.odg .cr{fill:url(#odgG);stroke:none}.odg .cr.coroa{fill:#F6DE95}
+.odg .cr-o{fill:none;stroke:#B9C1C8;stroke-width:1.1}
+.odg .oc ellipse,.odg .oc rect{fill:url(#odgG)}.odg .oc-o ellipse,.odg .oc-o rect{fill:none;stroke:#B9C1C8;stroke-width:1.1}
+.odg .fz{cursor:pointer;stroke:none}.odg .fz:hover{fill:rgba(11,134,174,.18)}
+.odg .zl{stroke:#D3D9DE;stroke-width:.8;fill:none}.odg .fis{stroke:#C3CAD0;stroke-width:1;fill:none}
+.odg .impl{fill:#B8C2CC;stroke:#8C99A6}.odg .impl-l{stroke:#8C99A6;stroke-width:1.2}
+.odg .canal{stroke:#B33A3A;stroke-width:2.2}
+.odg .xx{stroke:#D64545;stroke-width:2.4;stroke-linecap:round}
+.odg .nb{fill:#fff;stroke:#D6DDE2}.odg .nt{font-size:9.5px;font-weight:800;text-anchor:middle;fill:#22313A}
+.odg .lb{font-size:11.5px;font-weight:600;fill:#22313A}
+.odg .sep{stroke:#AEB8BF;stroke-width:1;stroke-dasharray:4 4}
+.odg .odt{cursor:pointer;outline:none}.odg .bgsel{fill:transparent}.odg .odt:hover .bgsel{fill:rgba(11,134,174,.06)}.odg .odt.sel .bgsel{fill:rgba(11,134,174,.12);stroke:rgba(11,134,174,.5)}
+.odg .odt:focus-visible .bgsel{stroke:#0B86AE;stroke-width:2}
+.odg-legend{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:13px;font-weight:600;margin-top:6px}
+.odg-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}`;
+ const legend=()=>`<div class="odg-legend">${Object.keys(COL).map(k=>`<span><i style="background:${COL[k]}"></i>${STN[k]}</span>`).join("")}</div>`;
+ return {svg,legend,CSS,COL,STN,FACES,faceName,faceCode,label,typ,anterior};
+})();
+
 /* odontograma de demonstração */
-const NOMES = ["Hígido", "Cárie", "Restaurado", "Extração indicada"];
-const estado = { 16: 2, 36: 1, 46: 2 };
-const largura = n => { const d = n % 10; return d >= 6 ? 32 : d >= 4 ? 27 : d === 3 ? 25 : 23; };
-const svg = document.getElementById("odonto"), NS = "http://www.w3.org/2000/svg";
-const linhas = [
-  { dentes: [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28], y: 22, cima: true },
-  { dentes: [48,47,46,45,44,43,42,41, 31,32,33,34,35,36,37,38], y: 112, cima: false }
-];
-let ordem = 0;
-linhas.forEach(l => {
-  const total = l.dentes.reduce((s, n) => s + largura(n) + 3, 0) + 14;
-  let x = (600 - total) / 2;
-  l.dentes.forEach((n, i) => {
-    if (i === 8) x += 14;
-    const w = largura(n), g = document.createElementNS(NS, "g");
-    g.setAttribute("class", "tooth"); g.setAttribute("tabindex", "0"); g.setAttribute("role", "button");
-    g.dataset.n = n; g.dataset.s = estado[n] || 0; g.style.animationDelay = (ordem++ * 15) + "ms";
-    g.innerHTML = `<rect x="${x}" y="${l.y}" width="${w}" height="64" rx="${w/2.6}"/>` +
-      `<path class="x" d="M${x+5} ${l.y+10} L${x+w-5} ${l.y+54} M${x+w-5} ${l.y+10} L${x+5} ${l.y+54}"/>` +
-      `<text x="${x+w/2}" y="${l.cima ? l.y-7 : l.y+80}" text-anchor="middle">${n}</text>`;
-    const mudar = () => { const s = (+g.dataset.s + 1) % 4; g.dataset.s = s; estado[n] = s; atualizar(n); };
-    g.addEventListener("click", mudar);
-    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mudar(); } });
-    svg.appendChild(g); x += w + 3;
-  });
-});
-function atualizar(ultimo) {
-  svg.querySelectorAll(".tooth").forEach(g => g.setAttribute("aria-label", `Dente ${g.dataset.n}: ${NOMES[g.dataset.s]}`));
-  const itens = Object.entries(estado).filter(([, s]) => s === 1 || s === 3);
-  document.getElementById("plan").innerHTML = (ultimo ? `<b>Dente ${ultimo}:</b> ${NOMES[estado[ultimo]]}<br>` : "") +
-    (itens.length ? `Plano de tratamento com ${itens.length} ${itens.length === 1 ? "item" : "itens"}:<ul>${itens.map(([n, s]) => `<li>${s === 1 ? "Restaurar" : "Extrair"} dente ${n}</li>`).join("")}</ul>` : "Nenhum tratamento pendente.");
+const ODGCSS=document.createElement("style");ODGCSS.textContent=ODG.CSS+".odg-demo{overflow-x:auto}@media (max-width:620px){.odg-demo .odg{min-width:640px}}";document.head.appendChild(ODGCSS);
+const PROC={real:"Restauração (a realizar)",exec:"Restauração (executada)",exist:"Restauração (existente)"};
+let demoEnt=[{dente:"14",faces:"C",st:"exist"},{dente:"44",faces:"D",st:"exec"},{dente:"12",faces:"D",st:"real"}];
+function desenhar(sel){
+  document.getElementById("odgDemo").innerHTML=ODG.svg(demoEnt,{},sel,{labels:true});
+  document.getElementById("odgLegend").innerHTML=ODG.legend();
+  document.getElementById("plan").innerHTML=demoEnt.length?`<ul>${demoEnt.map(e=>`<li><b>${ODG.label(e.dente,e.faces)}</b> ${ODG.STN[e.st]}</li>`).join("")}</ul>`:"Nenhuma marcação.";
 }
-atualizar();
+document.getElementById("odgDemo").addEventListener("click",e=>{
+  const t=e.target.closest("[data-otooth]");if(!t)return;const n=t.dataset.otooth;const fz=e.target.closest("[data-fz]");
+  const f=fz?fz.dataset.fz:"O";
+  const i=demoEnt.findIndex(x=>x.dente===n&&x.faces===f);const ordem=["real","exec","exist"];
+  if(i<0)demoEnt.push({dente:n,faces:f,st:"real"});
+  else{const k=ordem.indexOf(demoEnt[i].st);if(k===2)demoEnt.splice(i,1);else demoEnt[i].st=ordem[k+1]}
+  desenhar(n);
+});
+desenhar(null);
 </script>
 </body>
 </html>
