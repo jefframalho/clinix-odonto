@@ -91,3 +91,40 @@ TESTAR SEM WHATSAPP (no seu PC, com Node 20 ou mais novo)
   (os pedidos feitos no teste aparecem de verdade na Agenda; recuse depois)
 
   npm run teste-auto   -> confere a lógica com simulações (não usa internet)
+
+=================================================================
+CONSULTA SPC / SERASA (mesmo servidor do Render)
+=================================================================
+COMO FUNCIONA
+  Clinix (dona da clínica) -> este servidor -> fornecedor da consulta
+  - A chave do fornecedor fica SÓ aqui no servidor (nunca no site).
+  - Só a responsável (papel "dono") consulta; a secretária não vê a aba.
+  - Cada consulta desconta 1 crédito da clínica. Se o fornecedor falhar, o crédito volta.
+  - Fica registrado em clinicas/<clínica>/consultas (data, CPF mascarado, score, quem consultou).
+
+PASSO A — Variáveis no Render (Environment)
+  FIREBASE_SERVICE_ACCOUNT = conteúdo inteiro do JSON da chave de serviço (o mesmo do backup)
+  CONSULTA_MODO            = teste   (dados simulados; troque para "real" quando o fornecedor estiver pronto)
+  CONSULTA_URL             = endereço da API do fornecedor
+  CONSULTA_TOKEN           = token do fornecedor
+  CONSULTA_DEVICE_TOKEN    = (só se o fornecedor pedir)
+  CONSULTA_CAMPO_CPF       = cpf     (nome do campo do CPF que o fornecedor espera)
+  Salve e faça "Manual Deploy".
+
+PASSO B — No config.js do Clinix
+  servidor: "https://SEU-SERVICO.onrender.com"
+  consulta: { preco: 15, pacotes: [10, 25, 50] }   <- seu preço por consulta e pacotes
+  Depois: git pull / firebase deploy --only hosting
+
+PASSO C — Regras do Firestore
+  Copie o firestore.rules atualizado para Firebase > Firestore > Regras > Publicar.
+  (Elas impedem que a clínica altere o próprio saldo de créditos.)
+
+PASSO D — Créditos
+  No painel de Administrador, botão "Créditos SPC" em cada clínica: adicione os créditos
+  depois de receber o Pix do pacote.
+
+ATENÇÃO
+  - No plano gratuito do Render o servidor "dorme": a primeira consulta do dia pode demorar ~1 minuto.
+  - Use a consulta só para decidir parcelamento, com o paciente avisado. Confirme as regras de uso
+    com o fornecedor contratado.

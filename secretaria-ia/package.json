@@ -4,7 +4,9 @@
   "description": "Secretária IA do Clinix Odonto no WhatsApp (API oficial da Meta + Gemini)",
   "main": "server.js",
   "private": true,
-  "engines": { "node": ">=20.6" },
+  "engines": {
+    "node": ">=20.6"
+  },
   "scripts": {
     "start": "node server.js",
     "local": "node --env-file=.env server.js",
@@ -14,6 +16,7 @@
   "dependencies": {
     "@google/genai": "^1.0.0",
     "express": "^4.21.0",
-    "firebase": "^11.0.0"
+    "firebase": "^11.0.0",
+    "firebase-admin": "^13.0.0"
   }
 }

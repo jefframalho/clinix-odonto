@@ -28,6 +28,12 @@ window.CLINIX_CONFIG = {
   // Endereço do site publicado (usado nos links de assinatura)
   appUrl: "https://jefframalho.github.io/clinix-odonto/",
 
+  // Servidor da Secretária IA / consulta SPC-Serasa (Render). Ex.: "https://clinix-secretaria.onrender.com"
+  servidor: "",
+
+  // Consulta SPC/Serasa: preço de cada crédito (R$) e pacotes que a clínica pode comprar
+  consulta: { preco: 15, pacotes: [10, 25, 50] },
+
   // Cole aqui o firebaseConfig do seu projeto (passo 5 do guia)
   firebase: {
     apiKey: "AIzaSyDhBKEhZEeNVRy6i1d4HZKq9Ga1lnvraOU",

@@ -32,15 +32,18 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.dono == request.auth.uid
         && request.resource.data.status == 'teste'
-        && request.resource.data.vencimento <= request.time + duration.value(15, 'd');
+        && request.resource.data.vencimento <= request.time + duration.value(15, 'd')
+        && !('creditosConsulta' in request.resource.data);
       allow update: if isAdmin() || (isOwner(cid)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'vencimento', 'valor', 'dono', 'pagamentos', 'criadoEm']));
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'vencimento', 'valor', 'dono', 'pagamentos', 'criadoEm', 'creditosConsulta']));
       allow delete: if isAdmin();
 
       // Dados da clínica (pacientes, agenda, etc.): só a equipe da própria clínica, e só com mensalidade em dia.
       // O financeiro ("fin") só a responsável vê.
+      // As consultas SPC/Serasa só o servidor grava; só a responsável lê.
       match /{col}/{doc} {
-        allow read, write: if isAdmin() || (member(cid) && active(cid) && (col != 'fin' || me().papel == 'dono'));
+        allow read: if isAdmin() || (member(cid) && active(cid) && (col != 'fin' || me().papel == 'dono') && (col != 'consultas' || me().papel == 'dono'));
+        allow write: if isAdmin() || (member(cid) && active(cid) && (col != 'fin' || me().papel == 'dono') && col != 'consultas');
       }
     }
 

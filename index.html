@@ -872,7 +872,7 @@ function toothSVG(n,st){const d=DST.find(x=>x.k===(st||""))||DST[0];const molar=
  return `<svg viewBox="0 0 24 30" style="transform:${up?"scaleY(-1)":"none"}"><path d="${root}" fill="none"/><path d="${crown}" fill="${d.c}"/>${st==="ext"?`<path d="M4 3 L20 15 M20 3 L4 15" style="stroke:var(--bad);stroke-width:2"/>`:""}${st==="impl"?`<path d="M10 16h4M10 19h4M10.5 22h3M11 25h2" style="stroke:var(--ok);stroke-width:1.6"/>`:""}</svg>`}
 
 function vFicha(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||{};p.dentes=p.dentes||{};p.hist=p.hist||[];
- const al=ALERTA.filter(k=>p.anam[k]);const TB=[["dados","Dados"],["anamnese","Anamnese"],["odonto","Odontograma"],["fotos","Fotos"],["hist","Histórico"],["rx","Receitas e atestados"],["docs","Documentos"]].concat(DONO()?[["fin","Financeiro"]]:[]);let body="";
+ const al=ALERTA.filter(k=>p.anam[k]);const TB=[["dados","Dados"],["anamnese","Anamnese"],["odonto","Odontograma"],["fotos","Fotos"],["hist","Histórico"],["rx","Receitas e atestados"],["docs","Documentos"]].concat(DONO()?[["fin","Financeiro"],["credito","SPC/Serasa"]]:[]);let body="";
  if(fichaTab==="dados"){const nx=S.ag.filter(a=>a.pid===p.id&&a.data>=T).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
   body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Cadastro</h3><div class="fgrid"><label class="f">Nome<input data-pf="nome" value="${esc(p.nome)}"></label><label class="f">WhatsApp<input data-pf="fone" value="${esc(p.fone)}"></label><label class="f">Nascimento<input type="date" data-pf="nasc" value="${p.nasc||""}"></label><label class="f">CPF<input data-pf="cpf" inputmode="numeric" value="${esc(p.cpf||"")}" placeholder="000.000.000-00"></label><label class="f" style="grid-column:1/-1">Endereço<input data-pf="end" value="${esc(p.end)}" placeholder="Rua, número, bairro, cidade"></label></div>
   <div class="row mt"><a class="btn wa" target="_blank" rel="noopener" href="${wa(p.fone,"Olá, "+first(p.nome)+"! Aqui é da "+CLINICA()+".")}">${WAI}Abrir conversa</a>${DONO()?`<button class="btn" data-act="delPac">Excluir paciente</button>`:""}</div></div>
@@ -881,6 +881,7 @@ function vFicha(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||
   <div class="row"><button class="btn sm" data-go2="prontuario">${ic("doc")}Cópia do prontuário</button>${DONO()?`<button class="btn sm" data-act="expPac">Baixar todos os dados (arquivo)</button>`:""}<button class="btn sm" data-act="lgpdTerm">Gerar termo de ciência LGPD</button></div></div>`}
  if(fichaTab==="anamnese"){syncAnam();const al=p.anamLink;body=`<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><div style="min-width:0;flex:1"><h3>Anamnese pelo celular</h3><p class="small muted" style="margin:2px 0 0">${al&&al.status==="respondida"?`Respondida pelo paciente em ${new Date(al.resp).toLocaleDateString("pt-BR")}. As respostas já estão abaixo.`:al&&al.enviado?"Link enviado. As respostas entram aqui assim que o paciente terminar.":"Envie um link para o paciente responder antes da consulta."}</p></div><div class="row">${al&&al.status==="respondida"?`<span class="pill dot t-ok">Respondida</span>`:al&&al.enviado?`<span class="pill dot t-warn">Aguardando</span>`:""}<button class="btn sm wa" data-act="anamSend">${WAI}${al&&al.enviado&&al.status!=="respondida"?"Reenviar link":"Enviar link"}</button>${DEMO&&al&&al.enviado&&al.status!=="respondida"?`<button class="btn sm" data-act="anamSim">Simular paciente</button>`:""}</div></div></div>`+`<div class="card"><div class="cardhead"><h3>Questionário de saúde</h3><span class="small muted">Marque o que o paciente informou</span></div><div class="checks">${ANAM.map(k=>`<label class="check ${p.anam[k]?"on":""}"><input type="checkbox" data-anam="${esc(k)}" ${p.anam[k]?"checked":""}>${esc(k)}</label>`).join("")}</div><label class="f mt">Observações (medicamentos, alergias, cirurgias)<textarea data-pf="obs">${esc(p.obs)}</textarea></label></div>`}
  if(fichaTab==="odonto"){body=odTab(p)}
+ if(fichaTab==="credito"){body=credTab(p)}
  if(fichaTab==="fotos"){const fs=S.fotos.filter(f=>f.pid===p.id).sort((a,b)=>a.data.localeCompare(b.data));const an=fs.filter(f=>f.tipo==="Antes").slice(-1)[0],de=fs.filter(f=>f.tipo==="Depois").slice(-1)[0];
   body=`<div class="card"><div class="cardhead"><h3>Fotos clínicas</h3><select id="phTipo" style="width:auto"><option>Antes</option><option>Depois</option><option>Raio-X</option><option>Sorriso</option></select></div>
   ${an&&de?`<div class="compare"><div class="ph"><img src="${an.src}" alt="Antes"><span class="tag">Antes</span></div><div class="ph"><img src="${de.src}" alt="Depois"><span class="tag">Depois</span></div></div>`:""}
@@ -1146,7 +1147,7 @@ function vAdmin(){
  its.sort((a,b)=>toD(a.vencimento)-toD(b.vencimento));
  const rows=its.map(c=>{const v=toD(c.vencimento);const code=pixCode(c.valor,"CLX"+c.id);const msg=`Olá, ${first(c.dentista)||""}! Aqui é ${CFG.vendedor}, do ${CFG.produto}. A mensalidade da ${c.nome} (${brl(c.valor)}) ${c.sit.d<0?"venceu em":"vence em"} ${v.toLocaleDateString("pt-BR")}.${code?`\n\nPix copia e cola:\n${code}`:""}\n\nQualquer dúvida estou à disposição!`;
   return `<div class="li" style="background:var(--surface);box-shadow:var(--shadow);grid-template-columns:auto 1fr auto">${c.logo?`<div class="av"><img src="${c.logo}" alt=""></div>`:avHTML({id:c.id,nome:c.nome})}<div class="who"><strong>${esc(c.nome)}</strong><small>${esc(c.dentista)} · ${esc(c.cidade)} · ${esc(c.telefone)}</small></div><div class="end">${brl(c.valor)}<br><span class="small muted" style="font-weight:600">${v.toLocaleDateString("pt-BR")}</span></div>
-  <div class="acts"><span class="pill dot ${c.sit.cls}">${c.sit.t}</span><button class="btn sm pri" data-apay="${c.id}">${ic("check")}Recebi Pix</button><a class="btn sm wa" target="_blank" rel="noopener" href="${wa(c.telefone,msg)}">${WAI}Cobrar</a>${c.status==="bloqueado"?`<button class="btn sm" data-ablock="${c.id}" data-v="ativo">Desbloquear</button>`:`<button class="btn sm" data-ablock="${c.id}" data-v="bloqueado">Bloquear</button>`}<button class="btn sm" data-aedit="${c.id}">Editar</button></div>
+  <div class="acts"><span class="pill dot ${c.sit.cls}">${c.sit.t}</span><button class="btn sm pri" data-apay="${c.id}">${ic("check")}Recebi Pix</button><a class="btn sm wa" target="_blank" rel="noopener" href="${wa(c.telefone,msg)}">${WAI}Cobrar</a>${c.status==="bloqueado"?`<button class="btn sm" data-ablock="${c.id}" data-v="ativo">Desbloquear</button>`:`<button class="btn sm" data-ablock="${c.id}" data-v="bloqueado">Bloquear</button>`}<button class="btn sm" data-acred="${c.id}">Créditos SPC (${+c.creditosConsulta||0})</button><button class="btn sm" data-aedit="${c.id}">Editar</button></div>
   ${admEdit===c.id?`<form class="edit" data-aform="${c.id}"><label class="f">Mensalidade (R$)<input name="valor" type="number" min="0" step="1" value="${c.valor}"></label><label class="f">Vencimento<input name="venc" type="date" value="${iso(v)}"></label><label class="f">Situação<select name="status">${["teste","ativo","bloqueado"].map(s=>`<option ${c.status===s?"selected":""}>${s}</option>`).join("")}</select></label><div class="row" style="align-self:end"><button class="btn sm pri" type="submit">Salvar</button><button class="btn sm" type="button" data-aedit="">Cancelar</button></div></form>`:""}</div>`}).join("");
  return `<div class="app"><aside class="side"><div class="brand"><div class="mark">${ic("tooth",1.8)}</div><div><b>${esc(CFG.produto)}</b><small>Administrador</small></div></div><button class="navbtn on">${ic("building")}Clínicas</button>
   <div style="margin-top:auto"><div class="userbox">${avHTML({id:U.uid,nome:U.nome||U.email})}<div class="ubt"><b class="small">Administrador</b><small>${esc(U.email)}</small></div><button class="xbtn" style="background:var(--surface);color:var(--muted)" data-act="logout" aria-label="Sair">${ic("out")}</button></div></div></aside>
@@ -1385,6 +1386,55 @@ document.addEventListener("click",e=>{if(route.v!=="ficha"||fichaTab!=="odonto")
 });
 document.addEventListener("keydown",e=>{const g=e.target.closest&&e.target.closest("[data-otooth]");if(!g||(e.key!=="Enter"&&e.key!==" "))return;e.preventDefault();g.dispatchEvent(new MouseEvent("click",{bubbles:true}))});
 /* ============ FIM ODONTOGRAMA POR FACES ============ */
+
+
+/* ============ CONSULTA SPC / SERASA (créditos) ============ */
+let credRes={},credBusy=false,credPac=null;
+function cpfOk(c){c=digits(c);if(c.length!==11||/^(\d)\1+$/.test(c))return false;const dv=n=>{let s=0;for(let i=0;i<n;i++)s+=+c[i]*(n+1-i);const r=(s*10)%11;return r===10?0:r};return dv(9)===+c[9]&&dv(10)===+c[10]}
+const cpfFmt=c=>{c=digits(c);return c.length===11?`${c.slice(0,3)}.${c.slice(3,6)}.${c.slice(6,9)}-${c.slice(9)}`:c};
+function scoreFaixa(s){if(s==null)return{t:"Sem score",cls:"t-info"};if(s<300)return{t:"Muito baixo",cls:"t-bad"};if(s<500)return{t:"Baixo",cls:"t-warn"};if(s<700)return{t:"Bom",cls:"t-ok"};return{t:"Muito bom",cls:"t-ok"}}
+function credResult(r){const f=scoreFaixa(r.score);const tot=r.restricoes.reduce((s,x)=>s+(+x.valor||0),0);
+ return `<div class="card mt"><div class="cardhead"><h3>Resultado da consulta</h3>${r.simulado?`<span class="pill t-warn">SIMULAÇÃO: modo de teste</span>`:`<span class="small muted">${new Date(r.data).toLocaleString("pt-BR")}</span>`}</div>
+ <div class="kpis"><div class="kpi"><div class="ic ${f.cls}">${ic("trend")}</div><b>${r.score==null?"—":r.score}</b><span>Score · ${f.t}</span></div>
+ <div class="kpi"><div class="ic ${r.restricoes.length?"t-bad":"t-ok"}">${ic(r.restricoes.length?"alert":"check")}</div><b>${r.restricoes.length?r.restricoes.length:"Nada consta"}</b><span>${r.restricoes.length?"Restrição(ões) · "+brl(tot):"SPC e Serasa"}</span></div>
+ <div class="kpi"><div class="ic ${r.protestos?"t-bad":"t-ok"}">${ic("doc")}</div><b>${r.protestos||0}</b><span>Protestos</span></div></div>
+ ${r.restricoes.length?`<div class="odtable"><table><thead><tr><th>Tipo</th><th>Credor</th><th>Valor</th><th>Data</th><th>Fonte</th></tr></thead><tbody>${r.restricoes.map(x=>`<tr><td>${esc(x.tipo)}</td><td>${esc(x.credor)}</td><td>${brl(x.valor)}</td><td>${x.data?br(String(x.data).slice(0,10)):""}</td><td>${esc(x.fonte||"")}</td></tr>`).join("")}</tbody></table></div>`:""}
+ <p class="small muted" style="margin:10px 0 0">Use este resultado apenas para decidir a forma de pagamento do tratamento. Não compartilhe com terceiros.</p></div>`}
+function credTab(p){if(!DONO())return"";if(DEMO&&C.creditosConsulta===undefined)C.creditosConsulta=5;
+ const saldo=+C.creditosConsulta||0,cc=CFG.consulta||{},preco=+cc.preco||0,pacs=cc.pacotes||[10,25,50];if(!credPac)credPac=pacs[0];
+ const off=!DEMO&&!CFG.servidor,r=credRes[p.id],hist=(p.cred||[]).slice().reverse();
+ return `<div class="cols half"><div class="card"><div class="cardhead"><h3>Consulta SPC / Serasa</h3><span class="pill ${saldo?"t-info":"t-bad"}">${saldo} crédito(s)</span></div>
+  <p class="small muted" style="margin:0 0 12px">Para decidir se oferece parcelamento do tratamento. Cada consulta usa 1 crédito.</p>
+  ${off?`<p class="small" style="color:var(--bad);margin:0 0 10px">A consulta ainda não foi ativada pelo suporte do ${esc(CFG.produto)}.</p>`:""}
+  <label class="f">CPF do paciente<input id="crCpf" inputmode="numeric" value="${esc(p.cpf||"")}" placeholder="000.000.000-00"></label>
+  <label class="check mt" style="padding:10px 12px;align-items:flex-start"><input type="checkbox" id="crOk" style="accent-color:var(--accent);margin-top:3px"> O paciente foi informado e autorizou a consulta do CPF para análise de parcelamento.</label>
+  <div class="row mt"><button class="btn pri" data-cracao ${credBusy||off||!saldo?"disabled":""}>${credBusy?"Consultando…":"Consultar (1 crédito)"}</button></div></div>
+  <div class="card"><h3 style="margin-bottom:10px">Comprar créditos</h3>
+  ${preco?`<div class="chips">${pacs.map(n=>`<button class="chip ${credPac===n?"on":""}" data-crpac="${n}">${n} consultas · ${brl(n*preco)}</button>`).join("")}</div><div class="mt">${pixBlock(credPac*preco,"CRD"+C.id)}</div>`:`<p class="small muted">Fale com o suporte para comprar créditos.</p>`}
+  <a class="btn sm wa mt" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp||"",`Olá! Paguei ${credPac} créditos de consulta SPC/Serasa para a ${C.nome}.`)}">${WAI}Avisar que paguei</a>
+  <p class="small muted" style="margin:8px 0 0">Os créditos entram depois que o pagamento é confirmado.</p></div></div>
+  ${r?credResult(r):""}
+  <div class="card mt"><h3 style="margin-bottom:10px">Consultas deste paciente</h3>${hist.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Score</th><th>Restrições</th><th>Quem consultou</th></tr></thead><tbody>${hist.map(h=>`<tr><td>${new Date(h.data).toLocaleDateString("pt-BR")}${h.sim?" (teste)":""}</td><td>${h.score==null?"—":h.score}</td><td>${h.qtd?h.qtd+" · "+brl(h.valor):"Nada consta"}</td><td>${esc(h.quem||"")}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma consulta feita para este paciente.</div>`}</div>`}
+async function credConsultar(p,cpf){
+ if(DEMO){const s=+C.creditosConsulta||0;if(s<1)throw new Error("Sem créditos de consulta.");await new Promise(r=>setTimeout(r,700));C.creditosConsulta=s-1;
+  const n=parseInt(cpf.slice(-3),10),score=200+(n*7)%750;return{score,restricoes:score<450?[{tipo:"Dívida em atraso",credor:"LOJA EXEMPLO LTDA",valor:389.9,data:"2025-08-14",fonte:"SPC"},{tipo:"Dívida em atraso",credor:"OPERADORA EXEMPLO",valor:142.5,data:"2026-02-03",fonte:"Serasa"}]:[],protestos:score<300?1:0,simulado:true,data:new Date().toISOString()}}
+ const tok=await BE.auth.currentUser.getIdToken();
+ const r=await fetch(CFG.servidor.replace(/\/$/,"")+"/consulta-cpf",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({cpf,pid:p.id,autorizado:true})}).catch(()=>{throw new Error("Sem conexão com o servidor de consulta.")});
+ const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.erro||"Não foi possível consultar.");if(typeof j.creditosRestantes==="number")C.creditosConsulta=j.creditosRestantes;return j}
+document.addEventListener("click",async e=>{
+ const ac=e.target.closest("[data-acred]");if(ac){const c=ADM.find(x=>x.id===ac.dataset.acred);if(!c)return;const v=prompt(`Créditos de consulta para ${c.nome}\nSaldo atual: ${+c.creditosConsulta||0}\n\nQuantos adicionar? (use número negativo para tirar)`,"10");const n=parseInt(v,10);if(!n)return;const novo=Math.max(0,(+c.creditosConsulta||0)+n);await BE.adminUpdate(c.id,{creditosConsulta:novo});c.creditosConsulta=novo;render();toast(`Saldo de ${c.nome}: ${novo} crédito(s)`);return}
+ if(route.v!=="ficha"||fichaTab!=="credito")return;const p=P(route.arg);if(!p)return;
+ const t=e.target.closest("[data-cracao],[data-crpac]");if(!t)return;
+ if(t.dataset.crpac){credPac=+t.dataset.crpac;render();return}
+ const cpf=digits($("crCpf").value);if(!cpfOk(cpf)){toast("CPF inválido. Confira os números.");return}
+ if(!$("crOk").checked){toast("Confirme que o paciente autorizou a consulta.");return}
+ credBusy=true;render();
+ try{const r=await credConsultar(p,cpf);credRes[p.id]=r;if(!p.cpf)p.cpf=cpfFmt(cpf);
+  (p.cred=p.cred||[]).push({data:r.data,score:r.score,qtd:r.restricoes.length,valor:r.restricoes.reduce((s,x)=>s+(+x.valor||0),0),quem:U.nome||U.email,sim:!!r.simulado});
+  logAct("Consulta SPC/Serasa",p.nome);save();toast(r.simulado?"Consulta de teste feita (dados simulados)":"Consulta feita")}
+ catch(err){toast(err.message||"Não foi possível consultar.")}
+ finally{credBusy=false;render()}});
+/* ============ FIM CONSULTA SPC / SERASA ============ */
 
 const VIEWS={prontuario:vProntuario,contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,estoque:vEstoque,mais:vMais,config:vConfig};
 function render(){const R=$("root");

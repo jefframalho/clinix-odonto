@@ -35,6 +35,9 @@ setInterval(() => {
 const app = express();
 app.use(express.json({ limit: "1mb", verify: (req, _res, buf) => { req.raw = buf; } }));
 
+// Consulta SPC/Serasa (créditos da clínica)
+require("./consulta")(app);
+
 app.get("/", (_req, res) => res.send("Secretária IA do Clinix Odonto: no ar ✅"));
 
 // A Meta chama isto uma vez para confirmar o endereço
