@@ -1,0 +1,21 @@
+{
+  "hosting": {
+    "site": "clinix-odonto",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**",
+      "secretaria-ia/**",
+      "software/**",
+      "*.txt",
+      "README.md",
+      "firestore.rules"
+    ],
+    "headers": [
+      { "source": "sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+    ]
+  }
+}
