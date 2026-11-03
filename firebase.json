@@ -1,21 +1,32 @@
 {
-  "hosting": {
-    "site": "clinix-odonto",
-    "public": ".",
-    "ignore": [
-      "firebase.json",
-      ".firebaserc",
-      "**/.*",
-      "**/node_modules/**",
-      "secretaria-ia/**",
-      "software/**",
-      "*.txt",
-      "README.md",
-      "firestore.rules"
-    ],
-    "headers": [
-      { "source": "sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
-      { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
-    ]
-  }
+  "hosting": [
+    {
+      "site": "clinixodonto-site",
+      "public": "site",
+      "ignore": ["**/.*"],
+      "headers": [
+        { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+      ]
+    },
+    {
+      "site": "clinix-odonto",
+      "public": ".",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        "**/.*",
+        "**/node_modules/**",
+        "site/**",
+        "secretaria-ia/**",
+        "software/**",
+        "*.txt",
+        "README.md",
+        "firestore.rules"
+      ],
+      "headers": [
+        { "source": "sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+        { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
+      ]
+    }
+  ]
 }

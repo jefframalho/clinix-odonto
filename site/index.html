@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinix Odonto | Sistema para clínica odontológica</title>
+<meta name="description" content="Sistema completo para clínicas odontológicas: agenda com confirmação pelo WhatsApp, prontuário com odontograma, orçamentos, contratos assinados na tela, financeiro e estoque. Teste grátis.">
+<link rel="canonical" href="https://www.clinixodonto.com.br/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Clinix Odonto">
+<meta property="og:url" content="https://www.clinixodonto.com.br/">
+<meta property="og:title" content="Clinix Odonto: o sistema completo da sua clínica odontológica">
+<meta property="og:description" content="Agenda, prontuário com odontograma, orçamentos, contratos, financeiro e estoque. Teste grátis.">
+<meta property="og:image" content="https://www.clinixodonto.com.br/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B86AE">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230B86AE'/%3E%3Cpath d='M20 18c-6 0-9 5-8 12 1 6 3 9 4 16 1 5 5 5 6 0l2-9c1-3 5-3 6 0l2 9c1 5 5 5 6 0 1-7 3-10 4-16 1-7-2-12-8-12-4 0-6 2-9 2s-5-2-9-2z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Clinix Odonto","applicationCategory":"BusinessApplication","operatingSystem":"Web, Windows","url":"https://www.clinixodonto.com.br/","offers":{"@type":"Offer","price":"99.00","priceCurrency":"BRL"}}
+</script>
+<style>
+:root{
+  --accent:#0B86AE;       /* azul do sistema */
+  --accent-dark:#086A8B;
+  --mint:#5CD3AE;         /* verde-água do sistema: botão principal */
+  --mint-dark:#3FBF97;
+  --deep:#06374A;         /* faixa escura sobre a foto */
+  --ink:#0F2A33;
+  --muted:#587380;
+  --bg:#F1F8FA;
+  --white:#FFFFFF;
+  --line:#DAEAEE;
+  --soft:#E0F3F9;
+  --caries:#F0A93B;
+  --resto:#0B86AE;
+  --font:"Plus Jakarta Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--ink);font:400 17px/1.6 var(--font);-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--mint);outline-offset:3px;border-radius:8px}
+.wrap{width:min(1200px,100% - 32px);margin-inline:auto}
+
+/* botões */
+.btn{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border-radius:12px;font:800 15px/1 var(--font);letter-spacing:.01em;text-decoration:none;cursor:pointer;border:2px solid transparent;transition:background .15s,transform .15s}
+.btn-cta{background:var(--mint);color:#03302A}
+.btn-cta:hover{background:var(--mint-dark);transform:translateY(-1px)}
+.btn-blue{background:var(--accent);color:#fff}
+.btn-blue:hover{background:var(--accent-dark)}
+.btn-line{border-color:var(--line);color:var(--ink);background:#fff}
+.btn-line:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{min-height:46px;padding:0 20px;font-size:14px}
+
+/* topo branco */
+header{position:sticky;top:0;z-index:30;background:#fff;box-shadow:0 1px 0 var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:84px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 24px/1 var(--font);letter-spacing:-.02em;color:var(--ink);white-space:nowrap}
+.logo .mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,var(--accent),var(--mint));display:grid;place-items:center}
+.logo .mark svg{width:24px;height:24px;color:#fff}
+.logo small{display:block;font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin-top:2px}
+nav.main{display:flex;gap:34px;font-weight:700;font-size:15px}
+nav.main a{text-decoration:none}
+nav.main a:hover{color:var(--accent)}
+.menu-btn{display:none;background:none;border:0;padding:8px;cursor:pointer;color:var(--ink)}
+.menu-btn svg{width:28px;height:28px}
+@media (max-width:1000px){
+  nav.main{display:none;position:absolute;top:84px;left:0;right:0;background:#fff;flex-direction:column;gap:0;box-shadow:0 12px 24px -12px rgba(0,0,0,.2)}
+  nav.main.open{display:flex}
+  nav.main a{padding:16px 24px;border-top:1px solid var(--line)}
+  .menu-btn{display:block}
+  header .btn-cta{display:none}
+}
+
+/* hero com foto */
+.hero{position:relative;min-height:640px;display:flex;align-items:center;color:#fff;overflow:hidden;background:var(--deep)}
+.hero-photo{position:absolute;inset:0;background-size:cover;background-position:right center}
+.hero::before{content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(90deg,var(--deep) 0%,rgba(6,55,74,.94) 38%,rgba(6,55,74,.55) 60%,rgba(6,55,74,.05) 85%)}
+.hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:80px 0 150px}
+.hero-mark{position:absolute;z-index:1;left:-60px;top:40px;width:520px;height:520px;opacity:.12;color:var(--mint)}
+.hero h1{font:800 clamp(36px,4.6vw,58px)/1.08 var(--font);letter-spacing:-.025em;margin:0 0 22px;max-width:15ch}
+.hero p{font-size:19px;color:#CDE7EF;max-width:46ch;margin:0 0 32px}
+.hero .actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.hero .note{display:flex;align-items:center;gap:8px;margin-top:20px;font-size:14px;font-weight:600;color:#CDE7EF}
+.hero .note svg{width:18px;height:18px;color:var(--mint)}
+.btn-ghost{color:#fff;border-color:rgba(255,255,255,.35)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+
+/* sem foto: mostra a tela do sistema à direita */
+.app-mock{background:#fff;color:var(--ink);border-radius:20px;box-shadow:0 40px 80px -30px rgba(0,0,0,.6);overflow:hidden;max-width:560px;justify-self:end;width:100%}
+.has-photo .app-mock{display:none}
+.mock-bar{display:flex;align-items:center;gap:7px;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.mock-bar i{width:10px;height:10px;border-radius:50%;background:#C8DDE3}
+.mock-bar span{margin-left:10px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.mock-body{padding:18px}
+.mock-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.mock-kpis div{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px}
+.mock-kpis b{display:block;font-size:20px;font-weight:800}
+.mock-kpis span{font-size:12px;color:var(--muted);font-weight:600}
+.mock-list{display:grid;gap:8px}
+.mock-list div{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-size:14px}
+.mock-list b{font-weight:800}
+.tag{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--bg);color:var(--muted)}
+.tag.ok{background:#DFF4EA;color:#14805A}
+.tag.now{background:var(--soft);color:var(--accent)}
+
+/* cartões sobre a foto */
+.float-cards{position:relative;z-index:5;margin-top:-90px}
+.float-cards .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.fcard{background:#fff;border-radius:18px;padding:30px;box-shadow:0 24px 50px -20px rgba(6,55,74,.35);border:1px solid var(--line)}
+.fcard .ico{width:52px;height:52px;border-radius:14px;background:var(--soft);color:var(--accent);display:grid;place-items:center;margin-bottom:18px}
+.fcard .ico svg{width:26px;height:26px}
+.fcard h3{font:800 20px/1.25 var(--font);margin:0 0 8px}
+.fcard p{margin:0;color:var(--muted);font-size:15.5px}
+
+/* seções */
+section{padding:96px 0}
+.sec-head{text-align:center;max-width:720px;margin:0 auto 52px}
+.sec-head h2{font:800 clamp(30px,3.6vw,44px)/1.12 var(--font);letter-spacing:-.02em;margin:0 0 14px}
+.sec-head p{margin:0;color:var(--muted);font-size:18px}
+
+/* recursos */
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.feat{padding:24px;border-radius:16px;background:var(--bg);border:1px solid var(--line)}
+.feat svg{width:28px;height:28px;color:var(--accent);margin-bottom:14px}
+.feat h3{font:800 17px/1.3 var(--font);margin:0 0 6px}
+.feat p{margin:0;color:var(--muted);font-size:14.5px;line-height:1.55}
+
+/* demonstração */
+.demo{background:var(--bg)}
+.demo .wrap{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.demo h2{font:800 clamp(28px,3.2vw,40px)/1.15 var(--font);letter-spacing:-.02em;margin:0 0 16px}
+.demo p{color:var(--muted);font-size:18px;margin:0 0 20px}
+.demo ul{margin:0 0 28px;padding:0;list-style:none;display:grid;gap:10px}
+.demo li{display:flex;gap:10px;font-weight:600}
+.demo li svg{flex:none;width:22px;height:22px;color:var(--mint-dark)}
+.chart{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 30px 60px -30px rgba(6,55,74,.3);min-width:0}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.chart-head strong{font-weight:800}
+.chart-head span{font-size:13px;color:var(--muted)}
+.odonto-scroll{overflow-x:auto;margin:8px -6px 0;padding:0 6px}
+.odonto{width:100%;min-width:520px;height:auto}
+.tooth{cursor:pointer}
+.tooth rect{fill:#fff;stroke:#A9C2CB;stroke-width:1.5;transition:fill .15s}
+.tooth:hover rect,.tooth:focus-visible rect{stroke:var(--ink);stroke-width:2.5}
+.tooth:focus-visible{outline:none}
+.tooth .x{stroke:#C0394B;stroke-width:2.5;display:none}
+.tooth[data-s="1"] rect{fill:var(--caries);stroke:#C17F17}
+.tooth[data-s="2"] rect{fill:var(--resto);stroke:#06607E}
+.tooth[data-s="3"] .x{display:block}
+.tooth text{font:700 10px var(--font);fill:var(--muted);pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted);margin:6px 0 12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px;border:1px solid #A9C2CB}
+#plan{border-top:1px solid var(--line);padding-top:12px;font-size:15px;min-height:70px}
+#plan ul{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+#plan li{background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-size:13px;font-weight:600}
+
+/* planos */
+.plans{display:grid;grid-template-columns:repeat(2,minmax(0,420px));gap:24px;justify-content:center}
+.plan-card{border:1px solid var(--line);border-radius:20px;padding:34px;background:#fff;display:flex;flex-direction:column}
+.plan-card.main{border:2px solid var(--accent);box-shadow:0 30px 60px -30px rgba(11,134,174,.45);position:relative}
+.plan-card.main::before{content:"Mais escolhido";position:absolute;top:-14px;left:34px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:800;padding:5px 14px;border-radius:99px}
+.plan-card h3{font:800 22px var(--font);margin:0 0 6px}
+.plan-card .desc{color:var(--muted);margin:0 0 22px;font-size:15.5px}
+.price{font:800 48px/1 var(--font);letter-spacing:-.03em;margin-bottom:6px}
+.price small{font-size:16px;font-weight:600;color:var(--muted);letter-spacing:0}
+.price.ask{font-size:30px}
+.trial{font-size:14px;font-weight:700;color:var(--mint-dark);margin-bottom:22px}
+.plan-card ul{margin:0 0 28px;padding:0;list-style:none;display:grid;gap:10px;flex:1}
+.plan-card li{display:flex;gap:10px;font-size:15.5px}
+.plan-card li svg{flex:none;width:20px;height:20px;color:var(--accent);margin-top:2px}
+
+/* dúvidas */
+.faq-sec{background:var(--bg)}
+.faq{max-width:820px;margin:0 auto;display:grid;gap:12px}
+details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 24px}
+summary{cursor:pointer;font:800 17px/1.35 var(--font);list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";flex:none;width:30px;height:30px;border-radius:9px;background:var(--soft);color:var(--accent);display:grid;place-items:center;font-size:20px}
+details[open] summary::after{content:"−"}
+details p{margin:12px 0 0;color:var(--muted)}
+
+/* faixa final */
+.band{background:linear-gradient(120deg,var(--accent),#0A6E8F 50%,var(--deep));color:#fff;text-align:center}
+.band h2{font:800 clamp(28px,3.6vw,44px)/1.15 var(--font);letter-spacing:-.02em;margin:0 auto 14px;max-width:20ch}
+.band p{color:#CDE7EF;font-size:18px;margin:0 auto 30px;max-width:48ch}
+
+footer{background:var(--deep);color:#9FC3CF;font-size:14px;padding:40px 0}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;align-items:center}
+footer a{text-decoration:none}
+footer a:hover{color:#fff}
+footer .logo{color:#fff;font-size:20px}
+
+/* atendimento flutuante */
+.chat{position:fixed;right:22px;bottom:22px;z-index:40;width:62px;height:62px;border-radius:50%;background:#25D366;display:grid;place-items:center;box-shadow:0 14px 30px -10px rgba(0,0,0,.45);transition:transform .15s}
+.chat:hover{transform:scale(1.07)}
+.chat svg{width:32px;height:32px;color:#fff}
+
+@media (prefers-reduced-motion:no-preference){
+  .tooth{opacity:0;animation:rise .4s ease-out forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+}
+
+/* tablet e celular */
+@media (max-width:1000px){
+  .hero .wrap{grid-template-columns:1fr;padding:60px 0 140px}
+  .app-mock{justify-self:start}
+  .float-cards .wrap{grid-template-columns:1fr}
+  .feats{grid-template-columns:repeat(2,1fr)}
+  .demo .wrap{grid-template-columns:1fr}
+  .plans{grid-template-columns:minmax(0,480px)}
+  .hero::before{background:linear-gradient(180deg,rgba(6,55,74,.92),rgba(6,55,74,.82))}
+}
+@media (max-width:620px){
+  header .wrap{height:70px}
+  nav.main{top:70px}
+  .logo{font-size:20px}
+  .hero{min-height:0}
+  .hero .actions .btn{flex:1 1 100%}
+  .mock-kpis{grid-template-columns:1fr 1fr}
+  .mock-kpis div:last-child{display:none}
+  .feats{grid-template-columns:1fr}
+  section{padding:72px 0}
+  .plan-card{padding:28px 22px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="#" aria-label="Clinix Odonto, início">
+      <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5.5c-1.6-1.3-3.4-2-5-1.5C4.6 4.7 3.6 7.6 4.6 11c.6 2 1 3.6 1.3 5.6.3 2.2.9 4 2.1 4 1.5 0 1.6-2.4 2-4.2.3-1.2.9-1.9 2-1.9s1.7.7 2 1.9c.4 1.8.5 4.2 2 4.2 1.2 0 1.8-1.8 2.1-4 .3-2 .7-3.6 1.3-5.6 1-3.4 0-6.3-2.4-7-1.6-.5-3.4.2-5 1.5z"/></svg></span>
+      <span>Clinix<small>ODONTO</small></span>
+    </a>
+    <nav class="main" id="menu" aria-label="Principal">
+      <a href="#recursos">Recursos</a>
+      <a href="#planos">Planos</a>
+      <a href="#duvidas">Dúvidas</a>
+      <a data-wa href="#">Fale com consultor</a>
+      <a data-app href="#">Entrar</a>
+    </nav>
+    <a class="btn btn-cta btn-sm" data-wa href="#"><span data-cta>Teste grátis</span></a>
+    <button class="menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="menu" id="menuBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO COM FOTO -->
+  <section class="hero" id="hero" aria-labelledby="titulo" style="padding:0">
+    <div class="hero-photo" id="heroPhoto"></div>
+    <svg class="hero-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M12 5.5c-1.6-1.3-3.4-2-5-1.5C4.6 4.7 3.6 7.6 4.6 11c.6 2 1 3.6 1.3 5.6.3 2.2.9 4 2.1 4 1.5 0 1.6-2.4 2-4.2.3-1.2.9-1.9 2-1.9s1.7.7 2 1.9c.4 1.8.5 4.2 2 4.2 1.2 0 1.8-1.8 2.1-4 .3-2 .7-3.6 1.3-5.6 1-3.4 0-6.3-2.4-7-1.6-.5-3.4.2-5 1.5z"/></svg>
+    <div class="wrap">
+      <div>
+        <h1 id="titulo">O sistema completo da sua clínica odontológica</h1>
+        <p>Agenda com confirmação pelo WhatsApp, prontuário com odontograma, orçamentos, contratos assinados na tela, financeiro e estoque.</p>
+        <div class="actions">
+          <a class="btn btn-cta" data-wa href="#"><span data-cta>Teste grátis</span></a>
+          <a class="btn btn-ghost" href="#demonstracao">Ver o sistema</a>
+        </div>
+        <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg><span data-note></span></div>
+      </div>
+
+      <!-- aparece quando não há foto -->
+      <div class="app-mock" aria-hidden="true">
+        <div class="mock-bar"><i></i><i></i><i></i><span>Início: agenda de hoje</span></div>
+        <div class="mock-body">
+          <div class="mock-kpis"><div><b>8</b><span>Consultas hoje</span></div><div><b>6</b><span>Confirmadas</span></div><div><b>2</b><span>Retornos</span></div></div>
+          <div class="mock-list">
+            <div><b>08:00</b><span>Limpeza, cadeira 1</span><span class="tag ok">Confirmado</span></div>
+            <div><b>09:30</b><span>Restauração, cadeira 2</span><span class="tag now">Atendendo</span></div>
+            <div><b>11:00</b><span>Avaliação, cadeira 1</span><span class="tag">Aguardando</span></div>
+            <div><b>14:00</b><span>Canal, cadeira 2</span><span class="tag ok">Confirmado</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARTÕES SOBRE A FOTO -->
+  <div class="float-cards">
+    <div class="wrap">
+      <div class="fcard">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <h3>Menos faltas na agenda</h3>
+        <p>Confirme as consultas pelo WhatsApp e deixe o paciente marcar horário online.</p>
+      </div>
+      <div class="fcard">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div>
+        <h3>Ficha completa do paciente</h3>
+        <p>Odontograma, histórico, fotos de antes e depois, receitas e atestados.</p>
+      </div>
+      <div class="fcard">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
+        <h3>Controle do dinheiro</h3>
+        <p>Orçamento parcelado, recebimentos, atrasados e faturamento do mês.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECURSOS -->
+  <section id="recursos" aria-labelledby="t-rec">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="t-rec">Tudo que a clínica precisa, num só lugar</h2>
+        <p>Cada pessoa da equipe entra com o próprio login. Funciona no computador, no celular e no Windows.</p>
+      </div>
+      <div class="feats">
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><h3>Agenda por profissional</h3><p>Separe por dentista e cadeira e confirme pelo WhatsApp.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v4M8 7h8l-1 14H9z"/></svg><h3>Agendamento online</h3><p>Link para o paciente escolher um horário livre sozinho.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5.5c-1.6-1.3-3.4-2-5-1.5C4.6 4.7 3.6 7.6 4.6 11c.6 2 1 3.6 1.3 5.6.3 2.2.9 4 2.1 4 1.5 0 1.6-2.4 2-4.2.3-1.2.9-1.9 2-1.9s1.7.7 2 1.9c.4 1.8.5 4.2 2 4.2 1.2 0 1.8-1.8 2.1-4 .3-2 .7-3.6 1.3-5.6 1-3.4 0-6.3-2.4-7-1.6-.5-3.4.2-5 1.5z"/></svg><h3>Odontograma</h3><p>Marque cada dente e gere o orçamento direto do prontuário.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20c3-1 4-4 6-4s2 2 4 2 3-3 6-4"/><path d="M15 4l5 5-8 8H7v-5z"/></svg><h3>Contratos assinados</h3><p>O paciente assina na tela ou pelo link no celular.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><h3>Ficha de saúde online</h3><p>O paciente responde a anamnese pelo celular antes da consulta.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="3"/><circle cx="12" cy="12" r="3"/></svg><h3>Financeiro</h3><p>Parcelas, recebimentos, atrasados e faturamento por mês.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg><h3>Estoque</h3><p>Baixa no uso, alerta de reposição e lista de compras.</p></div>
+        <div class="feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><h3>Retornos e laboratório</h3><p>Avisa quem precisa voltar e acompanha próteses enviadas.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMONSTRAÇÃO -->
+  <section class="demo" id="demonstracao" aria-labelledby="t-demo">
+    <div class="wrap">
+      <div>
+        <h2 id="t-demo">Experimente o odontograma agora</h2>
+        <p>Toque nos dentes ao lado. É assim que funciona dentro do sistema: cada marcação vira plano de tratamento e orçamento.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Orçamento parcelado em um toque</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Contrato gerado para o paciente assinar</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Parcelas lançadas sozinhas no financeiro</li>
+        </ul>
+        <a class="btn btn-blue" data-wa href="#"><span data-cta>Teste grátis</span></a>
+      </div>
+      <div class="chart" aria-label="Demonstração do odontograma">
+        <div class="chart-head"><strong>Prontuário: paciente de exemplo</strong><span>Toque nos dentes</span></div>
+        <div class="odonto-scroll"><svg class="odonto" id="odonto" viewBox="0 0 600 200" role="group" aria-label="Odontograma com 32 dentes"></svg></div>
+        <div class="legend"><span><i style="background:#fff"></i>Hígido</span><span><i style="background:var(--caries)"></i>Cárie</span><span><i style="background:var(--resto)"></i>Restaurado</span><span><i style="background:#fff;border-color:#C0394B"></i>Extração indicada</span></div>
+        <div id="plan" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLANOS -->
+  <section id="planos" aria-labelledby="t-planos">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 id="t-planos">Nossos planos</h2>
+        <p>Sem taxa de instalação. Pagamento mensal por Pix.</p>
+      </div>
+      <div class="plans">
+        <div class="plan-card main">
+          <h3>Clínica</h3>
+          <p class="desc">Para consultórios e clínicas com um ou mais dentistas.</p>
+          <div class="price" data-price></div>
+          <div class="trial" data-trial></div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Todos os recursos do sistema</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Login para cada pessoa da equipe</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>No navegador, no celular e no Windows</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Cópia de segurança diária</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Suporte pelo WhatsApp</li>
+          </ul>
+          <a class="btn btn-cta" data-wa href="#"><span data-cta>Teste grátis</span></a>
+        </div>
+        <div class="plan-card">
+          <h3>Rede de clínicas</h3>
+          <p class="desc">Para quem tem mais de uma unidade e quer tudo num lugar só.</p>
+          <div class="price ask">Sob consulta</div>
+          <div class="trial">Valor conforme o número de unidades</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Tudo do plano Clínica</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Várias unidades e consultórios</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Ajuda no cadastro da equipe</li>
+          </ul>
+          <a class="btn btn-line" data-wa href="#">Fale com consultor</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DÚVIDAS -->
+  <section class="faq-sec" id="duvidas" aria-labelledby="t-faq">
+    <div class="wrap">
+      <div class="sec-head"><h2 id="t-faq">Dúvidas frequentes</h2></div>
+      <div class="faq">
+        <details><summary>Preciso instalar alguma coisa?</summary><p>Não. O sistema abre no navegador com seu login, no computador ou no celular. Se preferir, existe também a versão para Windows.</p></details>
+        <details><summary>Como funciona o teste grátis?</summary><p data-faqtrial></p></details>
+        <details><summary>Os dados dos pacientes ficam seguros?</summary><p>Os dados ficam no servidor do Google (Firebase), cada clínica só acessa os próprios dados, cada pessoa entra com seu login e é feita uma cópia de segurança todos os dias.</p></details>
+        <details><summary>Serve para clínica com mais de um dentista?</summary><p>Sim. A agenda separa por profissional e por consultório, e cada pessoa da equipe tem o próprio acesso.</p></details>
+        <details><summary>Como é feito o pagamento?</summary><p>Mensalidade por Pix. Depois do teste, o acesso continua enquanto a mensalidade estiver em dia.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAIXA FINAL -->
+  <section class="band" aria-labelledby="t-band">
+    <div class="wrap">
+      <h2 id="t-band">Organize sua clínica a partir de hoje</h2>
+      <p>Crie sua conta e use o sistema completo durante o período de teste.</p>
+      <a class="btn btn-cta" data-wa href="#"><span data-cta>Teste grátis</span></a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="logo">Clinix Odonto</span>
+    <span><a data-wa href="#">WhatsApp</a> &nbsp;|&nbsp; <a data-mail href="#"></a> &nbsp;|&nbsp; <a data-app href="#">Entrar no sistema</a></span>
+    <span>© <span id="ano"></span> Clinix Odonto</span>
+  </div>
+</footer>
+
+<a class="chat" data-wa href="#" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+</a>
+
+<script>
+/* =========================================================
+   CONFIGURAÇÃO: altere só aqui
+   ========================================================= */
+const CONFIG = {
+  whatsapp: "5583921418988",
+  mensagemWhatsapp: "Olá! Vim pelo site e quero testar o Clinix Odonto na minha clínica.",
+  email: "jeffersonramalhopb@gmail.com",
+  linkSistema: "https://app.clinixodonto.com.br",  // endereço do sistema (login)
+  diasTeste: 14,
+  preco: "99,00",
+  fotoHero: ""   // ex.: "foto-hero.jpg" (coloque a foto na mesma pasta). Vazio = mostra a tela do sistema
+};
+/* ========================================================= */
+
+const wa = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(CONFIG.mensagemWhatsapp);
+document.querySelectorAll("[data-wa]").forEach(a => { a.href = wa; a.target = "_blank"; a.rel = "noopener"; });
+document.querySelectorAll("[data-app]").forEach(a => a.href = CONFIG.linkSistema);
+document.querySelectorAll("[data-mail]").forEach(a => { a.href = "mailto:" + CONFIG.email; a.textContent = CONFIG.email; });
+document.querySelectorAll("[data-cta]").forEach(s => s.textContent = `Teste grátis por ${CONFIG.diasTeste} dias`);
+document.querySelector("[data-note]").textContent = "Sem cartão de crédito. Cancele quando quiser.";
+document.querySelector("[data-trial]").textContent = `${CONFIG.diasTeste} dias grátis para testar`;
+document.querySelector("[data-faqtrial]").textContent = `Você usa o sistema completo por ${CONFIG.diasTeste} dias sem pagar nada. Se gostar, continua com a mensalidade por Pix. Se não gostar, é só não pagar.`;
+document.querySelector("[data-price]").innerHTML = `R$ ${CONFIG.preco}<small> /mês</small>`;
+document.getElementById("ano").textContent = new Date().getFullYear();
+if (CONFIG.fotoHero) {
+  document.getElementById("heroPhoto").style.backgroundImage = `url("${CONFIG.fotoHero}")`;
+  document.getElementById("hero").classList.add("has-photo");
+}
+
+/* menu do celular */
+const mb = document.getElementById("menuBtn"), menu = document.getElementById("menu");
+mb.addEventListener("click", () => { const o = menu.classList.toggle("open"); mb.setAttribute("aria-expanded", o); });
+menu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => { menu.classList.remove("open"); mb.setAttribute("aria-expanded", "false"); }));
+
+/* odontograma de demonstração */
+const NOMES = ["Hígido", "Cárie", "Restaurado", "Extração indicada"];
+const estado = { 16: 2, 36: 1, 46: 2 };
+const largura = n => { const d = n % 10; return d >= 6 ? 32 : d >= 4 ? 27 : d === 3 ? 25 : 23; };
+const svg = document.getElementById("odonto"), NS = "http://www.w3.org/2000/svg";
+const linhas = [
+  { dentes: [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28], y: 22, cima: true },
+  { dentes: [48,47,46,45,44,43,42,41, 31,32,33,34,35,36,37,38], y: 112, cima: false }
+];
+let ordem = 0;
+linhas.forEach(l => {
+  const total = l.dentes.reduce((s, n) => s + largura(n) + 3, 0) + 14;
+  let x = (600 - total) / 2;
+  l.dentes.forEach((n, i) => {
+    if (i === 8) x += 14;
+    const w = largura(n), g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "tooth"); g.setAttribute("tabindex", "0"); g.setAttribute("role", "button");
+    g.dataset.n = n; g.dataset.s = estado[n] || 0; g.style.animationDelay = (ordem++ * 15) + "ms";
+    g.innerHTML = `<rect x="${x}" y="${l.y}" width="${w}" height="64" rx="${w/2.6}"/>` +
+      `<path class="x" d="M${x+5} ${l.y+10} L${x+w-5} ${l.y+54} M${x+w-5} ${l.y+10} L${x+5} ${l.y+54}"/>` +
+      `<text x="${x+w/2}" y="${l.cima ? l.y-7 : l.y+80}" text-anchor="middle">${n}</text>`;
+    const mudar = () => { const s = (+g.dataset.s + 1) % 4; g.dataset.s = s; estado[n] = s; atualizar(n); };
+    g.addEventListener("click", mudar);
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mudar(); } });
+    svg.appendChild(g); x += w + 3;
+  });
+});
+function atualizar(ultimo) {
+  svg.querySelectorAll(".tooth").forEach(g => g.setAttribute("aria-label", `Dente ${g.dataset.n}: ${NOMES[g.dataset.s]}`));
+  const itens = Object.entries(estado).filter(([, s]) => s === 1 || s === 3);
+  document.getElementById("plan").innerHTML = (ultimo ? `<b>Dente ${ultimo}:</b> ${NOMES[estado[ultimo]]}<br>` : "") +
+    (itens.length ? `Plano de tratamento com ${itens.length} ${itens.length === 1 ? "item" : "itens"}:<ul>${itens.map(([n, s]) => `<li>${s === 1 ? "Restaurar" : "Extrair"} dente ${n}</li>`).join("")}</ul>` : "Nenhum tratamento pendente.");
+}
+atualizar();
+</script>
+</body>
+</html>
