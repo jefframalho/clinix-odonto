@@ -29,7 +29,7 @@ window.CLINIX_CONFIG = {
   appUrl: "https://jefframalho.github.io/clinix-odonto/",
 
   // Servidor da Secretária IA / consulta SPC-Serasa (Render). Ex.: "https://clinix-secretaria.onrender.com"
-  servidor: "",
+  servidor: "https://clinix-secretaria.onrender.com",
 
   // Consulta SPC/Serasa: preço de cada crédito (R$) e pacotes que a clínica pode comprar
   consulta: { preco: 9.9, pacotes: [5, 10, 25] },
