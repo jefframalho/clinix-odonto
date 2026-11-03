@@ -82,7 +82,13 @@ async function consultarFornecedor(cpf) {
   try {
     const r = await fetch(CONSULTA_URL, { method: "POST", headers, body: JSON.stringify({ tipo: CONSULTA_TIPO, [CONSULTA_CAMPO_CPF]: cpf, homolog: CONSULTA_HOMOLOG === "true" }), signal: ctl.signal });
     const txt = await r.text(); let j; try { j = JSON.parse(txt); } catch { j = null; }
-    if (!r.ok || !j) throw new Error("Fornecedor respondeu " + r.status);
+    const semCpf = t => String(t || "").split(cpf).join("***").slice(0, 600);
+    if (!r.ok || !j || j.error === true) {
+      console.error("Consulta: resposta do fornecedor", r.status, semCpf(txt));
+      const msg = j && (j.message || j.mensagem || j.error_message);
+      throw Object.assign(new Error("Fornecedor respondeu " + r.status), { aviso: typeof msg === "string" ? msg.slice(0, 160) : "" });
+    }
+    console.log("Consulta: ok, campos da resposta:", JSON.stringify(Object.keys(j)), semCpf(JSON.stringify(j)).slice(0, 400));
     return normalizar(j);
   } finally { clearTimeout(t); }
 }
@@ -137,7 +143,7 @@ module.exports = function (app) {
     catch (e) {
       console.error("Consulta: falha no fornecedor", e.message);
       await ref.update({ creditosConsulta: admin.firestore.FieldValue.increment(1) }).catch(() => {});
-      return erro(502, "O serviço de consulta não respondeu. O crédito foi devolvido; tente de novo.");
+      return erro(502, "A consulta não foi concluída" + (e.aviso ? " (" + e.aviso + ")" : "") + ". O crédito foi devolvido.");
     }
 
     const resumo = {
