@@ -32,7 +32,7 @@ window.CLINIX_CONFIG = {
   servidor: "",
 
   // Consulta SPC/Serasa: preço de cada crédito (R$) e pacotes que a clínica pode comprar
-  consulta: { preco: 15, pacotes: [10, 25, 50] },
+  consulta: { preco: 9.9, pacotes: [5, 10, 25] },
 
   // Cole aqui o firebaseConfig do seu projeto (passo 5 do guia)
   firebase: {
