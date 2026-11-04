@@ -1,0 +1,266 @@
+<title>Arcada 3D Clinix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* layout: one clinical panel, the arch is the page */
+:root{--bg:#EEF3F5;--fg:#14232D;--muted:#5B6E79;--line:#D3DEE3;--card:#FFFFFF;--accent:#0B86AE;--real:#D64545;--exec:#2F80ED;--exist:#27AE60;--f:"Manrope",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D161D;--fg:#E3EEF3;--muted:#93A8B3;--line:#22343F;--card:#13212B;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D161D;--fg:#E3EEF3;--muted:#93A8B3;--line:#22343F;--card:#13212B;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1{font-size:22px;margin:0;text-wrap:balance}
+p{margin:0;color:var(--muted);max-width:68ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+.leg{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;font-weight:600;margin-top:10px}
+.leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#sel{font-weight:700;color:var(--accent)}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap">
+<div class="wrap">
+<h1>Arcada 3D do odontograma</h1>
+<p>Prévia com um paciente de exemplo: 11 e 21 com procedimentos, 14 restauração cervical, 15 restaurado, 25 cárie, 26 coroa, 36 mésio-oclusal a realizar, 37 implante, 46 canal e 18 ausente.</p>
+<div class="card"><div id="od3d" class="od3d"></div>
+<div class="leg"><span><i style="background:var(--real)"></i>A realizar</span><span><i style="background:var(--exec)"></i>Executado</span><span><i style="background:var(--exist)"></i>Existente</span><span>Dente tocado: <span id="sel">nenhum</span></span></div></div>
+</div>
+<script>
+/* ============ ARCADA 3D (odontograma em três dimensões) ============ */
+const OD3D=(()=>{
+ const SRC="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+ let loading=null,st=null;
+ const load=()=>window.THREE?Promise.resolve():(loading=loading||new Promise((ok,er)=>{const s=document.createElement("script");s.src=SRC;s.onload=ok;s.onerror=()=>{loading=null;er(new Error("Sem internet para carregar o 3D"))};document.head.appendChild(s)}));
+ /* medidas aproximadas em mm: largura (mesio-distal), altura da coroa, espessura (vestíbulo-lingual), raiz */
+ const DIM={u:{1:[8.6,10.5,7,13],2:[6.6,9,6.2,13],3:[7.6,10,8,17],4:[7,8.5,9,14],5:[6.6,8,9,14],6:[10.2,7.5,11,13],7:[9.2,7.2,10.8,12],8:[8.6,6.6,10.2,11]},
+            l:{1:[5.2,9,5.8,12.5],2:[5.8,9.4,6.2,14],3:[7,11,7.6,16],4:[7,8.4,7.8,14],5:[7.1,8,8.2,14.5],6:[11,7.6,10.4,14],7:[10.4,7.4,10,13],8:[10,7,9.8,11]}};
+ const typ=d=>d>=6?"m":d>=4?"p":d===3?"c":"i";
+ const ENAMEL_TOP=0xFBF8F1,ENAMEL_MID=0xF2EBDD,ENAMEL_CERV=0xE6D6B6,ROOT=0xE2C79A,GUM=0xD0646E;
+ const STC={real:0xD64545,exec:0x2F80ED,exist:0x27AE60};
+ const lin=h=>new THREE.Color(h).convertSRGBToLinear();
+ const sm=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t)};
+ const gauss=(x,z,cx,cz,r)=>Math.exp(-((x-cx)**2+(z-cz)**2)/(r*r));
+
+ /* coroa: esfera deformada no formato de cada tipo de dente. +y = oclusal, +z = vestibular */
+ function crownGeo(t,w,h,d,up){
+  const g=new THREE.SphereGeometry(1,56,40),p=g.attributes.position,n=p.count,face=new Array(n),tY=new Float32Array(n);
+  for(let i=0;i<n;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+   const tt=(y+1)/2;                                   /* 0 = colo, 1 = borda */
+   let sx=1,sz=1,Y;
+   const neck=0.74+0.26*sm(0,.32,tt);                   /* estreita no colo */
+   if(t==="i"){sz=(1-.78*Math.pow(tt,1.6))*neck;sx=(.82+.2*sm(0,.8,tt))*neck;Y=h*(.02+.98*Math.min(1,tt*1.06));
+    if(tt>.9)Y-=h*.012*Math.cos(x*9);                   /* mamelões discretos */}
+   else if(t==="c"){sz=(1-.55*Math.pow(tt,1.8))*neck;sx=(1-.62*Math.pow(sm(.45,1,tt),1.2))*neck;Y=h*Math.min(1,tt*1.02);
+    Y+=h*.10*gauss(x,0,0,0,.35)*sm(.6,1,tt);}
+   else{const flat=Math.min(1,(y+1)/1.62);Y=h*(.04+.96*flat);sx=neck*(t==="m"?1.02:1);sz=neck;
+    if(y>.35){const xn=x,zn=z,k=sm(.35,.85,y);
+     let b=0;
+     if(t==="m"){b+=gauss(xn,zn,.45,.45,.38)+gauss(xn,zn,-.45,.45,.38)+gauss(xn,zn,.45,-.45,.38)+gauss(xn,zn,-.42,-.45,.36)*.9+(up?0:gauss(xn,zn,0,.62,.3)*.7);b-=gauss(xn,zn,0,0,.32)*.9;}
+     else{b+=gauss(xn,zn,0,.5,.45)*1.05+gauss(xn,zn,0,-.5,.42)*(up?.95:.6);b-=gauss(xn,zn,0,0,.28)*.75;}
+     Y+=h*.16*b*k;}}
+   const X=x*sx*w/2,Z=z*sz*d/2;
+   p.setXYZ(i,X,Y,Z);tY[i]=tt;
+   /* face: O/I, C, M/D (x), V/P (z) */
+   const xn=x*sx,zn=z*sz;
+   face[i]=tt>(t==="i"||t==="c"?.86:.8)?"O":tt<.18?"C":Math.abs(xn)>Math.abs(zn)*1.05?(xn>0?"+x":"-x"):(zn>0?"V":"P");}
+  g.computeVertexNormals();
+  const col=new Float32Array(n*3),base=new Float32Array(n*3),a=lin(ENAMEL_CERV),b=lin(ENAMEL_MID),c=lin(ENAMEL_TOP),tmp=new THREE.Color(),tip=lin(t==="i"?0xE9EEF2:ENAMEL_TOP);
+  for(let i=0;i<n;i++){const v=tY[i];if(v<.45)tmp.copy(a).lerp(b,sm(0,.45,v));else tmp.copy(b).lerp(t==="i"&&v>.85?tip:c,sm(.45,1,v));base.set([tmp.r,tmp.g,tmp.b],i*3)}
+  col.set(base);g.setAttribute("color",new THREE.BufferAttribute(col,3));
+  g.userData={face,base};return g}
+
+ function rootGeo(len,r){const pts=[];for(let i=0;i<=14;i++){const v=i/14;pts.push(new THREE.Vector2(Math.max(.05,r*(1-Math.pow(v,1.7))*(1-.15*v)),-v*len))}return new THREE.LatheGeometry(pts,28)}
+
+ /* curva da arcada (metade direita do paciente, x>0) em mm; z positivo = para trás */
+ const CURVE={u:[[0,0],[9,2.4],[17,8.4],[22.4,17],[25.6,27],[27.6,38],[28.6,50],[29,62],[29.2,72]],
+              l:[[0,0],[6.4,1.6],[12.8,6],[18,13.6],[21.6,23],[23.8,34],[25,46],[25.6,58],[25.8,70]]};
+
+ function build(){
+  const T=THREE,W=st.wrap;
+  const R=new T.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:false});
+  R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.outputEncoding=T.sRGBEncoding;R.toneMapping=T.ACESFilmicToneMapping;R.toneMappingExposure=1.08;
+  R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;R.physicallyCorrectLights=false;
+  R.domElement.className="od3d-cv";W.appendChild(R.domElement);
+  const S=new T.Scene(),cam=new T.PerspectiveCamera(32,1,1,800);
+  /* ambiente para os reflexos do esmalte molhado */
+  const env=new T.Scene();const eg=new T.SphereGeometry(100,32,16),ep=eg.attributes.position,ec=[];for(let i=0;i<ep.count;i++){const y=ep.getY(i)/100,c=new T.Color().setHSL(.58,.15,.18+.62*Math.max(0,y));ec.push(c.r,c.g,c.b)}
+  eg.setAttribute("color",new T.Float32BufferAttribute(ec,3));env.add(new T.Mesh(eg,new T.MeshBasicMaterial({vertexColors:true,side:T.BackSide})));
+  const pan=(x,y,z,s,k)=>{const m=new T.Mesh(new T.PlaneGeometry(s,s*.5),new T.MeshBasicMaterial({color:new T.Color(1,1,1).multiplyScalar(k),side:T.DoubleSide}));m.position.set(x,y,z);m.lookAt(0,0,0);env.add(m)};
+  pan(0,70,-40,60,3.2);pan(-70,20,10,40,1.6);pan(60,30,40,40,1.4);
+  const pm=new T.PMREMGenerator(R);S.environment=pm.fromScene(env,.03).texture;
+  S.add(new T.HemisphereLight(0xffffff,0x5a4a48,.45));
+  const key=new T.DirectionalLight(0xffffff,1.35);key.position.set(-30,70,-80);key.castShadow=true;key.shadow.mapSize.set(1024,1024);
+  Object.assign(key.shadow.camera,{left:-50,right:50,top:50,bottom:-50,near:10,far:250});key.shadow.bias=-.0006;key.shadow.radius=3;S.add(key);
+  const fill=new T.DirectionalLight(0xfff1e6,.45);fill.position.set(60,-20,-40);S.add(fill);
+  const rim=new T.DirectionalLight(0xdbe8ff,.5);rim.position.set(0,30,120);S.add(rim);
+  const root=new T.Group();S.add(root);
+  Object.assign(st,{R,S,cam,root,pm,teeth:{},gums:[],ray:new T.Raycaster(),ptr:new T.Vector2(),
+   th:Math.PI,ph:1.42,dist:150,tTh:Math.PI,tPh:1.42,tDist:150,target:new T.Vector3(0,0,24),gap:6,roots:false});
+  buildArches();
+  const ro=new ResizeObserver(resize);ro.observe(W);resize();
+  input();}
+
+ function arch(jaw){const T=THREE,P=CURVE[jaw].map(([x,z])=>new T.Vector3(x,0,z));const c=new T.CatmullRomCurve3(P,false,"centripetal");return{c,L:c.getLength()}}
+ function onCurve(A,s){const u=Math.min(1,Math.max(0,s/A.L)),p=A.c.getPointAt(u),t=A.c.getTangentAt(u);if(s>A.L)p.addScaledVector(t,s-A.L);return{p,t}}
+
+ function buildArches(){
+  const T=THREE;
+  for(const jaw of ["u","l"]){
+   const A=arch(jaw),up=jaw==="u",gap=st.gap;let s=0;const centers=[];
+   for(let d=1;d<=8;d++){const [w,h,dp,rl]=DIM[jaw][d];centers.push({d,w,h,dp,rl,c:s+w/2+(d===1?.15:0)});s+=w+.25}
+   for(const side of [1,-1]){
+    for(const k of centers){
+     const n=(up?(side>0?10:20):(side>0?40:30))+k.d,t=typ(k.d);
+     const {p,t:tg}=onCurve(A,k.c);const pos=p.clone();pos.x*=side;const tan=tg.clone();tan.x*=side;
+     const Y=new T.Vector3(0,up?-1:1,0);                        /* oclusal */
+     const Z=new T.Vector3(tan.z,0,-tan.x).multiplyScalar(side); /* vestibular */
+     if(Z.dot(new T.Vector3(pos.x,0,pos.z-26))<0)Z.negate();
+     const X=new T.Vector3().crossVectors(Y,Z).normalize();
+     const mesial=new T.Vector3(-tan.x,0,-tan.z);const mSign=X.dot(mesial)>=0?1:-1;
+     const cej=up?gap/2+k.h:-(gap/2+k.h);
+     const g=new T.Group();g.matrix.makeBasis(X,Y,Z);g.matrix.setPosition(pos.x,cej,pos.z);g.matrixAutoUpdate=false;
+     /* inclinação: incisivos superiores para frente, molares levemente para dentro */
+     const tilt=new T.Group();tilt.rotation.x=t==="i"?(up?.24:.12):t==="c"?.12:t==="p"?.04:-.06;tilt.rotation.z=(t==="m"?.04:0)*mSign;g.add(tilt);
+     const geo=crownGeo(t,k.w,k.h,k.dp,up);
+     const mat=new T.MeshPhysicalMaterial({vertexColors:true,roughness:.26,metalness:0,clearcoat:.85,clearcoatRoughness:.16,reflectivity:.5});
+     const crown=new T.Mesh(geo,mat);crown.castShadow=true;crown.receiveShadow=true;crown.userData.n=n;tilt.add(crown);
+     /* raízes */
+     const rm=new T.MeshStandardMaterial({color:lin(ROOT),roughness:.55});const roots=new T.Group();
+     const nr=t==="m"?(up?3:2):(up&&k.d===4?2:1);
+     const rr=Math.min(k.w,k.dp)*(t==="m"?.24:t==="i"?.3:.33);
+     for(let r=0;r<nr;r++){const m=new T.Mesh(rootGeo(k.rl*(t==="m"&&r===2?.85:1),rr),rm);m.castShadow=true;m.userData.n=n;
+      if(nr===2&&t==="m"){m.position.x=(r?-1:1)*k.w*.22;m.rotation.z=(r?1:-1)*.12}
+      else if(nr===2){m.position.z=(r?-1:1)*k.dp*.2;m.rotation.x=(r?-1:1)*.08;m.scale.set(.85,1,.85)}
+      else if(nr===3){if(r<2){m.position.set((r?-1:1)*k.w*.22,0,k.dp*.18);m.rotation.z=(r?1:-1)*.14}else{m.position.z=-k.dp*.24;m.rotation.x=-.18}}
+      m.position.y=.6;roots.add(m)}
+     tilt.add(roots);
+     const canal=new T.Mesh(new T.CylinderGeometry(.35,.18,k.rl*.92,10),new T.MeshBasicMaterial({color:0xC0392B,depthTest:false,transparent:true,opacity:.95}));canal.position.y=-k.rl*.46+.6;canal.renderOrder=3;canal.visible=false;tilt.add(canal);
+     const impl=new T.Group();{const ti=new T.MeshStandardMaterial({color:0x9AA4AE,metalness:.9,roughness:.32});
+      const body=new T.Mesh(new T.CylinderGeometry(rr*.95,rr*.7,k.rl*.85,24),ti);body.position.y=-k.rl*.42;impl.add(body);
+      for(let i=0;i<9;i++){const th=new T.Mesh(new T.TorusGeometry(rr*.92-(i*.02),.28,8,24),ti);th.rotation.x=Math.PI/2;th.position.y=-1.2-i*(k.rl*.085);impl.add(th)}
+      const ab=new T.Mesh(new T.CylinderGeometry(rr*.8,rr*.95,1.6,24),ti);ab.position.y=.4;impl.add(ab);impl.visible=false;impl.traverse(o=>{o.castShadow=true;o.userData.n=n});}
+     tilt.add(impl);
+     const spot=new T.Mesh(new T.SphereGeometry(1,16,12),new T.MeshStandardMaterial({color:lin(0x4A3220),roughness:.8}));
+     if(t==="i"||t==="c"){spot.position.set(0,k.h*.55,k.dp*.32);spot.scale.set(k.w*.13,k.h*.09,.5)}else{spot.position.set(k.w*.08,k.h*1.02,0);spot.scale.set(k.w*.14,.5,k.dp*.12)}
+     spot.visible=false;tilt.add(spot);
+     root.add(g);
+     st.teeth[n]={n,g,crown,roots,canal,impl,spot,mat,mSign,t,up,w:k.w,h:k.h,dp:k.dp}}
+   }
+   buildGum(A,centers,up);
+  }
+  buildPalate();
+ }
+
+ function gumMargin(cs,s){/* papila: mais alta entre os dentes */
+  let best=null;for(const k of cs){const dd=Math.abs(s-k.c);if(!best||dd<best.dd)best={dd,k}}
+  const ph=Math.min(1,best.dd/(best.k.w/2));return{k:best.k,pap:Math.pow(ph,2.2)}}
+ function buildGum(A,cs,up){
+  const T=THREE,gap=st.gap,NS=260,prof=[[1,0],[1.32,2.4],[1.5,6],[1.42,10],[1.1,13.4],[.55,15.2],[0,15.6],[-.55,15.2],[-1.05,13],[-1.28,9],[-1.22,4.5],[-1,0]];
+  const total=cs[cs.length-1].c+cs[cs.length-1].w/2+1.2;
+  const pos=[],idx=[],dw=[],mg=[];
+  for(let i=0;i<=NS;i++){const s=-total+2*total*i/NS,{k,pap}=gumMargin(cs,Math.abs(s));dw.push(k.dp/2+.35);mg.push({h:k.h,pap,n:(up?(s>=0?10:20):(s>=0?40:30))+k.d})}
+  const dws=dw.map((_,i)=>{let a=0,c=0;for(let j=-4;j<=4;j++){const v=dw[i+j];if(v!=null){a+=v;c++}}return a/c});
+  st.gumSamples=st.gumSamples||{};st.gumSamples[up?"u":"l"]={total,NS,cs,mg};
+  for(let i=0;i<=NS;i++){const s=-total+2*total*i/NS,side=s>=0?1:-1,{p,t}=onCurve(A,Math.abs(s));
+   const P=new T.Vector3(p.x*side,0,p.z),tan=new T.Vector3(t.x*side,0,t.z);let N=new T.Vector3(tan.z,0,-tan.x).multiplyScalar(side);if(N.dot(new T.Vector3(P.x,0,P.z-26))<0)N.negate();
+   const m=mg[i],cej=gap/2+m.h,margin=cej-.9-m.pap*2.8;
+   for(const [a,hh] of prof){const yy=(Math.abs(a)>.98&&hh===0)?margin:cej+hh-(hh<3?(1-hh/3)*(.9+m.pap*2.8):0);
+    const w=dws[i]*a+(Math.abs(a)>1?0:0);const q=P.clone().addScaledVector(N,w);pos.push(q.x,up?yy:-yy,q.z)}}
+  const M=prof.length;
+  for(let i=0;i<NS;i++)for(let j=0;j<M-1;j++){const a=i*M+j,b=(i+1)*M+j;if(up)idx.push(a,b,a+1,b,b+1,a+1);else idx.push(a,a+1,b,b,a+1,b+1)}
+  const g=new T.BufferGeometry();g.setAttribute("position",new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+  const mat=new T.MeshPhysicalMaterial({color:lin(GUM),roughness:.42,clearcoat:.55,clearcoatRoughness:.3,side:T.DoubleSide,transparent:true,opacity:1});
+  const mesh=new T.Mesh(g,mat);mesh.receiveShadow=true;mesh.userData.gum=up?"u":"l";st.root.add(mesh);st.gums.push(mesh)}
+ function buildPalate(){/* céu da boca simples */
+  const T=THREE,A=arch("u"),pts=[];for(let i=0;i<=40;i++){const s=56*i/40,{p}=onCurve(A,s);pts.push(new T.Vector2(p.x-4.5*Math.min(1,s/20),p.z+2))}
+  const sh=new T.Shape();sh.moveTo(0,pts[0].y);pts.forEach(v=>sh.lineTo(v.x,v.y));pts.slice().reverse().forEach(v=>sh.lineTo(-v.x,v.y));
+  const g=new T.ShapeGeometry(sh,24);const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getY(i);const dome=Math.max(0,1-Math.pow(Math.abs(x)/24,2))*Math.min(1,Math.max(0,(z-6)/22));p.setXYZ(i,x,st.gap/2+14+dome*7,z)}
+  g.computeVertexNormals();const m=new T.Mesh(g,st.gums[0].material);m.receiveShadow=true;m.userData.gum="u";st.root.add(m);st.gums.push(m)}
+
+ /* aplica a situação de cada dente (entradas do odontograma + estado do dente inteiro) */
+ function paint(entries,dentes,sel){
+  if(!st||!st.teeth)return;const T=THREE,ca=new T.Color();
+  for(const n in st.teeth){const o=st.teeth[n],wh=(dentes||{})[n]||"",fm={};
+   (entries||[]).filter(e=>String(e.dente)===String(n)).forEach(e=>{if(!e.faces)fm._all=e.st;else e.faces.split("").forEach(f=>fm[f]=e.st)});
+   const g=o.crown.geometry,{face,base}=g.userData,col=g.attributes.color;
+   for(let i=0;i<face.length;i++){let f=face[i];if(f==="+x")f=o.mSign>0?"M":"D";else if(f==="-x")f=o.mSign>0?"D":"M";
+    let k=fm[f]||fm._all;if(!k&&wh==="rest"&&f==="O")k="exist";
+    if(k){ca.copy(lin(STC[k]));const b=new T.Color(base[i*3],base[i*3+1],base[i*3+2]);b.lerp(ca,fm[f]?.72:.5);col.setXYZ(i,b.r,b.g,b.b)}else col.setXYZ(i,base[i*3],base[i*3+1],base[i*3+2])}
+   col.needsUpdate=true;
+   const m=o.mat;m.transparent=wh==="ext";m.opacity=wh==="ext"?.13:1;m.depthWrite=wh!=="ext";
+   if(wh==="coroa"){m.vertexColors=false;m.color=lin(0xF1D27A);m.metalness=.75;m.roughness=.22}else{m.vertexColors=true;m.color=new T.Color(1,1,1);m.metalness=0;m.roughness=.26}
+   m.needsUpdate=true;
+   o.roots.visible=wh!=="impl"&&wh!=="ext";o.impl.visible=wh==="impl";o.canal.visible=wh==="canal"&&st.roots;o.spot.visible=wh==="carie";o.crown.castShadow=wh!=="ext";
+   const isSel=String(sel)===String(n);m.emissive=new T.Color(isSel?0x0B86AE:0x000000);m.emissiveIntensity=isSel?.38:0;o.sel=isSel}
+  st.dirty=true}
+
+ function setRoots(v){st.roots=v;st.gums.forEach(g=>{g.material.opacity=v?.28:1;g.material.depthWrite=!v});for(const n in st.teeth){const o=st.teeth[n];o.canal.visible=v&&st.dentes&&st.dentes[n]==="canal"}st.dirty=true}
+ const VIEWS={frente:[Math.PI,1.42,150],cima:[Math.PI,.32,135],sup:[Math.PI,2.86,135],dir:[Math.PI*.5+.35,1.45,140],esq:[Math.PI*1.5-.35,1.45,140]};
+ function view(k){const v=VIEWS[k];if(!v)return;st.tTh=v[0];st.tPh=v[1];st.tDist=v[2];st.dirty=true}
+
+ function resize(){if(!st||!st.R)return;const r=st.wrap.getBoundingClientRect();if(!r.width)return;st.R.setSize(r.width,r.height,false);st.cam.aspect=r.width/r.height;st.cam.updateProjectionMatrix();st.dirty=true}
+ function pick(ev){const r=st.R.domElement.getBoundingClientRect();st.ptr.set((ev.clientX-r.left)/r.width*2-1,-(ev.clientY-r.top)/r.height*2+1);st.ray.setFromCamera(st.ptr,st.cam);
+  const hits=st.ray.intersectObjects(st.root.children,true).filter(h=>h.object.visible&&(h.object.userData.n||h.object.userData.gum));
+  const h=hits.find(x=>x.object.userData.n&&(!st.roots||true));if(!h)return null;
+  /* com a gengiva opaca, raízes escondidas não contam */
+  if(!st.roots&&hits[0].object.userData.gum)return null;return h.object.userData.n}
+ function input(){
+  const el=st.R.domElement,pts=new Map();let down=null,pinch=0,moved=0;
+  el.addEventListener("pointerdown",e=>{el.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});down={x:e.clientX,y:e.clientY};moved=0;st.auto=false});
+  el.addEventListener("pointermove",e=>{
+   if(!pts.has(e.pointerId)){const n=pick(e);if(n!==st.hover){st.hover=n;tip(n,e)}else if(n)tip(n,e);el.style.cursor=n?"pointer":"grab";return}
+   const p=pts.get(e.pointerId),dx=e.clientX-p.x,dy=e.clientY-p.y;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(pts.size===2){const [a,b]=[...pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch)st.tDist=Math.min(260,Math.max(60,st.tDist*pinch/d));pinch=d;moved=99;return}
+   moved+=Math.abs(dx)+Math.abs(dy);st.tTh-=dx*.008;st.tPh=Math.min(3.05,Math.max(.09,st.tPh-dy*.008));st.dirty=true;tip(null)});
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch=0;if(!pts.size&&down&&moved<6&&e.type==="pointerup"){const n=pick(e);if(n&&st.onPick)st.onPick(String(n))}if(!pts.size)down=null};
+  el.addEventListener("pointerup",up);el.addEventListener("pointercancel",up);el.addEventListener("pointerleave",()=>{st.hover=null;tip(null)});
+  el.addEventListener("wheel",e=>{e.preventDefault();st.tDist=Math.min(260,Math.max(60,st.tDist*(1+Math.sign(e.deltaY)*.1)));st.dirty=true},{passive:false});
+  el.addEventListener("dblclick",()=>view("frente"));
+  st.wrap.querySelector(".od3d-bar").addEventListener("click",e=>{const b=e.target.closest("[data-v3]");if(!b)return;const v=b.dataset.v3;
+   if(v==="raiz"){setRoots(!st.roots);b.classList.toggle("on",st.roots);try{localStorage.setItem("od3dRaiz",st.roots?"1":"")}catch(_){}}
+   else if(v==="boca"){st.tGap=st.tGap>12?6:18;b.classList.toggle("on",st.tGap>12)}
+   else{view(v);st.wrap.querySelectorAll("[data-v3].vw").forEach(x=>x.classList.toggle("on",x===b))}})}
+ function tip(n,e){const t=st.wrap.querySelector(".od3d-tip");if(!n){t.hidden=true;return}const r=st.wrap.getBoundingClientRect();
+  const wh=(st.dentes||{})[n],nm={carie:"Cárie",rest:"Restaurado",canal:"Canal",coroa:"Coroa",impl:"Implante",ext:"Ausente"}[wh];
+  const ents=(st.entries||[]).filter(x=>String(x.dente)===String(n));
+  t.innerHTML=`<b>Dente ${n}</b>${nm?` · ${nm}`:""}${ents.length?`<br><small>${ents.length} procedimento(s)</small>`:""}`;t.hidden=false;
+  if(e){t.style.left=Math.min(r.width-150,e.clientX-r.left+14)+"px";t.style.top=Math.max(4,e.clientY-r.top-10)+"px"}}
+
+ function loop(){if(!st||!st.R)return;if(!st.R.domElement.isConnected){st.running=false;return}
+  const k=.16;const d=Math.abs(st.tTh-st.th)+Math.abs(st.tPh-st.ph)+Math.abs(st.tDist-st.dist)+Math.abs((st.tGap||st.gap)-st.curGap);
+  if(d>1e-4||st.dirty){st.th+=(st.tTh-st.th)*k;st.ph+=(st.tPh-st.ph)*k;st.dist+=(st.tDist-st.dist)*k;
+   const g=st.curGap+((st.tGap||st.gap)-st.curGap)*k;const dg=(g-st.curGap)/2;st.curGap=g;
+   if(Math.abs(dg)>1e-5)st.root.children.forEach(o=>{const isUp=o.userData.gum==="u"||(o.matrix&&!o.matrixAutoUpdate&&o.matrix.elements[13]>0);
+    if(o.matrixAutoUpdate===false){o.matrix.elements[13]+=isUp?dg:-dg}else o.position.y+=o.userData.gum==="u"?dg:-dg});
+   const c=st.cam,tg=st.target;c.position.set(tg.x+st.dist*Math.sin(st.ph)*Math.sin(st.th),tg.y+st.dist*Math.cos(st.ph),tg.z+st.dist*Math.sin(st.ph)*Math.cos(st.th));
+   c.up.set(0,1,0);if(st.ph<.2||st.ph>2.94)c.up.set(0,0,-1);c.lookAt(tg);
+   st.R.render(st.S,st.cam);st.dirty=false}
+  requestAnimationFrame(loop)}
+
+ /* coloca a arcada dentro do elemento #od3d (chamado após cada render da ficha) */
+ async function mount(entries,dentes,sel,onPick){
+  const host=document.getElementById("od3d");if(!host)return;
+  if(!st){st={wrap:document.createElement("div")};st.wrap.className="od3d-wrap";
+   st.wrap.innerHTML=`<div class="od3d-load">Carregando arcada 3D…</div><div class="od3d-tip" hidden></div>
+   <div class="od3d-bar"><button class="vw on" data-v3="frente">Frente</button><button class="vw" data-v3="sup">Superior</button><button class="vw" data-v3="cima">Inferior</button><button class="vw" data-v3="dir">Lado dir.</button><button class="vw" data-v3="esq">Lado esq.</button><span></span><button data-v3="raiz">Raízes</button><button data-v3="boca">Abrir boca</button></div>
+   <div class="od3d-hint">Arraste para girar · role ou use dois dedos para zoom · toque no dente</div>`}
+  if(st.wrap.parentNode!==host)host.appendChild(st.wrap);
+  st.onPick=onPick;st.entries=entries;st.dentes=dentes;
+  try{await load()}catch(e){st.wrap.querySelector(".od3d-load").textContent=e.message+". Use a ficha 2D.";return}
+  if(!st.R){build();st.curGap=st.gap;let r="";try{r=localStorage.getItem("od3dRaiz")}catch(_){}if(r){setRoots(true);st.wrap.querySelector('[data-v3="raiz"]').classList.add("on")}}
+  st.wrap.querySelector(".od3d-load").hidden=true;
+  paint(entries,dentes,sel);resize();if(!st.running){st.running=true;requestAnimationFrame(loop)}}
+ const CSS=`.od3d{position:relative;height:clamp(340px,58vh,520px);border-radius:18px;overflow:hidden;background:radial-gradient(120% 90% at 50% 35%,#24394A 0%,#132230 55%,#0B141C 100%);touch-action:none}
+.od3d-wrap,.od3d-cv{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.od3d-load{position:absolute;inset:0;display:grid;place-items:center;color:#cfe3ee;font-weight:600}
+.od3d-bar{position:absolute;left:10px;right:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.od3d-bar span{flex:1}
+.od3d-bar button{pointer-events:auto;border:1px solid rgba(255,255,255,.18);background:rgba(10,20,28,.55);backdrop-filter:blur(6px);color:#E6F1F6;font:600 12.5px/1 inherit;padding:8px 11px;border-radius:999px;cursor:pointer}
+.od3d-bar button.on{background:#0B86AE;border-color:#0B86AE;color:#fff}
+.od3d-hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:rgba(230,241,246,.7);font-size:12px;pointer-events:none}
+.od3d-tip{position:absolute;background:rgba(255,255,255,.96);color:#14232D;padding:7px 10px;border-radius:10px;font-size:12.5px;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.25);white-space:nowrap}
+@media (max-width:600px){.od3d-bar button{padding:7px 9px;font-size:11.5px}.od3d-hint{font-size:11px}}`;
+ return {mount,CSS};
+})();
+(function(){if(document.getElementById("od3dcss"))return;const s=document.createElement("style");s.id="od3dcss";s.textContent=OD3D.CSS;document.head.appendChild(s)})();
+/* ============ FIM ARCADA 3D ============ */
+const ents=[{dente:"36",faces:"MO",st:"real"},{dente:"14",faces:"C",st:"exist"},{dente:"11",faces:"V",st:"exec"},{dente:"21",faces:"",st:"real"}];
+const den={46:"canal",37:"impl",26:"coroa",25:"carie",18:"ext",15:"rest"};
+let sel=null;const go=()=>OD3D.mount(ents,den,sel,n=>{sel=n;document.getElementById("sel").textContent=n;go()});go();
+</script>

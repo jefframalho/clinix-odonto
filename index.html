@@ -859,8 +859,8 @@ function vAuth(){
 
 function vBlocked(){const sit=situacao(C);
  return `<div class="lockscreen"><div class="card"><div class="bigic t-bad">${ic("lock")}</div>
- <h1 class="page">Acesso suspenso</h1><p class="sub" style="margin-bottom:14px">${esc(C.nome)} · a mensalidade venceu em ${toD(C.vencimento).toLocaleDateString("pt-BR")}.<br>Seus dados estão guardados. Pague pelo Pix para liberar.</p>
- ${pixBlock(C.valor,"CLX"+C.id)}
+ <h1 class="page">Acesso suspenso</h1><p class="sub" style="margin-bottom:14px">${esc(C.nome)} · a mensalidade venceu em ${toD(C.vencimento).toLocaleDateString("pt-BR")}.<br>Seus dados estão guardados. Pague para liberar o acesso.</p>
+ ${MENS_BTN()}<p class="small muted" style="margin:16px 0 8px">ou pague direto pelo Pix:</p>${pixBlock(C.valor,"CLX"+C.id)}
  <div class="row mt" style="justify-content:center">${CFG.suporteWhatsApp?`<a class="btn wa" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp,`Olá! Sou da ${C.nome} e acabei de pagar a mensalidade do ${CFG.produto}. Segue o comprovante.`)}">${WAI}Enviar comprovante</a>`:""}<button class="btn" data-act="logout">${ic("out")}Sair</button></div>
  <p class="small muted mt">Suporte: ${esc(CFG.suporteWhatsApp)}</p></div></div>`}
 
@@ -1222,8 +1222,8 @@ function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["
   <div class="card" style="text-align:center"><h3 style="margin-bottom:6px">Teste o seu QR Code</h3>${pc.chave?`<p class="small muted" style="margin:0 0 8px">Leia com o app do banco: deve aparecer o nome da clínica e o valor de R$ 1,00. Não precisa pagar.</p>${pixClinBlock(1,"TESTE","pcteste")}<button class="btn sm mt" data-copy="pcteste">Copiar código</button>`:`<p class="small muted">Preencha a chave Pix para ver o QR Code.</p>`}</div></div>`}
  if(cfgTab==="plano"){const s=situacao(C);const pags=(C.pagamentos||[]).slice().reverse();
   body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Sua assinatura</h3><div class="stack" style="gap:10px"><div class="row" style="justify-content:space-between"><span class="muted">Situação</span><span class="pill dot ${s.cls}">${s.t}</span></div><div class="row" style="justify-content:space-between"><span class="muted">Plano</span><b>${esc(CFG.produto)} · ${brl(C.valor)}/mês</b></div><div class="row" style="justify-content:space-between"><span class="muted">${C.status==="teste"?"Teste termina em":"Próximo vencimento"}</span><b>${toD(C.vencimento).toLocaleDateString("pt-BR")}</b></div></div>
-   <h3 style="margin:18px 0 10px">Pagamentos</h3><div class="list">${pags.map(p=>`<div class="li"><div class="av t-ok" style="width:36px;height:36px;border-radius:12px">${ic("check")}</div><div class="who"><strong>${brl(p.valor)}</strong><small>${br(p.data)}</small></div><div></div></div>`).join("")||`<div class="empty">Nenhum pagamento ainda.</div>`}</div></div>
-  <div class="card" style="text-align:center"><h3 style="margin-bottom:12px">Pagar mensalidade com Pix</h3>${pixBlock(C.valor,"CLX"+C.id)}${CFG.suporteWhatsApp?`<div class="row mt" style="justify-content:center"><a class="btn wa" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp,`Olá! Sou da ${C.nome} e paguei a mensalidade do ${CFG.produto}. Segue o comprovante.`)}">${WAI}Enviar comprovante</a></div>`:""}<p class="small muted mt">A liberação acontece assim que o pagamento é confirmado.</p></div></div>`}
+   <h3 style="margin:18px 0 10px">Pagamentos</h3><div class="list">${pags.map(p=>`<div class="li"><div class="av t-ok" style="width:36px;height:36px;border-radius:12px">${ic("check")}</div><div class="who"><strong>${brl(p.valor)}</strong><small>${br(p.data)}${p.forma?" · "+esc(p.forma):""}</small></div><div></div></div>`).join("")||`<div class="empty">Nenhum pagamento ainda.</div>`}</div></div>
+  <div class="card" style="text-align:center"><h3 style="margin-bottom:12px">Pagar mensalidade</h3>${MENS_BTN()}<p class="small muted" style="margin:16px 0 8px">ou pague direto pelo Pix:</p>${pixBlock(C.valor,"CLX"+C.id)}${CFG.suporteWhatsApp?`<div class="row mt" style="justify-content:center"><a class="btn wa" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp,`Olá! Sou da ${C.nome} e paguei a mensalidade do ${CFG.produto}. Segue o comprovante.`)}">${WAI}Enviar comprovante</a></div>`:""}<p class="small muted mt">A liberação acontece assim que o pagamento é confirmado.</p></div></div>`}
  return `<div class="pagehead"><div><h1 class="page">Configurações</h1><p class="sub">${esc(C.nome)}</p></div></div><div class="tabs">${TB.map(t=>`<button class="${cfgTab===t[0]?"on":""}" data-ctab="${t[0]}">${t[1]}</button>`).join("")}</div>${body}`}
 
 /* ---------- painel do administrador ---------- */
@@ -1247,7 +1247,7 @@ function vAdmin(){
   <div class="cols two"><div class="card"><div class="chips" style="margin-bottom:10px">${[["todos","Todas"],["ativo","Em dia"],["teste","Em teste"],["atraso","Atrasadas"],["bloq","Bloqueadas"]].map(c=>`<button class="chip ${admF===c[0]?"on":""}" data-admf="${c[0]}">${c[1]}</button>`).join("")}</div>
    <div class="search" style="margin-bottom:12px">${ic("search")}<input id="admQ" placeholder="Buscar clínica, dentista ou cidade" value="${esc(admQ)}"></div><div class="list">${rows||`<div class="empty">Nenhuma clínica neste filtro.</div>`}</div></div>
    <div class="stack" style="align-self:start"><div class="card"><div class="cardhead"><h3>Mensalidades recebidas</h3><span class="small muted">6 meses</span></div><div class="chart">${barChart(months,"Mensalidades recebidas por mês")}</div></div>
-   <div class="card"><h3 style="margin-bottom:8px">Como funciona a cobrança</h3><ul class="small muted" style="margin:0;padding-left:18px;display:grid;gap:6px"><li>Nova clínica ganha ${CFG.diasTeste} dias grátis.</li><li>Ao receber o Pix, toque em <b>Recebi Pix</b>: o vencimento avança 1 mês.</li><li>Com ${CFG.carencia} dias de atraso, a clínica é bloqueada sozinha e vê a tela de pagamento.</li><li>Os dados da clínica nunca são apagados.</li></ul></div></div></div></div>
+   <div class="card"><h3 style="margin-bottom:8px">Como funciona a cobrança</h3><ul class="small muted" style="margin:0;padding-left:18px;display:grid;gap:6px"><li>Nova clínica ganha ${CFG.diasTeste} dias grátis.</li><li>Pagou pelo Asaas (Pix, boleto ou cartão)? A clínica é liberada sozinha e o vencimento avança 1 mês.</li><li>Recebeu Pix direto na sua chave? Toque em <b>Recebi Pix</b>.</li><li>Com ${CFG.carencia} dias de atraso, a clínica é bloqueada sozinha e vê a tela de pagamento.</li><li>Os dados da clínica nunca são apagados.</li></ul></div></div></div></div>
   <div class="inner foot"><span>${esc(CFG.produto)} · painel do administrador${DEMO?" · demonstração":""}</span>${DEMO?`<button class="link" data-act="resetDemo">Restaurar demonstração</button>`:""}</div></main></div>`}
 
 /* ---------- render ---------- */
@@ -1562,6 +1562,17 @@ function credTab(p){if(!DONO())return"";if(DEMO&&C.creditosConsulta===undefined)
   <p class="small muted" style="margin:8px 0 0">Os créditos entram depois que o pagamento é confirmado.</p></div></div>
   ${r?credResult(r):""}
   <div class="card mt"><h3 style="margin-bottom:10px">Consultas deste paciente</h3>${hist.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Fonte</th><th>Score</th><th>Restrições</th><th>Quem consultou</th></tr></thead><tbody>${hist.map(h=>`<tr><td>${new Date(h.data).toLocaleDateString("pt-BR")}${h.sim?" (teste)":""}</td><td>${esc(h.fonte||"")}</td><td>${h.pdf?"Ver PDF":h.score==null?"—":h.score}</td><td>${h.pdf?"Relatório em PDF":h.qtd?h.qtd+" · "+brl(h.valor):"Nada consta"}</td><td>${esc(h.quem||"")}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma consulta feita para este paciente.</div>`}</div>`}
+const MENS_BTN=()=>(CFG.servidor||DEMO)?`<button class="btn pri" style="width:100%;justify-content:center" data-mens="1">${ic("money")}Pagar com Pix, boleto ou cartão</button><p class="small muted" style="margin:8px 0 0">Liberação automática assim que o pagamento é confirmado.</p>`:"";
+async function pagarMens(btn){
+ if(DEMO){toast("No modo demonstração a cobrança do Asaas não é gerada.");return}
+ let doc="";if(!C.asaasCliente){doc=prompt("Para emitir a cobrança (Pix, boleto ou cartão), informe o CPF ou CNPJ do responsável pela clínica:",C.cpfCnpj||"");if(doc===null)return;doc=digits(doc)}
+ const old=btn.innerHTML;btn.disabled=true;btn.textContent="Gerando cobrança...";const w=window.open("about:blank","_blank");
+ try{const tok=await BE.auth.currentUser.getIdToken();
+  const r=await fetch(CFG.servidor.replace(/\/$/,"")+"/mensalidade",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+tok},body:JSON.stringify({cpfCnpj:doc})}).catch(()=>{throw new Error("Sem conexão com o servidor. Tente de novo em 1 minuto.")});
+  const j=await r.json().catch(()=>({}));if(!r.ok||!j.url)throw new Error(j.erro||"Não foi possível gerar a cobrança.");
+  if(w&&!w.closed)w.location.href=j.url;else location.href=j.url;
+ }catch(e){if(w)w.close();toast(e.message)}finally{btn.disabled=false;btn.innerHTML=old}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-mens]");if(b)pagarMens(b)});
 async function credConsultar(p,cpf){
  const FC=FONTES_C()[credFonte]||Object.values(FONTES_C())[0];
  if(DEMO){const s=+C.creditosConsulta||0;if(s<FC.creditos)throw new Error("Créditos insuficientes para esta consulta.");await new Promise(r=>setTimeout(r,700));C.creditosConsulta=s-FC.creditos;
