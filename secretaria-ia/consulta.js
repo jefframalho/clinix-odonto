@@ -95,6 +95,9 @@ async function consultarFornecedor(cpf) {
 
 // ---------- rota ----------
 const ultimas = new Map(); // limite simples: 1 consulta a cada 10 s por usuário
+// Trava: se o fornecedor falhar 2 vezes seguidas, pausa as consultas por 30 min
+// (o fornecedor pode cobrar mesmo quando dá erro).
+let falhasSeguidas = 0, pausadoAte = 0;
 module.exports = function (app) {
   app.use("/consulta-cpf", (req, res, next) => {
     const o = req.headers.origin;
@@ -116,6 +119,7 @@ module.exports = function (app) {
     const cpf = String(cpfIn || "").replace(/\D/g, "");
     if (!cpfValido(cpf)) return erro(400, "CPF inválido.");
     if (autorizado !== true) return erro(400, "Confirme que o paciente autorizou a consulta.");
+    if (Date.now() < pausadoAte) return erro(503, "O serviço de consulta está instável e foi pausado por alguns minutos. Tente mais tarde; nenhum crédito foi usado.");
     const agora = Date.now();
     if (agora - (ultimas.get(user.uid) || 0) < 10000) return erro(429, "Aguarde alguns segundos entre as consultas.");
     ultimas.set(user.uid, agora);
@@ -139,9 +143,10 @@ module.exports = function (app) {
     } catch (e) { return erro(e.st || 500, e.st ? e.message : "Não foi possível descontar o crédito."); }
 
     let resultado;
-    try { resultado = await consultarFornecedor(cpf); }
+    try { resultado = await consultarFornecedor(cpf); falhasSeguidas = 0; }
     catch (e) {
       console.error("Consulta: falha no fornecedor", e.message);
+      if (++falhasSeguidas >= 2) { pausadoAte = Date.now() + 30 * 60e3; falhasSeguidas = 0; console.error("Consulta: PAUSADA por 30 minutos após falhas seguidas"); }
       await ref.update({ creditosConsulta: admin.firestore.FieldValue.increment(1) }).catch(() => {});
       return erro(502, "A consulta não foi concluída" + (e.aviso ? " (" + e.aviso + ")" : "") + ". O crédito foi devolvido.");
     }
