@@ -28,6 +28,9 @@ window.CLINIX_CONFIG = {
   // Endereço do site publicado (usado nos links de assinatura)
   appUrl: "https://jefframalho.github.io/clinix-odonto/",
 
+  // Endereço usado no link da "Página da clínica" (bio do Instagram)
+  paginaUrl: "https://app.clinixodonto.com.br/",
+
   // Servidor da Secretária IA / consulta SPC-Serasa (Render). Ex.: "https://clinix-secretaria.onrender.com"
   servidor: "https://clinix-secretaria.onrender.com",
 

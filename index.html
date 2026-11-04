@@ -365,6 +365,47 @@ textarea.big{min-height:320px;font:500 13.5px/1.6 var(--font)}
 .odtable .btn{margin-left:4px}
 .paper .odg{margin:8px 0}
 .paper .odtable td,.paper .odtable th{padding:6px 8px}
+
+/* ===== Página da clínica ===== */
+.pgsw{width:32px;height:32px;border-radius:10px;border:3px solid transparent;cursor:pointer}
+.pgsw.on{border-color:var(--ink);box-shadow:0 0 0 2px var(--surface) inset}
+.pglink{padding:10px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:14px;word-break:break-all}
+.pgthumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pgth{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.pgth img{width:100%;height:100%;object-fit:cover}
+.pgth button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;font-size:16px;line-height:1}
+.pgadd{aspect-ratio:1;border:1.5px dashed var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+.pgadd svg{width:22px;height:22px}
+.pgpub{min-height:100vh;background:#F6F8FA;color:#14212B;font-family:inherit}
+.pghero{background:linear-gradient(160deg,var(--pg),color-mix(in srgb,var(--pg) 55%,#0A1A22));background-size:cover;background-position:center;color:#fff;padding:56px 16px 44px;text-align:center}
+.pgin{max-width:560px;margin:0 auto}
+.pglogo{width:96px;height:96px;border-radius:28px;object-fit:cover;border:4px solid rgba(255,255,255,.9);background:#fff;margin:0 auto 14px;display:block}
+.pgmark{display:grid;place-items:center;color:var(--pg)}.pgmark svg{width:46px;height:46px}
+.pghero h1{font-size:clamp(26px,6vw,36px);font-weight:800;letter-spacing:-.02em;margin:0 0 4px}
+.pgcity{margin:0 0 12px;opacity:.85;font-weight:600}
+.pgbio{margin:0 auto 22px;max-width:44ch;line-height:1.55;opacity:.95}
+.pgbtns{display:grid;gap:10px;max-width:360px;margin:0 auto}
+.pgb{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border-radius:14px;background:rgba(255,255,255,.16);color:#fff;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.3)}
+.pgb svg{width:20px;height:20px}
+.pgb.main{background:#fff;color:var(--pg);border-color:#fff}
+.pgb.wa{background:#25D366;border-color:#25D366}
+.pgb.out{background:var(--pg);color:#fff;border-color:var(--pg);margin-top:12px}
+.pgmain{max-width:640px;margin:0 auto;padding:8px 16px 32px}
+.pgmain section{background:#fff;border-radius:20px;padding:20px;margin-top:14px;box-shadow:0 10px 30px -22px rgba(10,30,40,.4)}
+.pgmain h2{font-size:18px;font-weight:800;margin:0 0 12px;color:#14212B}
+.pgserv{display:flex;flex-wrap:wrap;gap:8px}
+.pgserv span{padding:8px 14px;border-radius:999px;background:color-mix(in srgb,var(--pg) 12%,#fff);color:color-mix(in srgb,var(--pg) 80%,#000);font-weight:600;font-size:14px}
+.pggal{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.pggal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px}
+.pgnote{font-size:12px;color:#6A7A86;margin:10px 0 0}
+.pgteam{display:grid;gap:8px}
+.pgteam div{padding:12px 14px;border-radius:14px;background:#F3F6F8}
+.pgteam b{display:block}.pgteam small{color:#6A7A86}
+.pginfo p{display:flex;gap:10px;margin:0 0 8px;align-items:flex-start;color:#2B3A45}
+.pginfo svg{flex:none;width:20px;height:20px;color:var(--pg);margin-top:1px}
+.pgcta{text-align:center}.pgcta .pgb.main{background:var(--pg);color:#fff;border-color:var(--pg);max-width:360px;margin:0 auto}
+.pgfoot{text-align:center;font-size:13px;color:#6A7A86;padding:10px 16px 28px}
+.pgfoot a{color:var(--pg);font-weight:700;text-decoration:none}
 </style>
 </head>
 <body>
@@ -976,7 +1017,7 @@ const agoM=()=>{let m=S.meta.find(x=>x.id==="agonline");if(!m){m={id:"agonline",
 const agLink=t=>(CFG.appUrl||(location.origin+location.pathname))+"?agendar="+t;
 function slotsDia(cfg,dstr){const wd=parse(dstr).getDay();const spec=(cfg.dias||{})[wd];if(!spec)return[];const out=[];
  String(spec).split(",").forEach(r=>{const m=r.trim().match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/);if(!m)return;let a=+m[1]*60+ +m[2];const b=+m[3]*60+ +m[4];while(a+(+cfg.dur||30)<=b){out.push(String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0"));a+=(+cfg.dur||30)}});return out}
-let pubT;function pubAgenda(){clearTimeout(pubT);pubT=setTimeout(async()=>{const c=AGO();if(!c.token||!C)return;const lim=iso(addDays(TODAY,(+c.maxDias||21)+1));
+let pubT;function pubAgenda(){clearTimeout(pubT);if(typeof pubPagina==="function"&&PG().slug)pubPagina();pubT=setTimeout(async()=>{const c=AGO();if(!c.token||!C)return;const lim=iso(addDays(TODAY,(+c.maxDias||21)+1));
  const oc=S.ag.filter(a=>a.st!=="bad"&&a.data>=T&&a.data<=lim).map(a=>a.data+" "+a.hora+" "+(a.prof||PROFS()[0].id));
  try{await BE.pubSet("agendas",c.token,{cid:C.id,ativo:!!c.ativo,clinica:C.nome,logo:C.logo||"",cidade:C.cidade||"",telefone:C.telefone||"",dur:+c.dur||30,dias:c.dias,procs:c.procs||[],antec:+c.antec||2,maxDias:+c.maxDias||21,profs:PROFS().map(p=>({id:p.id,nome:p.nome})),ocupados:oc,ia:!!c.ia,info:String(c.iaInfo||"").slice(0,3000),atualizado:new Date().toISOString()})}catch(e){console.error(e)}},800)}
 function startPedidos(){const c=AGO();if(!c.token||!c.ativo||!DONO()&&U.papel!=="equipe"){PEDS=[];return}if(pedWatch===c.token)return;pedWatch=c.token;BE.watchPedidos(c.token,l=>{const ch=stable(l)!==stable(PEDS);PEDS=l;if(ch)setTimeout(scheduleRender,0)})}
@@ -1093,7 +1134,7 @@ function vLab(){return `<div class="pagehead"><div><h1 class="page">Laboratório
 function vMais(){const c=counts();const T3=[["contratos","Contratos",S.docs.filter(d=>!d.tipo&&!fullOk(d)).length+" pendentes","check","t-ok"],["orcamento","Orçamento","Planos de tratamento","doc","t-acc"],["retornos","Retornos",c.ret+" atrasados","clock","t-bad"],["lab","Laboratório",c.lab+" prontos","lab","t-ok"],["estoque","Estoque",c.est?c.est+" para repor":"Materiais em dia","box",c.est?"t-bad":"t-info"]];if(DONO())T3.push(["config","Configurações","Clínica, preços, equipe e plano","gear","t-info"]);
  return `<div class="pagehead"><h1 class="page">Mais</h1></div><div class="tiles">${T3.map(t=>`<button class="tile" data-go="${t[0]}"><div class="ic ${t[4]}">${ic(t[3])}</div><b>${t[1]}</b><small>${t[2]}</small></button>`).join("")}<button class="tile" data-act="logout"><div class="ic t-bad">${ic("out")}</div><b>Sair</b><small>${esc(U.email)}</small></button></div>`}
 
-function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["profs","Profissionais"],["precos","Preços"],["meds","Receitas"],["agonline","Agenda online"],["contratos","Contratos"],["equipe","Equipe"],["privacidade","Privacidade"],["plano","Plano"]];let body="";
+function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["profs","Profissionais"],["precos","Preços"],["meds","Receitas"],["agonline","Agenda online"],["pagina","Página da clínica"],["contratos","Contratos"],["equipe","Equipe"],["privacidade","Privacidade"],["plano","Plano"]];let body="";
  if(cfgTab==="clinica")body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Dados da clínica</h3><div class="stack"><label class="f">Nome da clínica<input data-cf="nome" value="${esc(C.nome)}"></label><div class="fgrid"><label class="f">Responsável técnico (nome que assina)<input data-cf="dentista" value="${esc(C.dentista)}"></label><label class="f">CRO<input data-cf="cro" value="${esc(C.cro||"")}" placeholder="CRO-CE 00000"></label></div><div class="fgrid"><label class="f">WhatsApp<input data-cf="telefone" value="${esc(C.telefone)}"></label><label class="f">Cidade<input data-cf="cidade" value="${esc(C.cidade)}"></label></div></div></div>
   <div class="card"><h3 style="margin-bottom:12px">Logo e foto</h3><div class="row" style="gap:16px;align-items:flex-start"><div style="text-align:center"><label class="upav" style="display:inline-block">${C.logo?`<img src="${C.logo}" alt="Logo" style="width:88px;height:88px;border-radius:24px;object-fit:cover">`:`<div class="av lg t-acc">${ic("building")}</div>`}<span class="cam">${ic("cam")}</span><input type="file" accept="image/*" data-up="logo" hidden></label><p class="small muted">Logo</p></div>
   <div style="text-align:center"><label class="upav" style="display:inline-block">${C.foto?`<img src="${C.foto}" alt="Foto" style="width:88px;height:88px;border-radius:24px;object-fit:cover">`:`<div class="av lg t-acc">${ic("users")}</div>`}<span class="cam">${ic("cam")}</span><input type="file" accept="image/*" data-up="clinfoto" hidden></label><p class="small muted">Foto do painel</p></div></div>
@@ -1130,6 +1171,7 @@ function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["
   <div class="card"><h3 style="margin-bottom:6px">Segurança</h3><ul class="small muted" style="margin:0;padding-left:18px;display:grid;gap:6px"><li>A sessão é encerrada sozinha após 30 minutos sem uso.</li><li>A equipe não vê o financeiro nem as configurações.</li><li>Cada clínica só acessa os próprios dados.</li><li>Ações importantes ficam registradas ao lado.</li></ul></div>
   <div class="card"><h3 style="margin-bottom:6px">Encerrar a conta</h3><p class="small muted" style="margin:0 0 12px">Exporte seus dados antes. Depois do pedido, tudo é apagado em até 90 dias, exceto o que a lei obrigar a manter.</p>${CFG.suporteWhatsApp?`<a class="btn" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp,`Olá! Sou da ${C.nome} e quero solicitar o encerramento da conta e a exclusão dos dados no ${CFG.produto}.`)}">${WAI}Pedir encerramento</a>`:""}</div></div>
   <div class="card" style="align-self:start"><h3 style="margin-bottom:12px">Registro de atividades</h3><div class="list">${L.map(l=>`<div class="li" style="grid-template-columns:1fr auto"><div class="who"><strong style="white-space:normal;font-size:14px">${esc(l.acao)}${l.det?` · <span class="muted" style="font-weight:600">${esc(l.det)}</span>`:""}</strong><small>${esc(l.quem)}</small></div><div class="end small muted" style="font-weight:600">${new Date(l.data).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</div></div>`).join("")||`<div class="empty">Nenhuma atividade registrada ainda.</div>`}</div></div></div>`}
+ if(cfgTab==="pagina")body=pgConfig();
  if(cfgTab==="plano"){const s=situacao(C);const pags=(C.pagamentos||[]).slice().reverse();
   body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Sua assinatura</h3><div class="stack" style="gap:10px"><div class="row" style="justify-content:space-between"><span class="muted">Situação</span><span class="pill dot ${s.cls}">${s.t}</span></div><div class="row" style="justify-content:space-between"><span class="muted">Plano</span><b>${esc(CFG.produto)} · ${brl(C.valor)}/mês</b></div><div class="row" style="justify-content:space-between"><span class="muted">${C.status==="teste"?"Teste termina em":"Próximo vencimento"}</span><b>${toD(C.vencimento).toLocaleDateString("pt-BR")}</b></div></div>
    <h3 style="margin:18px 0 10px">Pagamentos</h3><div class="list">${pags.map(p=>`<div class="li"><div class="av t-ok" style="width:36px;height:36px;border-radius:12px">${ic("check")}</div><div class="who"><strong>${brl(p.valor)}</strong><small>${br(p.data)}</small></div><div></div></div>`).join("")||`<div class="empty">Nenhum pagamento ainda.</div>`}</div></div>
@@ -1440,11 +1482,92 @@ document.addEventListener("click",async e=>{
  finally{credBusy=false;render()}});
 /* ============ FIM CONSULTA SPC / SERASA ============ */
 
+
+/* ============ PÁGINA DA CLÍNICA (fanpage pública, link para a bio do Instagram) ============ */
+let PAGP=null;
+const PG_CORES=["#0B86AE","#1F9D8B","#7B61D9","#D9467A","#E07B39","#2D3A4A"];
+const PG=()=>{const m=S.meta.find(x=>x.id==="pagina");return Object.assign({ativa:false,slug:"",instagram:"",bio:"",endereco:"",horario:"",servicos:[],fotos:[],resultados:[],cor:PG_CORES[0],equipe:true},m||{})};
+const pgM=()=>{let m=S.meta.find(x=>x.id==="pagina");if(!m){m={id:"pagina",...PG()};S.meta.push(m)}return m};
+const pgLink=s=>(CFG.paginaUrl||CFG.appUrl||(location.origin+location.pathname)).replace(/\/?$/,"/")+"?c="+s;
+const igUser=v=>String(v||"").trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i,"").replace(/^@/,"").replace(/[/?#].*$/,"").slice(0,30);
+let pubPgT;function pubPagina(){clearTimeout(pubPgT);pubPgT=setTimeout(async()=>{const g=PG();if(!g.slug||!C)return;const ag=AGO();
+ try{await BE.pubSet("paginas",g.slug,{cid:C.id,ativa:!!g.ativa,clinica:C.nome,logo:C.logo||"",foto:C.foto||"",cidade:C.cidade||"",telefone:C.telefone||"",
+  instagram:igUser(g.instagram),bio:String(g.bio||"").slice(0,400),endereco:String(g.endereco||"").slice(0,200),horario:String(g.horario||"").slice(0,300),
+  servicos:(g.servicos||[]).slice(0,20),fotos:(g.fotos||[]).slice(0,4),resultados:(g.resultados||[]).slice(0,4),cor:g.cor,
+  equipe:g.equipe?PROFS().map(p=>({nome:p.nome,cro:p.cro||""})):[],agenda:ag.ativo&&ag.token?ag.token:"",atualizado:new Date().toISOString()})}
+ catch(e){console.error(e);toast("Não foi possível publicar a página")}},700)}
+
+function pgConfig(){const g=PG(),link=g.slug?pgLink(g.slug):"",ag=AGO();
+ const sw=PG_CORES.map(c=>`<button class="pgsw ${g.cor===c?"on":""}" data-pgcor="${c}" style="background:${c}" aria-label="Cor ${c}"></button>`).join("");
+ const thumbs=(k,lim)=>`<div class="pgthumbs">${(g[k]||[]).map((src,i)=>`<div class="pgth"><img src="${src}" alt=""><button data-pgdel="${k}:${i}" aria-label="Remover">×</button></div>`).join("")}${(g[k]||[]).length<lim?`<label class="pgadd">${ic("cam",1.8)}<span>Adicionar</span><input type="file" accept="image/*" data-up="${k==="fotos"?"pgfoto":"pgres"}" hidden></label>`:""}</div>`;
+ return `<div class="cols half"><div class="stack">
+ <div class="card"><div class="row" style="justify-content:space-between"><div style="min-width:0;flex:1"><h3>Página da clínica</h3><p class="small muted" style="margin:2px 0 0">Uma página pronta para colocar no link da bio do Instagram, com botão para o paciente agendar.</p></div>
+  <label class="check" style="padding:8px 12px"><input type="checkbox" data-pgativa ${g.ativa?"checked":""} style="accent-color:var(--accent)">${g.ativa?"No ar":"Desligada"}</label></div>
+  <label class="f mt">Endereço da página<div class="row" style="gap:6px;flex-wrap:nowrap"><span class="small muted" style="white-space:nowrap">…?c=</span><input id="pgSlug" value="${esc(g.slug||slug(C.nome).slice(0,40))}" placeholder="nome-da-clinica"><button class="btn sm pri" data-pgslugsave>Salvar</button></div></label>
+  ${link?`<div class="pglink mt"><a href="${link}" target="_blank" rel="noopener">${esc(link)}</a></div><div class="row mt"><button class="btn sm" data-pgcopy="${esc(link)}">${ic("doc")}Copiar link</button><a class="btn sm" href="${link}" target="_blank" rel="noopener">Ver a página</a></div>`:`<p class="small muted mt" style="margin-bottom:0">Escolha o endereço e toque em Salvar para criar a página.</p>`}
+  ${!ag.ativo?`<p class="small mt" style="margin-bottom:0;color:var(--warn)">Ligue o <b>Agendamento online</b> (aba Agenda online) para a página ter o botão de agendar. Sem ele, o botão leva ao WhatsApp.</p>`:""}</div>
+ <div class="card"><h3 style="margin-bottom:12px">Informações</h3><div class="stack">
+  <label class="f">Instagram<input data-pg="instagram" value="${esc(g.instagram)}" placeholder="@suaclinica"></label>
+  <label class="f">Apresentação<textarea data-pg="bio" rows="3" maxlength="400" placeholder="Cuidamos do seu sorriso com carinho e tecnologia, em Mauriti.">${esc(g.bio)}</textarea></label>
+  <label class="f">Endereço<input data-pg="endereco" value="${esc(g.endereco)}" placeholder="Rua..., nº, bairro, cidade"></label>
+  <label class="f">Horário de atendimento<input data-pg="horario" value="${esc(g.horario)}" placeholder="Seg a sex, 8h às 18h · Sáb, 8h às 12h"></label>
+  <div><p class="small muted" style="margin:0 0 6px">Cor da página</p><div class="row" style="gap:8px">${sw}</div></div>
+  <label class="check"><input type="checkbox" data-pgequipe ${g.equipe?"checked":""} style="accent-color:var(--accent)"> Mostrar a equipe (nome e CRO dos profissionais)</label></div></div></div>
+ <div class="stack">
+ <div class="card"><h3 style="margin-bottom:10px">Serviços na página</h3><div class="checks">${PR().map(p=>`<label class="check"><input type="checkbox" style="accent-color:var(--accent)" data-pgserv="${esc(p[0])}" ${(g.servicos||[]).includes(p[0])?"checked":""}>${esc(p[0])}</label>`).join("")}</div><p class="small muted" style="margin:8px 0 0">Os preços não aparecem na página.</p></div>
+ <div class="card"><h3 style="margin-bottom:6px">Fotos do consultório</h3><p class="small muted" style="margin:0 0 10px">Até 4 fotos. A foto do painel (aba Clínica) aparece no topo.</p>${thumbs("fotos",4)}</div>
+ <div class="card"><h3 style="margin-bottom:6px">Resultados (antes e depois)</h3><p class="small muted" style="margin:0 0 10px">Até 4 fotos. Publique só de pacientes que assinaram a <b>autorização de uso de imagem</b> (modelo em Contratos) e siga as regras de publicidade do CFO.</p>
+  <label class="check" style="margin-bottom:10px"><input type="checkbox" id="pgOk" style="accent-color:var(--accent)"> Tenho a autorização de uso de imagem assinada pelo paciente</label>${thumbs("resultados",4)}</div>
+ ${link?`<div class="card"><h3 style="margin-bottom:6px">Colocar no Instagram</h3><ol class="small" style="margin:0;padding-left:18px;line-height:1.7"><li>Copie o link da página.</li><li>No Instagram, toque em <b>Editar perfil</b> → <b>Links</b> → <b>Adicionar link externo</b>.</li><li>Cole o link e salve. Pronto: quem clicar na bio vê a página e já agenda.</li></ol></div>`:""}
+ </div></div>`}
+
+function vPagina(){const g=PAGP;
+ if(g.erro)return `<div class="lockscreen"><div class="card"><div class="bigic t-warn">${ic("alert")}</div><h1 class="page">${esc(g.erro)}</h1></div></div>`;
+ const cor=g.cor||PG_CORES[0],ig=g.instagram,agHref=g.agenda?agLink(g.agenda):(g.telefone?wa(g.telefone,`Olá! Vi a página da ${g.clinica} e quero agendar uma consulta.`):"");
+ const maps=g.endereco?"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(g.endereco):"";
+ document.title=g.clinica;
+ return `<div class="pgpub" style="--pg:${cor}">
+ <header class="pghero" ${g.foto?`style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.65)),url('${g.foto}')"`:""}>
+  <div class="pgin">${g.logo?`<img class="pglogo" src="${g.logo}" alt="Logo">`:`<div class="pglogo pgmark">${ic("tooth",1.6)}</div>`}
+  <h1>${esc(g.clinica)}</h1>${g.cidade?`<p class="pgcity">${esc(g.cidade)}</p>`:""}${g.bio?`<p class="pgbio">${esc(g.bio)}</p>`:""}
+  <div class="pgbtns">${agHref?`<a class="pgb main" href="${agHref}" ${g.agenda?"":'target="_blank" rel="noopener"'}>${ic("cal")}Agendar consulta</a>`:""}
+   ${g.telefone?`<a class="pgb wa" target="_blank" rel="noopener" href="${wa(g.telefone,`Olá! Vi a página da ${g.clinica} e tenho uma dúvida.`)}">${WAI}WhatsApp</a>`:""}
+   ${ig?`<a class="pgb" target="_blank" rel="noopener" href="https://instagram.com/${encodeURIComponent(ig)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>@${esc(ig)}</a>`:""}</div></div></header>
+ <main class="pgmain">
+  ${(g.servicos||[]).length?`<section><h2>Serviços</h2><div class="pgserv">${g.servicos.map(s=>`<span>${esc(s)}</span>`).join("")}</div></section>`:""}
+  ${(g.resultados||[]).length?`<section><h2>Resultados</h2><div class="pggal">${g.resultados.map(s=>`<img src="${s}" alt="Resultado de tratamento" loading="lazy">`).join("")}</div><p class="pgnote">Imagens publicadas com autorização dos pacientes. Os resultados variam de pessoa para pessoa.</p></section>`:""}
+  ${(g.fotos||[]).length?`<section><h2>Nosso espaço</h2><div class="pggal">${g.fotos.map(s=>`<img src="${s}" alt="Consultório" loading="lazy">`).join("")}</div></section>`:""}
+  ${(g.equipe||[]).length?`<section><h2>Equipe</h2><div class="pgteam">${g.equipe.map(p=>`<div><b>${esc(p.nome)}</b>${p.cro?`<small>${esc(p.cro)}</small>`:""}</div>`).join("")}</div></section>`:""}
+  ${g.endereco||g.horario?`<section><h2>Onde estamos</h2><div class="pginfo">${g.endereco?`<p>${ic("building")}<span>${esc(g.endereco)}</span></p>`:""}${g.horario?`<p>${ic("clock")}<span>${esc(g.horario)}</span></p>`:""}</div>${maps?`<a class="pgb out" target="_blank" rel="noopener" href="${maps}">Como chegar</a>`:""}</section>`:""}
+  ${agHref?`<section class="pgcta"><h2>Vamos cuidar do seu sorriso?</h2><a class="pgb main" href="${agHref}" ${g.agenda?"":'target="_blank" rel="noopener"'}>${ic("cal")}Agendar consulta</a></section>`:""}
+ </main>
+ <footer class="pgfoot">Página criada com <a href="https://www.clinixodonto.com.br" target="_blank" rel="noopener">${esc(CFG.produto)}</a></footer></div>`}
+
+document.addEventListener("input",e=>{const t=e.target;if(!t.dataset||t.dataset.pg===undefined)return;const m=pgM();m[t.dataset.pg]=t.value;save();pubPagina()});
+document.addEventListener("change",async e=>{const t=e.target;if(!t.dataset)return;
+ if(t.dataset.pgativa!==undefined){const m=pgM();if(t.checked&&!m.slug){t.checked=false;toast("Primeiro salve o endereço da página");return}m.ativa=t.checked;save();pubPagina();render();toast(m.ativa?"Página no ar":"Página desligada");return}
+ if(t.dataset.pgequipe!==undefined){pgM().equipe=t.checked;save();pubPagina();return}
+ if(t.dataset.pgserv!==undefined){const m=pgM();const s=new Set(m.servicos||[]);t.checked?s.add(t.dataset.pgserv):s.delete(t.dataset.pgserv);m.servicos=[...s];save();pubPagina();render();return}
+ if((t.dataset.up==="pgfoto"||t.dataset.up==="pgres")&&t.files&&t.files[0]){
+  if(t.dataset.up==="pgres"&&!($("pgOk")&&$("pgOk").checked)){t.value="";toast("Confirme que tem a autorização de uso de imagem assinada");return}
+  try{const v=await readImg(t.files[0],560);const m=pgM(),k=t.dataset.up==="pgfoto"?"fotos":"resultados";m[k]=(m[k]||[]).concat(v).slice(0,4);save();pubPagina();render();toast("Foto adicionada")}catch(err){toast("Não foi possível ler a imagem")}}});
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-pgcor],[data-pgdel],[data-pgslugsave],[data-pgcopy]");if(!b)return;const d=b.dataset;
+ if(d.pgcopy){navigator.clipboard.writeText(d.pgcopy).then(()=>toast("Link copiado")).catch(()=>prompt("Copie o link:",d.pgcopy));return}
+ if(d.pgcor){pgM().cor=d.pgcor;save();pubPagina();render();return}
+ if(d.pgdel){const[k,i]=d.pgdel.split(":");const m=pgM();m[k]=(m[k]||[]).filter((_,j)=>j!==+i);save();pubPagina();render();return}
+ if(d.pgslugsave!==undefined){const s=slug($("pgSlug").value).slice(0,40);if(s.length<3){toast("Use pelo menos 3 letras ou números");return}
+  const m=pgM();if(s===m.slug){toast("Endereço já salvo");return}
+  b.disabled=true;try{const ex=await BE.pubGet("paginas",s);if(ex&&ex.cid&&ex.cid!==C.id){toast("Esse endereço já é de outra clínica. Escolha outro.");return}
+   if(m.slug)await BE.pubSet("paginas",m.slug,{cid:C.id,ativa:false}).catch(()=>{});m.slug=s;save();pubPagina();render();toast("Endereço salvo")}
+  catch(err){console.error(err);toast("Não foi possível salvar o endereço")}finally{b.disabled=false}}});
+/* ============ FIM PÁGINA DA CLÍNICA ============ */
+
 const VIEWS={prontuario:vProntuario,contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,estoque:vEstoque,mais:vMais,config:vConfig};
 function render(){const R=$("root");
  if(LEGAL){R.innerHTML=vLegal();return}
  if(ANAMP){R.innerHTML=vAnamPublic();return}
  if(AGP){R.innerHTML=vAgPublic();return}
+ if(PAGP){R.innerHTML=vPagina();return}
  if(SIGN){R.innerHTML=vSign();requestAnimationFrame(initPad);return}
  if(U===undefined){R.innerHTML=`<div class="boot">Carregando ${esc(CFG.produto)}…</div>`;return}
  if(!U){R.innerHTML=vAuth();bindAuth();return}
@@ -1631,9 +1754,11 @@ document.addEventListener("click",async e=>{
 /* ---------- início ---------- */
 U=undefined;
 const QS=new URLSearchParams(location.search).get("assinar");
-const QP=new URLSearchParams(location.search).get("pagina");const QA=new URLSearchParams(location.search).get("anamnese");const QG=new URLSearchParams(location.search).get("agendar");
+const QP=new URLSearchParams(location.search).get("pagina");const QA=new URLSearchParams(location.search).get("anamnese");const QG=new URLSearchParams(location.search).get("agendar");const QC=new URLSearchParams(location.search).get("c");
 if(QP==="termos"||QP==="privacidade")LEGAL=QP;
-if(QA||QG){$("root").innerHTML=`<div class="boot">Carregando…</div>`;U=null;
+if(QC&&!QA&&!QG&&!QS){$("root").innerHTML=`<div class="boot">Carregando…</div>`;U=null;
+ BE.initPublic().then(()=>BE.pubGet("paginas",slug(QC))).then(r=>{PAGP=!r||!r.ativa?{erro:"Página não encontrada"}:r;render()}).catch(e=>{console.error(e);PAGP={erro:"Não foi possível abrir a página"};render()})}
+else if(QA||QG){$("root").innerHTML=`<div class="boot">Carregando…</div>`;U=null;
  BE.initPublic().then(()=>QA?BE.pubGet("anamneses",QA):BE.pubGet("agendas",QG)).then(r=>{
   if(QA){ANAMP=!r?{erro:"Link não encontrado"}:r.status==="respondida"?{erro:"Esta ficha já foi respondida"}:{token:QA,...r}}
   else{AGP=!r?{erro:"Agenda não encontrada"}:!r.ativo?{erro:"O agendamento online está desligado",telefone:r.telefone}:{token:QG,...r}}render()})

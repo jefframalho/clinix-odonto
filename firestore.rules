@@ -70,6 +70,16 @@ service cloud.firestore {
       allow delete: if member(resource.data.cid) || isAdmin();
     }
 
+    // Página pública da clínica (link da bio do Instagram). Qualquer pessoa lê;
+    // só a equipe da própria clínica cria e altera, e não pode tomar o endereço de outra clínica.
+    match /paginas/{slug} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if member(request.resource.data.cid) && active(request.resource.data.cid);
+      allow update: if member(resource.data.cid) && request.resource.data.cid == resource.data.cid;
+      allow delete: if member(resource.data.cid) || isAdmin();
+    }
+
     // Agendamento online: horários livres públicos (sem nomes de pacientes) e pedidos dos pacientes.
     match /agendas/{token} {
       allow get: if true;
