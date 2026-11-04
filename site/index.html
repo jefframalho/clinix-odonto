@@ -422,6 +422,7 @@ footer .logo{color:#fff;font-size:20px}
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.1 5.1 0 0 0 1.1 2.7 11.6 11.6 0 0 0 4.4 3.9c1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
 </a>
 
+<script src="dentes.js?v=b6b17cdc"></script>
 <script>
 /* =========================================================
    CONFIGURAÇÃO: altere só aqui
@@ -530,10 +531,59 @@ const ODG=(()=>{
   else if(t==="p")deco=`<path d="M${cx-rx*.5},${cy} Q${cx},${cy+2} ${cx+rx*.5},${cy}" class="fis"/>`;
   const ext=whole==="ext";
   return `<g${ext?' opacity=".28"':""}><defs><clipPath id="${id}">${shape}</clipPath></defs><g class="oc">${shape}</g>${fm._all?`<g clip-path="url(#${id})"><rect x="${X0}" y="${Y0}" width="${X1-X0}" height="${Y1-Y0}" fill="${COL[fm._all]}" opacity=".55"/></g>`:""}<g clip-path="url(#${id})" opacity=".9">${z}</g>${deco}<path d="M${cx-ix},${cy-iy} L${X0},${Y0} M${cx+ix},${cy-iy} L${X1},${Y0} M${cx-ix},${cy+iy} L${X0},${Y1} M${cx+ix},${cy+iy} L${X1},${Y1}" class="zl" clip-path="url(#${id})"/><g class="oc-o">${shape}</g></g>${ext?`<path d="M${cx-rx},${cy-ry} L${cx+rx},${cy+ry} M${cx+rx},${cy-ry} L${cx-rx},${cy+ry}" class="xx"/>`:""}`}
+ /* ---- dentes realistas (imagens geradas do modelo 3D, arquivo dentes.webp + dentes.js) ---- */
+ const DI=()=>window.DENTES&&window.DENTES.t?window.DENTES:null;
+ const UMM=2.9;                                   /* unidades do desenho por mm */
+ const dimW=n=>{const d=DI(),m=d&&d.t[n];return m?Math.max(m.V.w,m.P.w,m.O.w)*UMM*.86:W(n)};
+ function crop(m,x,y,w,h){const d=DI();return `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="${m.sx} ${m.sy} ${m.sw} ${m.sh}" preserveAspectRatio="none" overflow="hidden"><image href="${d.src||"dentes.webp"}" width="${d.W}" height="${d.H}"/></svg>`}
+ /* vista lateral com imagem: coroa embaixo, raiz em cima (flip = coroa em cima) */
+ function sideImg(n,cx,cw,y,flip,view,fm,whole){
+  const H=84,m=DI().t[n][view],iw=m.w*UMM,ih=m.h*UMM,ix=cx+(cw-iw)/2,iy=H-ih+UMM*.7;
+  const tr=`translate(${ix},${iy}) scale(${UMM})`,id="odi"+(++uidc);
+  const [a0,b0,a1,b1]=m.cb,X0=ix+a0*UMM,X1=ix+a1*UMM,Y0=iy+b0*UMM,Y1=iy+b1*UMM,cw2=X1-X0,ch=Y1-Y0,cxm=(X0+X1)/2;
+  const [s0,t0,s1,t1]=m.sb,RT=iy+t0*UMM;            /* ponta da raiz */
+  const mes=(n<20||(n>40&&n<50))?1:-1,ext=whole==="ext",impl=whole==="impl";
+  let g=`<g transform="translate(0,${y})${flip?` translate(0,${H}) scale(1,-1)`:""}"${ext?' opacity=".25"':""}><defs><clipPath id="${id}"><path transform="${tr}" d="${m.crown}"/></clipPath></defs>`;
+  g+=impl?`<g clip-path="url(#${id})">${crop(m,ix,iy,iw,ih)}</g><rect x="${cxm-cw2*.16}" y="${RT+4}" width="${cw2*.32}" height="${Y0-RT-3}" rx="3" class="impl"/>${[0,1,2,3,4,5].map(i=>`<line x1="${cxm-cw2*.2}" x2="${cxm+cw2*.2}" y1="${RT+9+i*(Y0-RT-8)/6}" y2="${RT+11+i*(Y0-RT-8)/6}" class="impl-l"/>`).join("")}`:crop(m,ix,iy,iw,ih);
+  if(whole==="canal"&&!impl)g+=`<path d="M${cxm},${Y0+2} L${cxm},${RT+4}" class="canal"/>`;
+  const fc=f=>fm[f]?COL[fm[f]]:null;let ov="";
+  const center=view==="V"?"V":"P";
+  if(fm._all)ov+=`<rect x="${X0}" y="${Y0}" width="${cw2}" height="${ch}" fill="${COL[fm._all]}" opacity=".7"/>`;
+  if(whole==="coroa")ov+=`<rect x="${X0}" y="${Y0}" width="${cw2}" height="${ch}" fill="#E9C25A" opacity=".55"/>`;
+  if(fc(center))ov+=`<rect x="${X0+cw2*.26}" y="${Y0+ch*.22}" width="${cw2*.48}" height="${ch*.56}" fill="${fc(center)}"/>`;
+  const mx=mes>0?X1-cw2*.34:X0,dx=mes>0?X0:X1-cw2*.34;
+  if(fc("M"))ov+=`<rect x="${mx}" y="${Y0}" width="${cw2*.34}" height="${ch}" fill="${fc("M")}"/>`;
+  if(fc("D"))ov+=`<rect x="${dx}" y="${Y0}" width="${cw2*.34}" height="${ch}" fill="${fc("D")}"/>`;
+  if(fc("O"))ov+=`<rect x="${X0}" y="${Y1-ch*.24}" width="${cw2}" height="${ch*.24}" fill="${fc("O")}"/>`;
+  if(fc("C"))ov+=`<rect x="${X0}" y="${Y0}" width="${cw2}" height="${ch*.2}" fill="${fc("C")}"/>`;
+  if(whole==="carie")ov+=`<circle cx="${cxm}" cy="${Y0+ch*.5}" r="${Math.min(cw2,ch)*.15}" fill="#5A3A22"/>`;
+  if(whole==="rest")ov+=`<rect x="${X0+cw2*.26}" y="${Y0+ch*.3}" width="${cw2*.48}" height="${ch*.3}" fill="${COL.exist}"/>`;
+  if(ov)g+=`<g clip-path="url(#${id})" opacity=".85">${ov}</g>`;
+  g+=`</g>`;
+  if(ext)g+=`<path d="M${X0},${y+10} L${X1},${y+H-6} M${X1},${y+10} L${X0},${y+H-6}" class="xx"/>`;
+  return g}
+ /* vista oclusal com imagem e 5 regiões clicáveis */
+ function occImg(n,cx,cw,y,fm,whole){
+  const HH=46,m=DI().t[n].O,iw=m.w*UMM,ih=m.h*UMM,ix=cx+(cw-iw)/2,iy=y+(HH-ih)/2,up=n<30;
+  const tr=`translate(${ix},${iy}) scale(${UMM})`,id="odo"+(++uidc);
+  const [a0,b0,a1,b1]=m.sb,X0=ix+a0*UMM,X1=ix+a1*UMM,Y0=iy+b0*UMM,Y1=iy+b1*UMM,cxm=(X0+X1)/2,cym=(Y0+Y1)/2,ix2=(X1-X0)*.21,iy2=(Y1-Y0)*.21;
+  const mes=(n<20||(n>40&&n<50))?1:-1,top=up?"V":"P",bot=up?"P":"V",right=mes>0?"M":"D",left=mes>0?"D":"M";
+  const zone=(f,pts)=>`<polygon points="${pts}" data-fz="${f}" class="fz" fill="${fm[f]?COL[fm[f]]:"transparent"}"><title>${faceName(n,f)}</title></polygon>`;
+  const z=zone(top,`${X0},${Y0} ${X1},${Y0} ${cxm+ix2},${cym-iy2} ${cxm-ix2},${cym-iy2}`)+zone(bot,`${X0},${Y1} ${X1},${Y1} ${cxm+ix2},${cym+iy2} ${cxm-ix2},${cym+iy2}`)+
+   zone(left,`${X0},${Y0} ${cxm-ix2},${cym-iy2} ${cxm-ix2},${cym+iy2} ${X0},${Y1}`)+zone(right,`${X1},${Y0} ${cxm+ix2},${cym-iy2} ${cxm+ix2},${cym+iy2} ${X1},${Y1}`)+
+   `<rect x="${cxm-ix2}" y="${cym-iy2}" width="${ix2*2}" height="${iy2*2}" data-fz="O" class="fz" fill="${fm.O?COL[fm.O]:"transparent"}"><title>${faceName(n,"O")}</title></rect>`;
+  const ext=whole==="ext";let g=`<g${ext?' opacity=".25"':""}><defs><clipPath id="${id}"><path transform="${tr}" d="${m.sil}"/></clipPath></defs>${crop(m,ix,iy,iw,ih)}`;
+  if(fm._all)g+=`<g clip-path="url(#${id})"><rect x="${X0}" y="${Y0}" width="${X1-X0}" height="${Y1-Y0}" fill="${COL[fm._all]}" opacity=".6"/></g>`;
+  if(whole==="coroa")g+=`<g clip-path="url(#${id})"><rect x="${X0}" y="${Y0}" width="${X1-X0}" height="${Y1-Y0}" fill="#E9C25A" opacity=".5"/></g>`;
+  if(whole==="carie")g+=`<circle cx="${cxm}" cy="${cym}" r="${Math.min(X1-X0,Y1-Y0)*.14}" fill="#5A3A22"/>`;
+  if(whole==="rest")g+=`<rect x="${cxm-ix2}" y="${cym-iy2}" width="${ix2*2}" height="${iy2*2}" fill="${COL.exist}" opacity=".85"/>`;
+  g+=`<g clip-path="url(#${id})" opacity=".85">${z}</g></g>`;
+  if(ext)g+=`<path d="M${X0},${Y0} L${X1},${Y1} M${X1},${Y0} L${X0},${Y1}" class="xx"/>`;
+  return g}
  /* odontograma completo */
  function svg(entries,dentes,sel,opts){opts=opts||{};uidc=opts.seed||0;dentes=dentes||{};
   const GAP=4,MID=18,LW=opts.labels===false?0:74;
-  const CW=UPN.map((n,i)=>Math.max(W(n),W(LON[i])));const cols=arr=>{let x=LW;return arr.map((n,i)=>{if(i===8)x+=MID;const w=W(n),o={n,x:x+(CW[i]-w)/2,w,cx:x,cw:CW[i]};x+=CW[i]+GAP;return o})};
+  const WW=DI()?dimW:W;const CW=UPN.map((n,i)=>Math.max(WW(n),WW(LON[i])));const cols=arr=>{let x=LW;return arr.map((n,i)=>{if(i===8)x+=MID;const w=WW(n),o={n,x:x+(CW[i]-w)/2,w,cx:x,cw:CW[i]};x+=CW[i]+GAP;return o})};
   const cu=cols(UPN),cl=cols(LON);const width=cu[15].cx+cu[15].cw+4;
   const R={uv:0,uo:86,up:134,un:220,sep:242,ln:250,ll:270,lo:356,lv:404};const height=490;
   const lab=(t,y)=>LW?`<text x="0" y="${y}" class="lb">${t}</text>`:"";
@@ -541,8 +591,9 @@ const ODG=(()=>{
    lab("Vestibular",R.uv+50)+lab("Oclusal",R.uo+28)+lab("Palatina",R.up+40)+lab("Lingual",R.ll+50)+lab("Oclusal",R.lo+28)+lab("Vestibular",R.lv+40);
   const col=(o,up)=>{const fm=faceMap(entries,o.n),wh=dentes[o.n],y0=up?R.uv:R.ln;
    let g=`<g class="odt${String(sel)===String(o.n)?" sel":""}" data-otooth="${o.n}" tabindex="0" role="button" aria-label="Dente ${o.n}"><rect x="${o.cx-2}" y="${up?R.uv-2:R.ln-2}" width="${o.cw+4}" height="${up?240:238}" rx="8" class="bgsel"/>`;
-   if(up)g+=side(o.n,o.x,R.uv,o.w,false,"V",fm,wh)+occ(o.n,o.x,R.uo,o.w,fm,wh)+side(o.n,o.x,R.up,o.w,true,"P",fm,wh)+`<rect x="${o.x+o.w/2-11}" y="${R.un}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.un+11}" class="nt">${o.n}</text>`;
-   else g+=`<rect x="${o.x+o.w/2-11}" y="${R.ln}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.ln+11}" class="nt">${o.n}</text>`+side(o.n,o.x,R.ll,o.w,false,"P",fm,wh)+occ(o.n,o.x,R.lo,o.w,fm,wh)+side(o.n,o.x,R.lv,o.w,true,"V",fm,wh);
+   if(up&&DI())g+=sideImg(o.n,o.cx,o.cw,R.uv,false,"V",fm,wh)+occImg(o.n,o.cx,o.cw,R.uo,fm,wh)+sideImg(o.n,o.cx,o.cw,R.up,true,"P",fm,wh)+`<rect x="${o.x+o.w/2-11}" y="${R.un}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.un+11}" class="nt">${o.n}</text>`;
+   else if(up)g+=side(o.n,o.x,R.uv,o.w,false,"V",fm,wh)+occ(o.n,o.x,R.uo,o.w,fm,wh)+side(o.n,o.x,R.up,o.w,true,"P",fm,wh)+`<rect x="${o.x+o.w/2-11}" y="${R.un}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.un+11}" class="nt">${o.n}</text>`;
+   else g+=`<rect x="${o.x+o.w/2-11}" y="${R.ln}" width="22" height="15" rx="4" class="nb"/><text x="${o.x+o.w/2}" y="${R.ln+11}" class="nt">${o.n}</text>`+(DI()?sideImg(o.n,o.cx,o.cw,R.ll,false,"P",fm,wh)+occImg(o.n,o.cx,o.cw,R.lo,fm,wh)+sideImg(o.n,o.cx,o.cw,R.lv,true,"V",fm,wh):side(o.n,o.x,R.ll,o.w,false,"P",fm,wh)+occ(o.n,o.x,R.lo,o.w,fm,wh)+side(o.n,o.x,R.lv,o.w,true,"V",fm,wh));
    return g+"</g>"};
   s+=cu.map(o=>col(o,true)).join("")+cl.map(o=>col(o,false)).join("");
   const midx=cu[7].cx+cu[7].cw+(MID+GAP)/2;
