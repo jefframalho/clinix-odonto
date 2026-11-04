@@ -115,10 +115,40 @@ async function consultarSerasa(cpf) {
   } finally { clearTimeout(t); }
 }
 
+// ---------- Serasa pelo Asaas ----------
+// Variáveis: ASAAS_API_KEY, ASAAS_URL (sandbox: https://api-sandbox.asaas.com/v3 | produção: https://api.asaas.com/v3)
+//            ASAAS_UF (opcional: estado da consulta, ex.: CE)
+// O Asaas devolve o relatório em PDF (não traz score separado). O PDF vai para a tela
+// da clínica e uma cópia chega no e-mail da sua conta Asaas.
+async function consultarSerasaAsaas(cpf) {
+  const { ASAAS_API_KEY, ASAAS_URL = "https://api-sandbox.asaas.com/v3", ASAAS_UF } = process.env;
+  if (!ASAAS_API_KEY) throw new Error("Asaas não configurado");
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 60000);
+  try {
+    const corpo = { cpfCnpj: cpf }; if (ASAAS_UF) corpo.state = ASAAS_UF;
+    const r = await fetch(ASAAS_URL.replace(/\/$/, "") + "/creditBureauReport", {
+      method: "POST", signal: ctl.signal,
+      headers: { "Content-Type": "application/json", access_token: ASAAS_API_KEY, "User-Agent": "ClinixOdonto/1.0" },
+      body: JSON.stringify(corpo)
+    });
+    const txt = await r.text(); let j; try { j = JSON.parse(txt); } catch { j = null; }
+    if (!r.ok || !j || !j.id) {
+      console.error("Consulta Serasa (Asaas): resposta", r.status, String(txt || "").split(cpf).join("***").slice(0, 600));
+      const msg = j && j.errors && j.errors[0] && j.errors[0].description;
+      throw Object.assign(new Error("Asaas respondeu " + r.status), { aviso: typeof msg === "string" ? msg.slice(0, 160) : "" });
+    }
+    console.log("Consulta Serasa (Asaas): ok", j.id, JSON.stringify(Object.keys(j)));
+    return { score: null, restricoes: [], protestos: 0, chequesSemFundo: 0, simulado: false,
+      soPdf: true, relatorioId: j.id, pdf: j.reportFile || null };
+  } finally { clearTimeout(t); }
+}
+
 // Fontes disponíveis e quantos créditos cada uma gasta
+// (Serasa usa o Asaas quando ASAAS_API_KEY estiver no Render; senão, a SOA WebServices)
 const FONTES = {
   boavista: { nome: "Boa Vista (SCPC)", creditos: +process.env.CREDITOS_BOAVISTA || 1, fn: consultarBoaVista },
-  serasa:   { nome: "Serasa",           creditos: +process.env.CREDITOS_SERASA || 3,  fn: consultarSerasa }
+  serasa:   { nome: "Serasa",           creditos: +process.env.CREDITOS_SERASA || 3,
+              fn: cpf => process.env.ASAAS_API_KEY ? consultarSerasaAsaas(cpf) : consultarSerasa(cpf) }
 };
 async function consultarFornecedor(cpf, fonte) {
   if (MODO !== "real") return simulado(cpf);
@@ -189,7 +219,8 @@ module.exports = function (app) {
       data: new Date().toISOString(), cpf: mascarar(cpf), pid: String(pid || ""), quem: user.email || user.uid,
       score: resultado.score, qtdRestricoes: resultado.restricoes.length,
       valorRestricoes: resultado.restricoes.reduce((s, r) => s + (+r.valor || 0), 0),
-      protestos: resultado.protestos, simulado: resultado.simulado, fonte: F.nome, creditos: F.creditos
+      protestos: resultado.protestos, simulado: resultado.simulado, fonte: F.nome, creditos: F.creditos,
+      soPdf: !!resultado.soPdf, relatorioId: resultado.relatorioId || ""
     };
     await ref.collection("consultas").add(resumo).catch(e => console.error("Consulta: erro ao registrar", e.message));
     res.json({ ...resultado, fonte: F.nome, creditosRestantes: restantes, data: resumo.data });

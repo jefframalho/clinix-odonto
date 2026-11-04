@@ -1429,7 +1429,11 @@ const FONTES_C=()=>{const f=(CFG.consulta||{}).fontes||{boavista:{nome:"Boa Vist
 function cpfOk(c){c=digits(c);if(c.length!==11||/^(\d)\1+$/.test(c))return false;const dv=n=>{let s=0;for(let i=0;i<n;i++)s+=+c[i]*(n+1-i);const r=(s*10)%11;return r===10?0:r};return dv(9)===+c[9]&&dv(10)===+c[10]}
 const cpfFmt=c=>{c=digits(c);return c.length===11?`${c.slice(0,3)}.${c.slice(3,6)}.${c.slice(6,9)}-${c.slice(9)}`:c};
 function scoreFaixa(s){if(s==null)return{t:"Sem score",cls:"t-info"};if(s<300)return{t:"Muito baixo",cls:"t-bad"};if(s<500)return{t:"Baixo",cls:"t-warn"};if(s<700)return{t:"Bom",cls:"t-ok"};return{t:"Muito bom",cls:"t-ok"}}
-function credResult(r){const f=scoreFaixa(r.score);const tot=r.restricoes.reduce((s,x)=>s+(+x.valor||0),0);
+function credResult(r){if(r.soPdf)return `<div class="card mt"><div class="cardhead"><h3>Resultado da consulta</h3><span class="small muted">${r.fonte?"Fonte: "+esc(r.fonte)+" · ":""}${new Date(r.data).toLocaleString("pt-BR")}</span></div>
+ <p style="margin:0 0 12px">O relatório completo (score, pendências e protestos) está no PDF.</p>
+ ${r.pdf?`<button class="btn pri" data-crpdf>${ic("doc")}Abrir relatório em PDF</button>`:`<p class="small muted">O PDF foi enviado para o e-mail do suporte do ${esc(CFG.produto)}.</p>`}
+ <p class="small muted" style="margin:10px 0 0">Baixe ou imprima agora: por segurança, o PDF não fica salvo no sistema. Use este resultado apenas para decidir a forma de pagamento do tratamento.</p></div>`;
+ const f=scoreFaixa(r.score);const tot=r.restricoes.reduce((s,x)=>s+(+x.valor||0),0);
  return `<div class="card mt"><div class="cardhead"><h3>Resultado da consulta</h3>${r.simulado?`<span class="pill t-warn">SIMULAÇÃO: modo de teste</span>`:`<span class="small muted">${r.fonte?"Fonte: "+esc(r.fonte)+" · ":""}${new Date(r.data).toLocaleString("pt-BR")}</span>`}</div>
  <div class="kpis"><div class="kpi"><div class="ic ${f.cls}">${ic("trend")}</div><b>${r.score==null?"—":r.score}</b><span>Score · ${f.t}</span></div>
  <div class="kpi"><div class="ic ${r.restricoes.length?"t-bad":"t-ok"}">${ic(r.restricoes.length?"alert":"check")}</div><b>${r.restricoes.length?r.restricoes.length:"Nada consta"}</b><span>${r.restricoes.length?"Restrição(ões) · "+brl(tot):esc(r.fonte||"")}</span></div>
@@ -1451,7 +1455,7 @@ function credTab(p){if(!DONO())return"";if(DEMO&&C.creditosConsulta===undefined)
   <a class="btn sm wa mt" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp||"",`Olá! Paguei ${credPac} créditos de consulta SPC/Serasa para a ${C.nome}.`)}">${WAI}Avisar que paguei</a>
   <p class="small muted" style="margin:8px 0 0">Os créditos entram depois que o pagamento é confirmado.</p></div></div>
   ${r?credResult(r):""}
-  <div class="card mt"><h3 style="margin-bottom:10px">Consultas deste paciente</h3>${hist.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Fonte</th><th>Score</th><th>Restrições</th><th>Quem consultou</th></tr></thead><tbody>${hist.map(h=>`<tr><td>${new Date(h.data).toLocaleDateString("pt-BR")}${h.sim?" (teste)":""}</td><td>${esc(h.fonte||"")}</td><td>${h.score==null?"—":h.score}</td><td>${h.qtd?h.qtd+" · "+brl(h.valor):"Nada consta"}</td><td>${esc(h.quem||"")}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma consulta feita para este paciente.</div>`}</div>`}
+  <div class="card mt"><h3 style="margin-bottom:10px">Consultas deste paciente</h3>${hist.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Fonte</th><th>Score</th><th>Restrições</th><th>Quem consultou</th></tr></thead><tbody>${hist.map(h=>`<tr><td>${new Date(h.data).toLocaleDateString("pt-BR")}${h.sim?" (teste)":""}</td><td>${esc(h.fonte||"")}</td><td>${h.pdf?"Ver PDF":h.score==null?"—":h.score}</td><td>${h.pdf?"Relatório em PDF":h.qtd?h.qtd+" · "+brl(h.valor):"Nada consta"}</td><td>${esc(h.quem||"")}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nenhuma consulta feita para este paciente.</div>`}</div>`}
 async function credConsultar(p,cpf){
  const FC=FONTES_C()[credFonte]||Object.values(FONTES_C())[0];
  if(DEMO){const s=+C.creditosConsulta||0;if(s<FC.creditos)throw new Error("Créditos insuficientes para esta consulta.");await new Promise(r=>setTimeout(r,700));C.creditosConsulta=s-FC.creditos;
@@ -1462,14 +1466,15 @@ async function credConsultar(p,cpf){
 document.addEventListener("click",async e=>{
  const ac=e.target.closest("[data-acred]");if(ac){const c=ADM.find(x=>x.id===ac.dataset.acred);if(!c)return;const v=prompt(`Créditos de consulta para ${c.nome}\nSaldo atual: ${+c.creditosConsulta||0}\n\nQuantos adicionar? (use número negativo para tirar)`,"10");const n=parseInt(v,10);if(!n)return;const novo=Math.max(0,(+c.creditosConsulta||0)+n);await BE.adminUpdate(c.id,{creditosConsulta:novo});c.creditosConsulta=novo;render();toast(`Saldo de ${c.nome}: ${novo} crédito(s)`);return}
  if(route.v!=="ficha"||fichaTab!=="credito")return;const p=P(route.arg);if(!p)return;
- const t=e.target.closest("[data-cracao],[data-crpac],[data-crfonte]");if(!t)return;
+ const t=e.target.closest("[data-cracao],[data-crpac],[data-crfonte],[data-crpdf]");if(!t)return;
+ if(t.hasAttribute("data-crpdf")){const r=credRes[p.id];if(!r||!r.pdf)return;const b=atob(r.pdf),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);window.open(URL.createObjectURL(new Blob([u],{type:"application/pdf"})),"_blank");return}
  if(t.dataset.crpac){credPac=+t.dataset.crpac;render();return}
  if(t.dataset.crfonte){const c=$("crCpf")?$("crCpf").value:"",ok=$("crOk")&&$("crOk").checked;credFonte=t.dataset.crfonte;render();if($("crCpf"))$("crCpf").value=c;if($("crOk"))$("crOk").checked=ok;return}
  const cpf=digits($("crCpf").value);if(!cpfOk(cpf)){toast("CPF inválido. Confira os números.");return}
  if(!$("crOk").checked){toast("Confirme que o paciente autorizou a consulta.");return}
  credBusy=true;render();
  try{const r=await credConsultar(p,cpf);credRes[p.id]=r;if(!p.cpf)p.cpf=cpfFmt(cpf);
-  (p.cred=p.cred||[]).push({data:r.data,score:r.score,qtd:r.restricoes.length,valor:r.restricoes.reduce((s,x)=>s+(+x.valor||0),0),quem:U.nome||U.email,sim:!!r.simulado,fonte:r.fonte||""});
+  (p.cred=p.cred||[]).push({data:r.data,score:r.score,qtd:r.restricoes.length,valor:r.restricoes.reduce((s,x)=>s+(+x.valor||0),0),quem:U.nome||U.email,sim:!!r.simulado,fonte:r.fonte||"",pdf:!!r.soPdf});
   logAct("Consulta SPC/Serasa",p.nome);save();toast(r.simulado?"Consulta de teste feita (dados simulados)":"Consulta feita")}
  catch(err){toast(err.message||"Não foi possível consultar.")}
  finally{credBusy=false;render()}});
