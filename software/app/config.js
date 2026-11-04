@@ -32,7 +32,16 @@ window.CLINIX_CONFIG = {
   servidor: "https://clinix-secretaria.onrender.com",
 
   // Consulta SPC/Serasa: preço de cada crédito (R$) e pacotes que a clínica pode comprar
-  consulta: { preco: 9.9, pacotes: [5, 10, 25] },
+  consulta: {
+    preco: 9.9,                 // valor de 1 crédito (R$)
+    pacotes: [5, 10, 25],
+    // fontes que a clínica pode escolher e quantos créditos cada uma gasta
+    // (use os mesmos números de CREDITOS_BOAVISTA e CREDITOS_SERASA no Render)
+    fontes: {
+      boavista: { nome: "Boa Vista (SCPC)", creditos: 1 },
+      serasa:   { nome: "Serasa", creditos: 3 }
+    }
+  },
 
   // Cole aqui o firebaseConfig do seu projeto (passo 5 do guia)
   firebase: {

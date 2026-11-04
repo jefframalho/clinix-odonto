@@ -128,3 +128,13 @@ ATENÇÃO
   - No plano gratuito do Render o servidor "dorme": a primeira consulta do dia pode demorar ~1 minuto.
   - Use a consulta só para decidir parcelamento, com o paciente avisado. Confirme as regras de uso
     com o fornecedor contratado.
+
+-----------------------------------------------------------------
+SERASA (SOA WebServices · CredNet) — segunda fonte de consulta
+  Variáveis no Render:
+    SERASA_EMAIL      = e-mail da sua conta na SOA WebServices
+    SERASA_SENHA      = senha da conta SOA
+    SERASA_URL        = endereço da CredNet (homologação para testar, depois o de produção)
+    CREDITOS_SERASA   = quantos créditos a consulta Serasa gasta (padrão 3)
+    CREDITOS_BOAVISTA = quantos créditos a Boa Vista gasta (padrão 1)
+  Use os mesmos números em config.js > consulta > fontes.

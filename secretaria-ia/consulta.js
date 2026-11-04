@@ -71,8 +71,7 @@ function normalizar(r) {
   }));
   return { score: nums.length ? +nums[0] : null, restricoes, protestos: prot.flat().length, chequesSemFundo: 0, simulado: false };
 }
-async function consultarFornecedor(cpf) {
-  if (MODO !== "real") return simulado(cpf);
+async function consultarBoaVista(cpf) {
   const { CONSULTA_URL = "https://gateway.apibrasil.io/api/v2/consulta/cpf/credits", CONSULTA_TOKEN, CONSULTA_DEVICE_TOKEN,
     CONSULTA_CAMPO_CPF = "cpf", CONSULTA_TIPO = "spc-boa-vista", CONSULTA_HOMOLOG = "false" } = process.env;
   if (!CONSULTA_TOKEN) throw new Error("Fornecedor não configurado");
@@ -93,11 +92,44 @@ async function consultarFornecedor(cpf) {
   } finally { clearTimeout(t); }
 }
 
+// ---------- Serasa (SOA WebServices · CredNet) ----------
+// Variáveis: SERASA_EMAIL, SERASA_SENHA, SERASA_URL
+//   homologação: https://homologacao.soawebservices.com.br/api/v2/Serasa/Consultas/CredNet
+async function consultarSerasa(cpf) {
+  const { SERASA_EMAIL, SERASA_SENHA, SERASA_URL = "https://homologacao.soawebservices.com.br/api/v2/Serasa/Consultas/CredNet" } = process.env;
+  if (!SERASA_EMAIL || !SERASA_SENHA) throw new Error("Serasa não configurada");
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 60000);
+  try {
+    const r = await fetch(SERASA_URL, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credenciais: { email: SERASA_EMAIL, senha: SERASA_SENHA }, documento: cpf, uf: null, adicionais: [] }), signal: ctl.signal });
+    const txt = await r.text(); let j; try { j = JSON.parse(txt); } catch { j = null; }
+    const semCpf = x => String(x || "").split(cpf).join("***");
+    const falhou = !r.ok || !j || j.status === false || j.Status === false || (j.mensagem && /erro|inv[aá]lid|saldo/i.test(j.mensagem) && !j.sinteseCadastral);
+    if (falhou) {
+      console.error("Consulta Serasa: resposta", r.status, semCpf(txt).slice(0, 800));
+      const msg = j && (j.mensagem || j.message || j.Mensagem);
+      throw Object.assign(new Error("Serasa respondeu " + r.status), { aviso: typeof msg === "string" ? msg.slice(0, 160) : "" });
+    }
+    console.log("Consulta Serasa: ok, campos:", JSON.stringify(Object.keys(j)), semCpf(JSON.stringify(j)).slice(0, 600));
+    return normalizar(j);
+  } finally { clearTimeout(t); }
+}
+
+// Fontes disponíveis e quantos créditos cada uma gasta
+const FONTES = {
+  boavista: { nome: "Boa Vista (SCPC)", creditos: +process.env.CREDITOS_BOAVISTA || 1, fn: consultarBoaVista },
+  serasa:   { nome: "Serasa",           creditos: +process.env.CREDITOS_SERASA || 3,  fn: consultarSerasa }
+};
+async function consultarFornecedor(cpf, fonte) {
+  if (MODO !== "real") return simulado(cpf);
+  return FONTES[fonte].fn(cpf);
+}
+
 // ---------- rota ----------
 const ultimas = new Map(); // limite simples: 1 consulta a cada 10 s por usuário
 // Trava: se o fornecedor falhar 2 vezes seguidas, pausa as consultas por 30 min
 // (o fornecedor pode cobrar mesmo quando dá erro).
-let falhasSeguidas = 0, pausadoAte = 0;
+const falhas = {}, pausado = {};
 module.exports = function (app) {
   app.use("/consulta-cpf", (req, res, next) => {
     const o = req.headers.origin;
@@ -115,11 +147,12 @@ module.exports = function (app) {
     let user;
     try { user = await admin.app("consulta").auth().verifyIdToken(tok); } catch { return erro(401, "Faça login de novo."); }
 
-    const { cpf: cpfIn, pid, autorizado } = req.body || {};
+    const { cpf: cpfIn, pid, autorizado, fonte: fonteIn } = req.body || {};
+    const fonte = FONTES[fonteIn] ? fonteIn : "boavista", F = FONTES[fonte];
     const cpf = String(cpfIn || "").replace(/\D/g, "");
     if (!cpfValido(cpf)) return erro(400, "CPF inválido.");
     if (autorizado !== true) return erro(400, "Confirme que o paciente autorizou a consulta.");
-    if (Date.now() < pausadoAte) return erro(503, "O serviço de consulta está instável e foi pausado por alguns minutos. Tente mais tarde; nenhum crédito foi usado.");
+    if (Date.now() < (pausado[fonte] || 0)) return erro(503, "O serviço de consulta está instável e foi pausado por alguns minutos. Tente mais tarde; nenhum crédito foi usado.");
     const agora = Date.now();
     if (agora - (ultimas.get(user.uid) || 0) < 10000) return erro(429, "Aguarde alguns segundos entre as consultas.");
     ultimas.set(user.uid, agora);
@@ -136,18 +169,19 @@ module.exports = function (app) {
         const c = await t.get(ref); const d = c.data() || {};
         if (d.status === "bloqueado") throw Object.assign(new Error("Clínica bloqueada."), { st: 403 });
         const saldo = +d.creditosConsulta || 0;
-        if (saldo < 1) throw Object.assign(new Error("Sem créditos de consulta. Compre um pacote."), { st: 402 });
-        t.update(ref, { creditosConsulta: saldo - 1 });
-        return saldo - 1;
+        if (saldo < F.creditos) throw Object.assign(new Error(`Créditos insuficientes: a consulta ${F.nome} usa ${F.creditos} crédito(s).`), { st: 402 });
+        t.update(ref, { creditosConsulta: saldo - F.creditos });
+        return saldo - F.creditos;
       });
     } catch (e) { return erro(e.st || 500, e.st ? e.message : "Não foi possível descontar o crédito."); }
 
     let resultado;
-    try { resultado = await consultarFornecedor(cpf); falhasSeguidas = 0; }
+    try { resultado = await consultarFornecedor(cpf, fonte); falhas[fonte] = 0; }
     catch (e) {
       console.error("Consulta: falha no fornecedor", e.message);
-      if (++falhasSeguidas >= 2) { pausadoAte = Date.now() + 30 * 60e3; falhasSeguidas = 0; console.error("Consulta: PAUSADA por 30 minutos após falhas seguidas"); }
-      await ref.update({ creditosConsulta: admin.firestore.FieldValue.increment(1) }).catch(() => {});
+      falhas[fonte] = (falhas[fonte] || 0) + 1;
+      if (falhas[fonte] >= 2) { pausado[fonte] = Date.now() + 30 * 60e3; falhas[fonte] = 0; console.error("Consulta: " + F.nome + " PAUSADA por 30 minutos após falhas seguidas"); }
+      await ref.update({ creditosConsulta: admin.firestore.FieldValue.increment(F.creditos) }).catch(() => {});
       return erro(502, "A consulta não foi concluída" + (e.aviso ? " (" + e.aviso + ")" : "") + ". O crédito foi devolvido.");
     }
 
@@ -155,9 +189,9 @@ module.exports = function (app) {
       data: new Date().toISOString(), cpf: mascarar(cpf), pid: String(pid || ""), quem: user.email || user.uid,
       score: resultado.score, qtdRestricoes: resultado.restricoes.length,
       valorRestricoes: resultado.restricoes.reduce((s, r) => s + (+r.valor || 0), 0),
-      protestos: resultado.protestos, simulado: resultado.simulado
+      protestos: resultado.protestos, simulado: resultado.simulado, fonte: F.nome, creditos: F.creditos
     };
     await ref.collection("consultas").add(resumo).catch(e => console.error("Consulta: erro ao registrar", e.message));
-    res.json({ ...resultado, creditosRestantes: restantes, data: resumo.data });
+    res.json({ ...resultado, fonte: F.nome, creditosRestantes: restantes, data: resumo.data });
   });
 };
