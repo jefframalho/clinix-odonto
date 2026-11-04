@@ -80,6 +80,18 @@ service cloud.firestore {
       allow delete: if member(resource.data.cid) || isAdmin();
     }
 
+    // Cobrança enviada ao paciente (página de pagamento por Pix). Qualquer pessoa com o link lê;
+    // o paciente só pode avisar que pagou (aberta -> informado). A clínica confirma.
+    match /cobrancas/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if member(request.resource.data.cid) && active(request.resource.data.cid);
+      allow update: if member(resource.data.cid)
+        || (resource.data.status == 'aberta' && request.resource.data.status == 'informado'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'informadoEm']));
+      allow delete: if member(resource.data.cid) || isAdmin();
+    }
+
     // Agendamento online: horários livres públicos (sem nomes de pacientes) e pedidos dos pacientes.
     match /agendas/{token} {
       allow get: if true;
