@@ -409,13 +409,14 @@ textarea.big{min-height:320px;font:500 13.5px/1.6 var(--font)}
 .cobp{grid-column:1/-1;width:100%;margin-top:10px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2)}
 .cobgrid{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:16px;align-items:start}
 @media(max-width:640px){.cobgrid{grid-template-columns:1fr}}
-.boca{background:#E9ECEE;border-radius:16px;overflow:hidden}.boca svg{display:block;width:100%;height:auto}.boca .bt{cursor:pointer;outline:none}.boca .bt ellipse{stroke:transparent;stroke-width:4;transition:stroke .15s,fill-opacity .15s}.boca .bt:hover ellipse,.boca .bt:focus ellipse{stroke:#0B86AE;fill:#0B86AE;fill-opacity:.12}.boca .bt.mk:hover ellipse{fill-opacity:.55}.boca .bt.on ellipse{stroke:#0B86AE;stroke-width:6}.boca .bt .bnum{display:none}.boca .bt:hover .bnum,.boca .bt.on .bnum,.boca .bt.mk .bnum{display:inline}.boca .bnum rect{fill:#06374A}.boca .bnum text{fill:#fff;font:700 14px system-ui,sans-serif;text-anchor:middle}.boca .bx{stroke:#fff;stroke-width:5;stroke-linecap:round}.odview{display:flex;gap:4px;background:var(--surface-2);border-radius:12px;padding:3px}.odview button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border-radius:9px;color:var(--muted);cursor:pointer}.odview button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}</style>
+.boca{background:#E9ECEE;border-radius:16px;overflow:hidden}.boca svg{display:block;width:100%;height:auto}.boca .bt{cursor:pointer;outline:none}.boca .bt ellipse{stroke:transparent;stroke-width:4;transition:stroke .15s,fill-opacity .15s}.boca .bt:hover ellipse,.boca .bt:focus ellipse{stroke:#0B86AE;fill:#0B86AE;fill-opacity:.12}.boca .bt.mk:hover ellipse{fill-opacity:.55}.boca .bt.on ellipse{stroke:#0B86AE;stroke-width:6}.boca .bt .bnum{display:none}.boca .bt:hover .bnum,.boca .bt.on .bnum,.boca .bt.mk .bnum{display:inline}.boca .bnum rect{fill:#06374A}.boca .bnum text{fill:#fff;font:700 14px system-ui,sans-serif;text-anchor:middle}.boca .bx{stroke:#fff;stroke-width:5;stroke-linecap:round}.odview{display:flex;gap:4px;background:var(--surface-2);border-radius:12px;padding:3px}.odview button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border-radius:9px;color:var(--muted);cursor:pointer}.odview button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}.a3d{position:relative;height:460px;background:radial-gradient(circle at 50% 40%,#fff,#e3e9ec);border-radius:16px;overflow:hidden;touch-action:none}.a3d canvas{width:100%!important;height:100%!important;display:block}.a3d-tip{position:absolute;display:none;transform:translate(-50%,-150%);background:#06374A;color:#fff;font:700 12px system-ui,sans-serif;padding:4px 8px;border-radius:8px;pointer-events:none;white-space:nowrap}.a3d-msg{display:grid;place-items:center;height:100%;color:var(--muted);text-align:center;padding:20px}.a3d-bar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}@media(max-width:640px){.a3d{height:360px}}</style>
 </head>
 <body>
 <div id="root"></div>
 <div class="toast" id="toast" hidden></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="dentes.js"></script>
+<script src="arcada3d.js" defer></script>
 <script src="config.js"></script>
 <script>
 /* ---------- Termos de Uso e Política de Privacidade ---------- */
@@ -1495,8 +1496,11 @@ let odSel=null,odFz="",odSt="real",odProcV="";
 const ODP=p=>p.odp||(p.odp=[]);
 const BOCA={"11":[441,380,62,88],"12":[331,384,42,72],"13":[257,385,34,76],"14":[205,392,26,60],"15":[169,393,20,50],"16":[144,397,15,45],"21":[577,380,62,88],"22":[688,384,42,72],"23":[765,385,34,76],"24":[818,392,26,60],"25":[852,393,20,50],"26":[877,397,15,45],"41":[472,641,38,66],"42":[396,640,37,66],"43":[330,647,30,60],"44":[281,622,30,58],"45":[230,597,28,50],"46":[185,562,25,48],"47":[162,530,16,38],"31":[552,641,38,66],"32":[630,640,37,66],"33":[697,647,30,60],"34":[742,622,30,58],"35":[793,597,28,50],"36":[836,562,25,48],"37":[864,530,16,38]};
 let odView="arcada";
+function odStOf(p,n){const den=p.dentes||{};if(den[n]==="ext")return"ext";const es=ODP(p).filter(e=>String(e.dente)===String(n));for(const k of["real","exec","exist"])if(es.some(e=>e.st===k))return k;return den[n]?"whole":""}
+function a3dMount(p,sel){const h=$("a3dHost");if(!h||!window.A3D)return;const st={};for(const q of[1,2,3,4])for(let k=1;k<=8;k++){const n=""+q+k,s=odStOf(p,n);if(s)st[n]=s}A3D.mount(h,st,sel)}
+window.A3D_onPick=n=>{odSel=n;odFz="";render()};
 function bocaSVG(p,sel){const ents=ODP(p),den=p.dentes||{};
- const stOf=n=>{if(den[n]==="ext")return"ext";const es=ents.filter(e=>String(e.dente)===String(n));for(const k of["real","exec","exist"])if(es.some(e=>e.st===k))return k;return den[n]?"whole":""};
+ const stOf=n=>odStOf(p,n);
  const sp=Object.entries(BOCA).map(([n,[x,y,a,b]])=>{const st=stOf(n),on=String(sel)===n;
   const fill=st==="ext"?"#5f6b72":st==="whole"?"#E9C25A":st?ODG.COL[st]:"transparent";
   const lab=1?`<g class="bnum"><rect x="${x-17}" y="${y-b-26}" width="34" height="22" rx="7"/><text x="${x}" y="${y-b-10}">${n}</text></g>`:"";
@@ -1515,16 +1519,18 @@ function odTab(p){const n=odSel,ents=ODP(p);
   <div class="mt"><p class="small muted" style="margin:0 0 6px">Situação do dente inteiro</p><div class="chips">${DST.map(d=>`<button class="chip ${(p.dentes[n]||"")===d.k?"on":""}" data-odwhole="${d.k}">${d.n}</button>`).join("")}</div></div></div>`
   :`<p class="small muted" style="margin:8px 0 0;text-align:center">Toque em um dente para marcar. Na vista oclusal, dá para tocar direto na face.</p>`;
  const rows=ents.slice().sort((a,b)=>(b.data||"").localeCompare(a.data||"")).map(e=>`<tr><td>${br(e.data)}</td><td><b>${esc(ODG.label(e.dente,e.faces))}</b></td><td>${esc(e.proc)}</td><td><span class="pill" style="background:${ODG.COL[e.st]}22;color:${ODG.COL[e.st]}">${ODG.STN[e.st]}</span></td><td style="text-align:right;white-space:nowrap">${e.st==="real"?`<button class="btn sm" data-odexec="${e.id}">${ic("check")}Executado</button>`:""}<button class="btn sm" data-oddel="${e.id}" aria-label="Remover">×</button></td></tr>`).join("");
- return `<div class="card"><div class="cardhead"><h3>Odontograma</h3><div class="odview"><button class="${odView==="arcada"?"on":""}" data-odview="arcada">Arcada</button><button class="${odView==="boca"?"on":""}" data-odview="boca">Boca 3D</button></div></div>
-  ${odView==="boca"?bocaSVG(p,n):`<div class="odwrap2">${ODG.svg(ents,p.dentes,n)}</div>`}${ODG.legend()}${panel}</div>
+ return `<div class="card"><div class="cardhead"><h3>Odontograma</h3><div class="odview"><button class="${odView==="arcada"?"on":""}" data-odview="arcada">Arcada</button><button class="${odView==="boca"?"on":""}" data-odview="boca">Boca</button><button class="${odView==="3d"?"on":""}" data-odview="3d">3D</button></div></div>
+  ${odView==="3d"?(setTimeout(()=>a3dMount(p,n),0),`<div class="a3d" id="a3dHost"></div><div class="a3d-bar"><button class="btn sm" data-a3v="frente">Frente</button><button class="btn sm" data-a3v="dir">Lado direito</button><button class="btn sm" data-a3v="esq">Lado esquerdo</button><button class="btn sm" data-a3v="cima">De cima</button><button class="btn sm" data-a3v="baixo">De baixo</button><button class="btn sm pri" data-a3open>Abrir / fechar a boca</button></div><p class="small muted" style="margin:6px 0 0;text-align:center">Arraste para girar · rodinha ou pinça para zoom · toque no dente para marcar</p>`):odView==="boca"?bocaSVG(p,n):`<div class="odwrap2">${ODG.svg(ents,p.dentes,n)}</div>`}${ODG.legend()}${panel}</div>
   <div class="card mt"><div class="cardhead"><h3>Procedimentos</h3><span class="small muted">${ents.length} registro(s)</span></div>
   ${ents.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Dente</th><th>Procedimento</th><th>Situação</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">Nenhum procedimento marcado ainda.</div>`}
   <div class="row mt"><button class="btn sm" data-act="odToOrc">Levar "A realizar" para o orçamento</button></div></div>`}
 document.addEventListener("click",e=>{if(route.v!=="ficha"||fichaTab!=="odonto")return;const p=P(route.arg);if(!p)return;
- const t=e.target.closest("[data-odview],[data-otooth],[data-odface],[data-odst],[data-odadd],[data-odexec],[data-oddel],[data-odwhole],[data-odclose]");if(!t)return;const d=t.dataset;
+ const t=e.target.closest("[data-a3v],[data-a3open],[data-odview],[data-otooth],[data-odface],[data-odst],[data-odadd],[data-odexec],[data-oddel],[data-odwhole],[data-odclose]");if(!t)return;const d=t.dataset;
  const keep=()=>{const i=$("odProc");if(i)odProcV=i.value};
  if(d.otooth){keep();const fzEl=e.target.closest("[data-fz]");const n=d.otooth;if(odSel!==n){odSel=n;odFz=""}if(fzEl){const f=fzEl.dataset.fz;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f}render();return}
  if(d.odview){keep();odView=d.odview;render();return}
+ if(d.a3v){window.A3D&&A3D.view(d.a3v);return}
+ if(d.a3open!==undefined){window.A3D&&A3D.abrir();return}
  if(d.odclose!==undefined){odSel=null;odFz="";render();return}
  if(d.odface){keep();const f=d.odface;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f;render();return}
  if(d.odst){keep();odSt=d.odst;render();return}
