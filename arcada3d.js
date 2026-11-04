@@ -24,21 +24,21 @@ window.A3D = (() => {
     const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: false });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     renderer.outputEncoding = T.sRGBEncoding;
-    renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.45;
+    renderer.toneMapping = T.NoToneMapping;
     const scene = new T.Scene();
     const camera = new T.PerspectiveCamera(32, 1, .001, 10);
-    camera.position.set(0, .012, .16);
-    scene.add(new T.HemisphereLight(0xffffff, 0xf0e4de, 1.15));
-    const key = new T.DirectionalLight(0xffffff, 1.25); key.position.set(.06, .12, .16); scene.add(key);
-    const fill = new T.DirectionalLight(0xfff6ef, .8); fill.position.set(-.12, -.04, .1); scene.add(fill);
-    const back = new T.DirectionalLight(0xffffff, .55); back.position.set(0, .05, -.2); scene.add(back); scene.add(new T.AmbientLight(0xffffff, .35));
+    camera.position.set(0, .006, .115);
+    scene.add(new T.HemisphereLight(0xffffff, 0x8a7a76, .4));
+    const key = new T.DirectionalLight(0xffffff, .9); key.position.set(.06, .12, .16); scene.add(key);
+    const fill = new T.DirectionalLight(0xfff6ef, .35); fill.position.set(-.12, -.04, .1); scene.add(fill);
+    const back = new T.DirectionalLight(0xffffff, .3); back.position.set(0, .05, -.2); scene.add(back);
     const controls = new T.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = .08;
     controls.minDistance = .05; controls.maxDistance = .32; controls.target.set(0, .0005, 0);
     const tip = document.createElement("div"); tip.className = "a3d-tip";
     const teeth = {}, base = {}, groups = {};
-    const enamel = () => new T.MeshPhysicalMaterial({ color: 0xFAF7F0, roughness: .3, metalness: 0, clearcoat: .45, clearcoatRoughness: .25, sheen: 0 });
-    const gumMat = new T.MeshStandardMaterial({ color: 0xEFA3A3, roughness: .5, metalness: 0 });
+    const enamel = () => new T.MeshPhysicalMaterial({ color: 0xE8E0CF, roughness: .35, metalness: 0, clearcoat: .45, clearcoatRoughness: .25, sheen: 0 });
+    const gumMat = new T.MeshStandardMaterial({ color: 0xD46F75, roughness: .55, metalness: 0 });
     return new Promise((ok, er) => new T.GLTFLoader().load("arcada.glb", g => {
       g.scene.traverse(o => {
         if (/^Arcada_/.test(o.name)) groups[o.name] = o;
@@ -79,8 +79,7 @@ window.A3D = (() => {
     const { T, teeth, st } = S;
     for (const n in teeth) {
       const m = teeth[n].material, k = st[n];
-      m.color.setHex(k ? COL[k] : 0xFAF7F0);
-      if (!k) m.color.setHex(0xFAF7F0); else m.color.lerp(new T.Color(0xffffff), k === "ext" ? 0 : .12);
+      m.color.setHex(k ? COL[k] : 0xE8E0CF);
       m.transparent = k === "ext"; m.opacity = k === "ext" ? .28 : 1;
       m.emissive.setHex(n === S.sel ? 0x0B86AE : n === S.hover ? 0x0B86AE : 0x000000);
       m.emissiveIntensity = n === S.sel ? .55 : n === S.hover ? .25 : 0;
@@ -108,7 +107,7 @@ window.A3D = (() => {
   }
   const view = k => {
     if (!S) return; const c = S.controls, cam = S.camera;
-    const P = { frente: [0, .012, .16], esq: [-.15, .02, .05], dir: [.15, .02, .05], cima: [0, .17, .02], baixo: [0, -.17, .02] }[k];
+    const P = { frente: [0, .006, .115], esq: [-.15, .02, .05], dir: [.15, .02, .05], cima: [0, .17, .02], baixo: [0, -.17, .02] }[k];
     if (P) { cam.position.set(...P); c.target.set(0, .0005, 0); c.update(); }
   };
   const abrir = () => { if (S) S.openT = S.openT > .6 ? .35 : 1.6; return S && S.openT > .6; };
