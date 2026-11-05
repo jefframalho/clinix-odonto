@@ -69,6 +69,27 @@ main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-ri
 .navbtn:hover{background:var(--surface-2);color:var(--ink)}
 .navbtn.on{background:var(--accent-soft);color:var(--accent)}
 .navbtn .cnt{margin-left:auto;background:var(--bad);color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:1px 7px}
+.side{overflow-y:auto}
+.rede{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:2px}
+.rede h4{margin:0 8px 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+.rede h4 button{border:0;background:var(--accent-soft);color:var(--accent);font-weight:800;border-radius:8px;width:24px;height:24px;cursor:pointer;font-size:16px;line-height:1}
+.rclin{display:flex;align-items:center;gap:9px;border:0;background:transparent;color:var(--ink);padding:7px 8px;border-radius:11px;cursor:pointer;text-align:left;font-size:13px;font-weight:600;min-width:0}
+.rclin:hover{background:var(--surface-2)}.rclin.on{background:var(--accent-soft);color:var(--accent)}
+.rclin .ini{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:800;flex:none;background:var(--surface-2);color:var(--muted);overflow:hidden}.rclin .ini img{width:100%;height:100%;object-fit:cover}
+.rclin.on .ini{background:var(--accent);color:var(--on-accent)}.rclin span.n{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rclin i{width:8px;height:8px;border-radius:50%;flex:none}.rclin i.t-ok{background:var(--ok,#16a34a)}.rclin i.t-warn{background:#d97706}.rclin i.t-bad{background:var(--bad)}.rclin i.t-info{background:var(--accent)}
+.rede .todas{font-size:12.5px;color:var(--accent);border:0;background:none;cursor:pointer;text-align:left;padding:6px 8px;font-weight:700}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.rcard{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.rcard.cur{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),var(--shadow)}
+.rcard .top{display:flex;gap:12px;align-items:center}.rcard .top .who{flex:1;min-width:0}.rcard .top strong{display:block;font-size:15.5px}.rcard .top small{color:var(--muted)}
+.rcard .info{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rcard .info div{background:var(--surface-2);border-radius:12px;padding:8px 10px}.rcard .info small{display:block;font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}.rcard .info b{font-size:14px}
+.rcard .acc{font-size:13px;display:grid;gap:4px}.rcard .acc div{display:flex;align-items:center;gap:6px;color:var(--muted)}.rcard .acc b{color:var(--ink);font-weight:600}
+.cred h3{display:flex;align-items:center;gap:8px}.cred h3 svg{width:22px;height:22px;flex:none;color:var(--accent)}
+.rcard .acc svg{width:15px;height:15px;flex:none}.rcard .acc div{flex-wrap:wrap}
+.mtop .brand{min-width:0}.mtop .brand>div{min-width:0}.mtop .brand b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mtop>.btn{flex:none}
+.cred{border:2px solid var(--accent);background:var(--accent-soft);border-radius:18px;padding:16px;margin-bottom:14px}
+.cred pre{background:var(--surface);border-radius:12px;padding:12px;margin:10px 0;white-space:pre-wrap;font:600 14px/1.6 ui-monospace,Menlo,Consolas,monospace;color:var(--ink)}
 .side .demo{margin-top:auto;font-size:12px;color:var(--muted);padding:12px;background:var(--surface-2);border-radius:12px}
 
 nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
@@ -670,14 +691,15 @@ const LocalBE={
  seed(){const c=(id,nome,dentista,fone,cidade,status,venc,valor,pags,email)=>({id,nome,dentista,telefone:fone,cidade,email,status,valor,vencimento:addDays(TODAY,venc).toISOString(),criadoEm:addDays(TODAY,-120).toISOString(),pagamentos:pags,logo:"",foto:""});
   const pg=(n,v)=>[...Array(n)].map((_,i)=>({data:iso(addMonths(TODAY,-(n-i))),valor:v}));
   const sd=sampleData();
-  return{users:[{uid:"u1",email:"clinica@demo.com",senha:"123456",cid:"c1",papel:"dono",nome:"Dra. Raylla"},{uid:"u4",email:"secretaria@demo.com",senha:"123456",cid:"c1",papel:"equipe",nome:"Fernanda (secretária)"},{uid:"u2",email:"admin@demo.com",senha:"123456",nome:"Administrador"},{uid:"u3",email:"bloqueada@demo.com",senha:"123456",cid:"c3",papel:"dono",nome:"Dr. Paulo"}],
-   clinics:{c1:{doc:c("c1","Clínica Dra. Raylla Ramalho","Dra. Raylla","(88) 9 0000-1001","Mauriti, CE","ativo",3,99,pg(5,99),"clinica@demo.com"),data:sd},
-    c2:{doc:c("c2","Odonto Sorriso Juazeiro","Dra. Camila","(88) 9 0000-1002","Juazeiro do Norte, CE","ativo",18,129,pg(4,129),"camila@demo.com"),data:emptyData()},
+  return{users:[{uid:"u1",email:"clinica@demo.com",senha:"123456",cid:"c1",papel:"dono",nome:"Dra. Raylla"},{uid:"u4",email:"secretaria@demo.com",senha:"123456",cid:"c1",papel:"equipe",nome:"Fernanda (secretária)"},{uid:"u2",email:"admin@demo.com",senha:"123456",nome:"Administrador"},{uid:"u3",email:"bloqueada@demo.com",senha:"123456",cid:"c3",papel:"dono",nome:"Dr. Paulo"},{uid:"u5",email:"juazeiro@demo.com",senha:"123456",cid:"c2",papel:"dono",nome:"Dra. Camila"}],
+   clinics:{c1:{doc:{...c("c1","Clínica Dra. Raylla Ramalho","Dra. Raylla","(88) 9 0000-1001","Mauriti, CE","ativo",3,99,pg(5,99),"clinica@demo.com"),dono:"u1"},data:sd},
+    c2:{doc:{...c("c2","Clínica Dra. Raylla — Unidade Juazeiro","Dra. Camila","(88) 9 0000-1002","Juazeiro do Norte, CE","ativo",18,99,pg(4,99),"juazeiro@demo.com"),dono:"u1"},data:emptyData()},
     c3:{doc:c("c3","Clínica Bem Estar Crato","Dr. Paulo","(88) 9 0000-1003","Crato, CE","bloqueado",-9,99,pg(2,99),"bloqueada@demo.com"),data:emptyData()},
     c4:{doc:c("c4","Dr. Marcos Implantes","Dr. Marcos","(88) 9 0000-1004","Barbalha, CE","teste",10,99,[],"marcos@demo.com"),data:emptyData()},
     c5:{doc:c("c5","OdontoVida Brejo Santo","Dra. Helena","(88) 9 0000-1005","Brejo Santo, CE","ativo",-2,99,pg(6,99),"helena@demo.com"),data:emptyData()},
     c6:{doc:c("c6","Sorria Mauriti","Dr. Thiago","(88) 9 0000-1006","Mauriti, CE","ativo",25,149,pg(3,149),"thiago@demo.com"),data:emptyData()}}}},
- load(){try{this.db=JSON.parse(localStorage.getItem(this.key))}catch(e){}if(!this.db||!this.db.users)this.db=this.seed();this.db.publico=this.db.publico||{}},
+ load(){try{this.db=JSON.parse(localStorage.getItem(this.key))}catch(e){}if(!this.db||!this.db.users)this.db=this.seed();this.db.publico=this.db.publico||{};
+  Object.entries(this.db.clinics).forEach(([id,c])=>{if(!c.doc.dono){const u=this.db.users.find(x=>x.cid===id&&x.papel==="dono");if(u)c.doc.dono=u.uid}})},
  async initPublic(){this.load()},
  async createPublic(t,d){this.db.publico[t]=JSON.parse(JSON.stringify(d));this.persist()},
  async getPublic(t){this.load();const d=this.db.publico[t];return d?JSON.parse(JSON.stringify(d)):null},
@@ -696,7 +718,14 @@ const LocalBE={
  async login(e,p){const u=this.db.users.find(x=>x.email===e.trim().toLowerCase());if(!u||u.senha!==p)throw{code:"auth/invalid-credential"};this.setSess(u.uid);this.emit()},
  async signup(f){if(this.db.users.find(x=>x.email===f.email))throw{code:"auth/email-already-in-use"};const cid="c"+uid(),u="u"+uid();
   this.db.clinics[cid]={doc:{id:cid,nome:f.clinica,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email,status:"teste",valor:CFG.valor,vencimento:addDays(new Date(),CFG.diasTeste).toISOString(),criadoEm:new Date().toISOString(),pagamentos:[],logo:"",foto:"",aceite:f.aceite||null},data:emptyData()};
+  this.db.clinics[cid].doc.dono=u;
   this.db.users.push({uid:u,email:f.email,senha:f.senha,cid,papel:"dono",nome:f.dentista});this.persist();this.setSess(u);this.emit()},
+ myClinics(uidD,cb){this.redeCb=()=>{const L=Object.values(this.db.clinics).filter(c=>c.doc.dono===uidD).map(c=>({...c.doc,acessos:this.db.users.filter(u=>u.cid===c.doc.id&&u.uid!==uidD).map(u=>({nome:u.nome,email:u.email,papel:u.papel}))}));cb(L)};this.redeCb()},
+ async createClinic(f,login){const cid="c"+uid();if(login&&this.db.users.find(x=>x.email===login.email))throw{code:"auth/email-already-in-use"};
+  this.db.clinics[cid]={doc:{id:cid,nome:f.nome,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email||"",dono:U.uid,status:"teste",valor:CFG.valor,vencimento:addDays(new Date(),CFG.diasTeste).toISOString(),criadoEm:new Date().toISOString(),pagamentos:[],logo:"",foto:"",aceite:f.aceite},data:emptyData()};
+  if(login)this.db.users.push({uid:"u"+uid(),email:login.email,senha:login.senha,cid,papel:login.papel||"dono",nome:login.nome});this.persist();this.redeCb&&this.redeCb();return cid},
+ async addClinicLogin(cid,login){if(this.db.users.find(x=>x.email===login.email))throw{code:"auth/email-already-in-use"};this.db.users.push({uid:"u"+uid(),email:login.email,senha:login.senha,cid,papel:login.papel||"dono",nome:login.nome});this.persist();this.redeCb&&this.redeCb()},
+ async switchClinic(cid){const id=(()=>{try{return localStorage.getItem(this.key+"-s")}catch(e){return null}})()||this.sess;const u=this.db.users.find(x=>x.uid===id);if(!u||!this.db.clinics[cid]||this.db.clinics[cid].doc.dono!==u.uid)throw new Error("Sem permissão para abrir esta clínica");u.cid=cid;this.persist();this.close();this.emit()},
  async logout(){this.close();this.setSess(null);this.emit()},
  async reset(){},
  openClinic(cid,onC,onD){const c=this.db.clinics[cid];this.cur={cid,onC,onD};onC({...c.doc});if(clinicActive(c.doc))COLS.forEach(k=>onD(k,JSON.parse(JSON.stringify(c.data[k]||[]))))},
@@ -729,8 +758,19 @@ const FireBE={
   await this.db.collection("usuarios").doc(u).set({cid:ref.id,papel:"dono",nome:f.dentista,email:f.email});
   await ref.collection("meta").doc("procs").set({list:DEF_PROCS.map(p=>({n:p[0],v:p[1]}))});
   this.busy=false;await this.emit(cr.user)}finally{this.busy=false}},
- async logout(){this.close();await this.auth.signOut()},
+ async logout(){this.close();if(this.meUnsub){this.meUnsub();this.meUnsub=null}if(this.redeUnsub){this.redeUnsub();this.redeUnsub=null}await this.auth.signOut()},
  reset(e){return this.auth.sendPasswordResetEmail(e.trim())},
+ myClinics(uidD,cb){if(this.redeUnsub)this.redeUnsub();this.redeUnsub=this.db.collection("clinicas").where("dono","==",uidD).onSnapshot(q=>cb(q.docs.map(d=>({id:d.id,...d.data()}))),()=>cb([]));
+  if(this.meUnsub)this.meUnsub();let first=true;this.meUnsub=this.db.collection("usuarios").doc(uidD).onSnapshot(s=>{if(first){first=false;return}const d=s.data();if(d&&U&&d.cid&&d.cid!==U.cid&&!this.switching)this.emit(this.auth.currentUser)},()=>{})},
+ async _novoLogin(login){const app2=firebase.apps.find(a=>a.name==="equipe")||firebase.initializeApp(CFG.firebase,"equipe");const cr=await app2.auth().createUserWithEmailAndPassword(login.email,login.senha);const id=cr.user.uid;await app2.auth().signOut();return id},
+ async createClinic(f,login){const ref=this.db.collection("clinicas").doc();let lid=null;
+  if(login)lid=await this._novoLogin(login);
+  await ref.set({nome:f.nome,dentista:f.dentista,telefone:f.fone,cidade:f.cidade,email:f.email||"",dono:U.uid,status:"teste",valor:CFG.valor,vencimento:firebase.firestore.Timestamp.fromDate(addDays(new Date(),Math.min(CFG.diasTeste,14))),criadoEm:firebase.firestore.FieldValue.serverTimestamp(),pagamentos:[],logo:"",foto:"",aceite:f.aceite||null,acessos:login?[{nome:login.nome,email:login.email,papel:login.papel||"dono"}]:[]});
+  if(lid)await this.db.collection("usuarios").doc(lid).set({cid:ref.id,papel:login.papel||"dono",nome:login.nome,email:login.email});
+  return ref.id},
+ async addClinicLogin(cid,login){const lid=await this._novoLogin(login);await this.db.collection("usuarios").doc(lid).set({cid,papel:login.papel||"dono",nome:login.nome,email:login.email});
+  await this.db.collection("clinicas").doc(cid).update({acessos:firebase.firestore.FieldValue.arrayUnion({nome:login.nome,email:login.email,papel:login.papel||"dono"})})},
+ async switchClinic(cid){this.switching=true;try{await this.db.collection("usuarios").doc(U.uid).update({cid});this.close();await this.emit(this.auth.currentUser)}finally{this.switching=false}},
  openClinic(cid,onC,onD){this.close();this.ref=this.db.collection("clinicas").doc(cid);this.subs=[];this.dataSubs=null;
   this.subs.push(this.ref.onSnapshot(s=>{const c={id:s.id,...s.data()};const act=clinicActive(c);
    if(act&&!this.dataSubs){this.dataSubs=COLS.filter(k=>k!=="fin"||U.papel==="dono").map(k=>this.ref.collection(k).onSnapshot(q=>onD(k,q.docs.map(d=>fromFS(k,{id:d.id,...d.data()}))),()=>{}))}
@@ -773,13 +813,19 @@ function situacao(c){const d=dayDiff(toD(c.vencimento));
 
 /* ---------- estado ---------- */
 let SIGN=null,PAD={empty:true},lastSync=0,docModel="contrato";
-let U=null,C=null,S=emptyData(),SYNC={},ADM=[],TEAM=[],READY=false;
+let U=null,C=null,S=emptyData(),SYNC={},ADM=[],TEAM=[],READY=false,REDE=[],redeForm=false,redeCred=null,redeLogin=null;
 let route={v:"home"},dia=T,finF="todos",fichaTab="dados",busca="",odTool="carie",cfgTab="clinica",admF="todos",admQ="",authMode="entrar",authErr="",admEdit=null;
 const P=id=>S.pac.find(p=>p.id==id);
 const meta=id=>{let m=S.meta.find(x=>x.id===id);if(!m){m={id};S.meta.push(m)}return m};
 const PR=()=>{const m=S.meta.find(x=>x.id==="procs");return m&&m.list&&m.list.length?m.list:DEF_PROCS};
 const ORC=()=>{const o=meta("orc");if(!o.items){o.items=[];o.desc=5;o.np=10;o.pid=S.pac[0]&&S.pac[0].id}return o};
 const DONO=()=>U&&U.papel==="dono";
+const isRede=()=>DONO()&&C&&C.dono===U.uid;
+const nomeCurto=n=>{const p=String(n||"").split(/\s+[—–-]\s+/);return p.length>1&&p[p.length-1].length>2?p[p.length-1]:String(n||"")};
+const iniciais=n=>String(n||"?").replace(/^(cl[ií]nica|odonto|consult[oó]rio)\s+/i,"").split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"?";
+const senhaNova=()=>{const L="abcdefghjkmnpqrstuvwxyz",D="23456789";let s="";for(let i=0;i<4;i++)s+=L[Math.floor(Math.random()*L.length)];for(let i=0;i<4;i++)s+=D[Math.floor(Math.random()*D.length)];return s[0].toUpperCase()+s.slice(1)};
+const appLink=()=>(/^https?:$/.test(location.protocol)?location.origin+location.pathname:(CFG.paginaUrl||CFG.appUrl));
+const credMsg=c=>`Olá, ${first(c.nome)||""}! Seu acesso ao ${CFG.produto} da *${c.clinica}* está pronto:\n\nSite: ${appLink()}\nE-mail: ${c.email}\nSenha: ${c.senha}\n\nNo primeiro acesso, troque a senha em "Esqueci minha senha" se preferir.`;
 const PCOR=["#0B86AE","#23845A","#A06300","#6B4BB0","#B0463A","#2E7F86"];
 const PROFS=()=>{const m=S.meta.find(x=>x.id==="profs");return m&&m.list&&m.list.length?m.list:[{id:"principal",nome:(C&&(C.dentista||C.nome))||"Dentista",cro:(C&&C.cro)||"",cor:PCOR[0],com:0,ass:(C&&C.assinatura)||""}]};
 const profsM=()=>{const m=meta("profs");if(!m.list||!m.list.length)m.list=JSON.parse(JSON.stringify(PROFS()));return m.list};
@@ -819,6 +865,7 @@ function onUser(u){BE.close&&BE.close();U=u;PEDS=[];pedWatch=null;onData.logged=
  if(!u){render();return}
  if(u.admin){route={v:"admin"};BE.watchClinics(list=>{ADM=list;scheduleRender()});render();return}
  if(!u.cid){render();return}
+ REDE=[];if(u.papel==="dono"&&BE.myClinics)BE.myClinics(u.uid,l=>{REDE=l.sort((a,b)=>(a.nome||"").localeCompare(b.nome||""));scheduleRender()});
  let logged=false;BE.openClinic(u.cid,c=>{const was=C&&clinicActive(C);C=c;if(was===false&&clinicActive(c)){resetSync()}if(!clinicActive(c))READY=true;scheduleRender()},onData);
  render()}
 let lastAct=Date.now();["click","keydown","pointerdown","scroll"].forEach(ev=>document.addEventListener(ev,()=>lastAct=Date.now(),{passive:true}));
@@ -863,7 +910,8 @@ function vBlocked(){const sit=situacao(C);
  <h1 class="page">Acesso suspenso</h1><p class="sub" style="margin-bottom:14px">${esc(C.nome)} · a mensalidade venceu em ${toD(C.vencimento).toLocaleDateString("pt-BR")}.<br>Seus dados estão guardados. Pague para liberar o acesso.</p>
  ${MENS_BTN()}<p class="small muted" style="margin:16px 0 8px">ou pague direto pelo Pix:</p>${pixBlock(C.valor,"CLX"+C.id)}
  <div class="row mt" style="justify-content:center">${CFG.suporteWhatsApp?`<a class="btn wa" target="_blank" rel="noopener" href="${wa(CFG.suporteWhatsApp,`Olá! Sou da ${C.nome} e acabei de pagar a mensalidade do ${CFG.produto}. Segue o comprovante.`)}">${WAI}Enviar comprovante</a>`:""}<button class="btn" data-act="logout">${ic("out")}Sair</button></div>
- <p class="small muted mt">Suporte: ${esc(CFG.suporteWhatsApp)}</p></div></div>`}
+ <p class="small muted mt">Suporte: ${esc(CFG.suporteWhatsApp)}</p>
+ ${isRede()&&REDE.length>1?`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px;text-align:left"><p class="small muted" style="margin:0 0 8px">Abrir outra clínica da sua rede:</p><div class="stack" style="gap:6px">${REDE.filter(c=>c.id!==C.id).map(c=>`<button class="btn block" data-rsw="${c.id}">${esc(c.nome)}</button>`).join("")}</div></div>`:""}</div></div>`}
 
 /* ---------- navegação ---------- */
 const NAV=[["home","Início","home"],["agenda","Agenda","cal"],["pacientes","Pacientes","users"],["orcamento","Orçamento","doc"],["contratos","Contratos","check"],["financeiro","Financeiro","money",1],["retornos","Retornos","clock"],["lab","Laboratório","lab"],["estoque","Estoque","box"],["config","Configurações","gear",1]];
@@ -874,15 +922,19 @@ function shell(inner){
  const c=counts();const cnt={retornos:c.ret,financeiro:DONO()?c.fin:0,lab:c.lab,estoque:c.est};const cur=["ficha","prontuario"].includes(route.v)?"pacientes":route.v==="doc"?((S.docs.find(x=>x.id===route.arg)||{}).tipo?"pacientes":"contratos"):route.v;
  const nav=NAV.filter(n=>!n[3]||DONO());
  const side=brandHTML()+nav.map(n=>`<button class="navbtn ${cur===n[0]?"on":""}" data-go="${n[0]}">${ic(n[2])}${n[1]}${cnt[n[0]]?`<span class="cnt">${cnt[n[0]]}</span>`:""}</button>`).join("")+
-  `<div style="margin-top:auto"><div class="userbox">${avHTML({id:U.uid,nome:U.nome||U.email})}<div class="ubt"><b class="small">${esc(U.nome||"Usuário")}</b><small>${esc(U.email)}</small></div><button class="xbtn" style="background:var(--surface);color:var(--muted)" data-act="logout" aria-label="Sair" title="Sair">${ic("out")}</button></div></div>`;
+  redeSide()+`<div style="margin-top:auto"><div class="userbox">${avHTML({id:U.uid,nome:U.nome||U.email})}<div class="ubt"><b class="small">${esc(U.nome||"Usuário")}</b><small>${esc(U.email)}</small></div><button class="xbtn" style="background:var(--surface);color:var(--muted)" data-act="logout" aria-label="Sair" title="Sair">${ic("out")}</button></div></div>`;
  const B=[["home","Início","home"],["agenda","Agenda","cal"],["pacientes","Pacientes","users"],DONO()?["financeiro","Financeiro","money"]:["orcamento","Orçamento","doc"],["mais","Mais","grid"]];
  const inMais=!B.slice(0,4).some(b=>b[0]===cur);
  const bnav=B.map(n=>`<button class="${(cur===n[0]||(n[0]==="mais"&&inMais))?"on":""}" data-go="${n[0]}">${ic(n[2])}${n[1]}</button>`).join("");
  return `<div class="app"><aside class="side">${side}</aside><main><div class="inner">
-  <div class="mtop">${brandHTML()}</div>${bannerHTML()}<div id="view">${inner}</div></div>
+  <div class="mtop">${brandHTML()}${isRede()?`<button class="btn sm" data-go="rede">${ic("building")}Clínicas</button>`:""}</div>${bannerHTML()}<div id="view">${inner}</div></div>
   <div class="inner foot"><span>${esc(CFG.produto)}${DEMO?" · modo demonstração, dados salvos neste aparelho":" · dados salvos com segurança na nuvem"}</span>${DEMO?`<button class="link" data-act="resetDemo">Restaurar demonstração</button>`:""}</div></main></div>
  <nav class="bottom"><div class="row">${bnav}</div></nav>
  <button class="fab ${["home","agenda"].includes(route.v)?"":"hide"}" data-act="newAppt" aria-label="Nova consulta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`}
+function redeIni(c,cls=""){return `<span class="ini">${c.logo?`<img src="${c.logo}" alt="">`:esc(iniciais(nomeCurto(c.nome)))}</span>`}
+function redeSide(){if(!isRede())return"";const L=REDE.length?REDE:[C];const max=8;
+ return `<div class="rede"><h4>Minhas clínicas <button data-act="redeNova" title="Nova clínica" aria-label="Nova clínica">+</button></h4>${L.slice(0,max).map(c=>{const s=situacao(c);return `<button class="rclin ${c.id===C.id?"on":""}" ${c.id===C.id?`data-go="rede"`:`data-rsw="${c.id}"`} title="${esc(c.nome)}">${redeIni(c)}<span class="n">${esc(nomeCurto(c.nome))}</span><i class="${s.cls}" title="${esc(s.t)}"></i></button>`}).join("")}
+  <button class="todas" data-go="rede">${L.length>max?`Ver todas (${L.length}) →`:"Gerenciar clínicas →"}</button></div>`}
 function bannerHTML(){if(!C||!DONO())return"";const s=situacao(C);
  if(s.k==="atraso")return`<div class="banner t-bad">${ic("alert")}<span>Mensalidade atrasada há ${-s.d} dias. O acesso será suspenso em ${CFG.carencia+s.d} dia(s).</span><button class="btn sm pri" data-act="pagar">Pagar com Pix</button></div>`;
  if(s.k==="vence")return`<div class="banner t-warn">${ic("clock")}<span>Sua mensalidade de ${brl(C.valor)} vence ${s.d===0?"hoje":`em ${s.d} dia(s)`}.</span><button class="btn sm pri" data-act="pagar">Pagar com Pix</button></div>`;
@@ -1174,8 +1226,35 @@ function vLab(){return `<div class="pagehead"><div><h1 class="page">Laboratório
   return `<div class="li" style="background:var(--surface);box-shadow:var(--shadow)"><div class="click" data-ficha="${p.id}">${avHTML(p)}</div><div class="who"><strong>${esc(l.trab)} ${l.dente?`<span class="tn">${esc(l.dente)}</span>`:""}</strong><small>${esc(p.nome)} · ${esc(l.labn)}</small></div><div class="end">${DONO()?brl(l.valor):""}</div>
   <div class="acts" style="flex-direction:column;align-items:stretch"><div class="steps">${[0,1,2].map(i=>`<i class="${i<=l.st?"on":""}"></i>`).join("")}</div><div class="row"><span class="pill dot ${late?"t-bad":l.st===2?"t-ok":l.st===1?"t-info":"t-warn"}" style="margin-right:auto">${late?`Atrasado ${-d}d`:LST[l.st]}${l.st===0&&!late?` · ${br(l.prazo)}`:""}</span>${l.st<2?`<button class="btn sm" data-labst="${l.id}">${l.st===0?"Chegou":"Instalado"}</button>`:""}</div></div></div>`}).join("")||`<div class="empty">Nenhum trabalho enviado.</div>`}</div>`}
 
-function vMais(){const c=counts();const T3=[["contratos","Contratos",S.docs.filter(d=>!d.tipo&&!fullOk(d)).length+" pendentes","check","t-ok"],["orcamento","Orçamento","Planos de tratamento","doc","t-acc"],["retornos","Retornos",c.ret+" atrasados","clock","t-bad"],["lab","Laboratório",c.lab+" prontos","lab","t-ok"],["estoque","Estoque",c.est?c.est+" para repor":"Materiais em dia","box",c.est?"t-bad":"t-info"]];if(DONO())T3.push(["config","Configurações","Clínica, preços, equipe e plano","gear","t-info"]);
+function vMais(){const c=counts();const T3=[["contratos","Contratos",S.docs.filter(d=>!d.tipo&&!fullOk(d)).length+" pendentes","check","t-ok"],["orcamento","Orçamento","Planos de tratamento","doc","t-acc"],["retornos","Retornos",c.ret+" atrasados","clock","t-bad"],["lab","Laboratório",c.lab+" prontos","lab","t-ok"],["estoque","Estoque",c.est?c.est+" para repor":"Materiais em dia","box",c.est?"t-bad":"t-info"]];if(DONO())T3.push(["config","Configurações","Clínica, preços, equipe e plano","gear","t-info"]);if(isRede())T3.unshift(["rede","Minhas clínicas",(REDE.length||1)+" clínica(s) · trocar ou criar","building","t-acc"]);
  return `<div class="pagehead"><h1 class="page">Mais</h1></div><div class="tiles">${T3.map(t=>`<button class="tile" data-go="${t[0]}"><div class="ic ${t[4]}">${ic(t[3])}</div><b>${t[1]}</b><small>${t[2]}</small></button>`).join("")}<button class="tile" data-act="logout"><div class="ic t-bad">${ic("out")}</div><b>Sair</b><small>${esc(U.email)}</small></button></div>`}
+
+function vRede(){if(!isRede())return vHome();const L=REDE.length?REDE:[C];
+ const nOk=L.filter(c=>["ok","vence"].includes(situacao(c).k)).length,nTeste=L.filter(c=>situacao(c).k==="teste").length,nAtr=L.filter(c=>["atraso","bloq"].includes(situacao(c).k)).length,tot=L.filter(c=>c.status!=="bloqueado").reduce((s,c)=>s+(+c.valor||0),0);
+ const cred=redeCred?`<div class="cred"><h3 style="margin:0">${ic("check")} Clínica criada! Envie o acesso para a equipe da ${esc(redeCred.clinica)}</h3><p class="small muted" style="margin:6px 0 0">Anote ou envie agora: por segurança a senha não fica salva no sistema.</p>
+  <pre id="credTxt">Site: ${esc(appLink())}
+E-mail: ${esc(redeCred.email)}
+Senha: ${esc(redeCred.senha)}</pre>
+  <div class="row"><button class="btn sm" data-copy="credTxt">Copiar</button>${redeCred.fone?`<a class="btn sm wa" target="_blank" rel="noopener" href="${wa(redeCred.fone,credMsg(redeCred))}">${WAI}Enviar no WhatsApp</a>`:""}<button class="btn sm" data-act="redeCredOk">Pronto</button></div></div>`:"";
+ const form=redeForm?`<form class="card" id="redeForm" style="margin-bottom:14px"><div class="cardhead"><h3>Nova clínica</h3><button class="xbtn" type="button" data-act="redeFechar" aria-label="Fechar">×</button></div>
+  <div class="fgrid"><label class="f">Nome da clínica<input id="rnNome" required placeholder="Ex.: Clínica Sorriso — Unidade Centro"></label><label class="f">Responsável (dentista)<input id="rnDent" required placeholder="Ex.: Dra. Ana"></label>
+  <label class="f">WhatsApp da clínica<input id="rnFone" inputmode="tel" placeholder="(88) 9 0000-0000"></label><label class="f">Cidade<input id="rnCid" required placeholder="Mauriti, CE"></label></div>
+  <label class="check" style="background:var(--surface-2);margin:10px 0"><input type="checkbox" id="rnLog" checked style="accent-color:var(--accent)"><span><b>Gerar login e senha para esta clínica</b><br><small class="muted">A equipe da clínica entra com este acesso e vê só os dados dela.</small></span></label>
+  <div id="rnLogBox"><div class="fgrid"><label class="f">Nome de quem vai usar<input id="rnLNome" placeholder="Ex.: Dra. Ana ou Recepção Centro"></label><label class="f">E-mail de acesso<input id="rnLEmail" type="email" placeholder="unidade.centro@email.com"></label>
+  <label class="f">Senha<div class="row" style="flex-wrap:nowrap"><input id="rnLSenha" value="${senhaNova()}" minlength="6" style="flex:1"><button class="btn sm" type="button" data-act="redeGerar">Gerar</button></div></label>
+  <label class="f">Tipo de acesso<select id="rnLPapel"><option value="dono">Responsável — acesso completo da clínica</option><option value="equipe">Equipe — sem financeiro e configurações</option></select></label></div></div>
+  <p class="small muted" style="margin:10px 0">Cada clínica tem a própria mensalidade (${brl(CFG.valor)}/mês) e começa com ${CFG.diasTeste} dias grátis.</p>
+  <div class="row"><button class="btn pri" type="submit">Criar clínica</button><button class="btn" type="button" data-act="redeFechar">Cancelar</button></div></form>`:"";
+ const cards=L.map(c=>{const s=situacao(c),cur=c.id===C.id,ac=(c.acessos||[]);
+  return `<div class="rcard ${cur?"cur":""}"><div class="top">${c.logo?`<div class="av"><img src="${c.logo}" alt=""></div>`:avHTML({id:c.id,nome:c.nome})}<div class="who"><strong>${esc(c.nome)}</strong><small>${esc(c.dentista||"")}${c.cidade?" · "+esc(c.cidade):""}</small></div>${cur?`<span class="pill t-acc">Aberta agora</span>`:""}</div>
+   <div class="info"><div><small>Mensalidade</small><b>${brl(c.valor)}</b></div><div><small>Situação</small><span class="pill dot ${s.cls}">${s.t}</span></div></div>
+   <div class="acc"><b style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Logins da clínica</b>${ac.length?ac.map(a=>`<div>${ic("lock")}<b>${esc(a.email)}</b> · ${a.papel==="equipe"?"Equipe":"Responsável"}</div>`).join(""):`<div>Nenhum login criado ainda${cur?" (você acessa por aqui)":""}.</div>`}</div>
+   ${redeLogin===c.id?`<form class="stack" data-rlform="${c.id}" style="border-top:1px solid var(--line);padding-top:10px"><label class="f">Nome<input name="nome" required placeholder="Ex.: Recepção"></label><label class="f">E-mail<input name="email" type="email" required></label><label class="f">Senha<input name="senha" value="${senhaNova()}" minlength="6" required></label><label class="f">Tipo<select name="papel"><option value="dono">Responsável</option><option value="equipe">Equipe</option></select></label><div class="row"><button class="btn sm pri" type="submit">Criar login</button><button class="btn sm" type="button" data-rlogin="">Cancelar</button></div></form>`:""}
+   <div class="row" style="margin-top:auto">${cur?`<button class="btn sm" data-go="home">${ic("home")}Ir para o início</button>`:`<button class="btn sm pri" data-rsw="${c.id}">Abrir esta clínica</button>`}${redeLogin===c.id?"":`<button class="btn sm" data-rlogin="${c.id}">${ic("lock")}Criar login</button>`}</div></div>`}).join("");
+ return `<div class="pagehead"><div><h1 class="page">Minhas clínicas</h1><p class="sub">${L.length} clínica(s) na sua rede · cada uma com dados, equipe e login separados</p></div>${redeForm?"":`<button class="btn pri" data-act="redeNova">+ Nova clínica</button>`}</div>
+ ${cred}${form}
+ <div class="kpis"><div class="kpi"><div class="ic t-acc">${ic("building")}</div><b>${L.length}</b><span>Clínicas na rede</span></div><div class="kpi"><div class="ic t-ok">${ic("check")}</div><b>${nOk} <span style="font-size:13px;color:var(--muted)">+${nTeste} em teste</span></b><span>Em dia</span></div><div class="kpi"><div class="ic t-bad">${ic("alert")}</div><b>${nAtr}</b><span>Atrasadas ou bloqueadas</span></div><div class="kpi"><div class="ic t-info">${ic("money")}</div><b>${brl(tot)}</b><span>Mensalidades por mês</span></div></div>
+ <div class="rgrid">${cards}</div>`}
 
 function vConfig(){if(!DONO())return vHome();const TB=[["clinica","Clínica"],["profs","Profissionais"],["precos","Preços"],["meds","Receitas"],["agonline","Agenda online"],["pagina","Página da clínica"],["contratos","Contratos"],["equipe","Equipe"],["privacidade","Privacidade"],["receb","Recebimentos"],["plano","Plano e pagamento"]];let body="";
  if(cfgTab==="clinica")body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Dados da clínica</h3><div class="stack"><label class="f">Nome da clínica<input data-cf="nome" value="${esc(C.nome)}"></label><div class="fgrid"><label class="f">Responsável técnico (nome que assina)<input data-cf="dentista" value="${esc(C.dentista)}"></label><label class="f">CRO<input data-cf="cro" value="${esc(C.cro||"")}" placeholder="CRO-CE 00000"></label></div><div class="fgrid"><label class="f">WhatsApp<input data-cf="telefone" value="${esc(C.telefone)}"></label><label class="f">Cidade<input data-cf="cidade" value="${esc(C.cidade)}"></label></div></div></div>
@@ -1694,7 +1773,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest("[data-pgco
   catch(err){console.error(err);toast("Não foi possível salvar o endereço")}finally{b.disabled=false}}});
 /* ============ FIM PÁGINA DA CLÍNICA ============ */
 
-const VIEWS={prontuario:vProntuario,contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,estoque:vEstoque,mais:vMais,config:vConfig};
+const VIEWS={rede:vRede,prontuario:vProntuario,contratos:vContratos,doc:vDoc,home:vHome,agenda:vAgenda,pacientes:vPacientes,ficha:vFicha,financeiro:vFinanceiro,orcamento:vOrc,retornos:vRetornos,lab:vLab,estoque:vEstoque,mais:vMais,config:vConfig};
 function render(){const R=$("root");
  if(LEGAL){R.innerHTML=vLegal();return}
  if(ANAMP){R.innerHTML=vAnamPublic();return}
@@ -1719,6 +1798,19 @@ function bindAuth(){const f=$("authForm");if(!f)return;f.onsubmit=async e=>{e.pr
 function bindAdmin(){const q=$("admQ");if(q)q.oninput=e=>{admQ=e.target.value;const pos=e.target.selectionStart;render();const n=$("admQ");n.focus();n.setSelectionRange(pos,pos)};
  document.querySelectorAll("[data-aform]").forEach(f=>f.onsubmit=e=>{e.preventDefault();const fd=new FormData(f);admEdit=null;BE.adminUpdate(f.dataset.aform,{valor:+fd.get("valor")||0,vencimento:parse(fd.get("venc")),status:fd.get("status")});toast("Clínica atualizada")})}
 function bindView(){
+ const rnf=$("redeForm");if(rnf){const ck=$("rnLog"),box=$("rnLogBox");const tg=()=>{box.classList.toggle("hide",!ck.checked);["rnLEmail","rnLSenha"].forEach(i=>$(i).required=ck.checked)};ck.onchange=tg;tg();
+  $("rnDent").oninput=e=>{const n=$("rnLNome");if(!n.dataset.mex)n.value=e.target.value};$("rnLNome").oninput=e=>e.target.dataset.mex=1;
+  rnf.onsubmit=async e=>{e.preventDefault();const b=rnf.querySelector("button[type=submit]");b.disabled=true;b.textContent="Criando…";
+   const f={nome:$("rnNome").value.trim(),dentista:$("rnDent").value.trim(),fone:$("rnFone").value.trim(),cidade:$("rnCid").value.trim(),email:"",aceite:{versao:TERMOS_VER,data:new Date().toISOString(),por:U.email}};
+   const login=ck.checked?{nome:$("rnLNome").value.trim()||f.dentista,email:$("rnLEmail").value.trim().toLowerCase(),senha:$("rnLSenha").value,papel:$("rnLPapel").value}:null;
+   if(login&&login.senha.length<6){toast("A senha precisa de pelo menos 6 caracteres");b.disabled=false;b.textContent="Criar clínica";return}
+   if(login)f.email=login.email;
+   try{await BE.createClinic(f,login);redeForm=false;redeCred=login?{clinica:f.nome,nome:login.nome,email:login.email,senha:login.senha,fone:f.fone}:null;render();window.scrollTo({top:0});toast("Clínica criada")}
+   catch(err){toast(errMsg(err));b.disabled=false;b.textContent="Criar clínica"}}}
+ document.querySelectorAll("[data-rlform]").forEach(f=>f.onsubmit=async e=>{e.preventDefault();const fd=new FormData(f),cid=f.dataset.rlform,c=REDE.find(x=>x.id===cid)||C;const b=f.querySelector("button[type=submit]");b.disabled=true;
+  const login={nome:String(fd.get("nome")).trim(),email:String(fd.get("email")).trim().toLowerCase(),senha:String(fd.get("senha")),papel:fd.get("papel")};
+  if(login.senha.length<6){toast("A senha precisa de pelo menos 6 caracteres");b.disabled=false;return}
+  try{await BE.addClinicLogin(cid,login);redeLogin=null;redeCred={clinica:c.nome,nome:login.nome,email:login.email,senha:login.senha,fone:c.telefone};render();window.scrollTo({top:0});toast("Login criado")}catch(err){toast(errMsg(err));b.disabled=false}});
  const af=$("agForm");if(af){$("agPac").onchange=e=>{const n=e.target.value==="new";$("agNovoL").classList.toggle("hide",!n);$("agFoneL").classList.toggle("hide",!n)};if(!S.pac.length){$("agPac").value="new";$("agPac").onchange({target:$("agPac")})}
   af.onsubmit=e=>{e.preventDefault();let pid=$("agPac").value;if(pid==="new"){const nome=$("agNovo").value.trim();if(!nome){toast("Informe o nome");return}pid=newPac(nome,$("agFone").value.trim()).id}
   S.ag.push({id:uid(),pid,data:$("agData").value,hora:$("agHora").value,proc:$("agProc").value,st:"wait",prof:$("agProf")?$("agProf").value:PROFS()[0].id});dia=$("agData").value;save();go("agenda");toast("Consulta agendada")};
@@ -1835,6 +1927,10 @@ document.addEventListener("click",async e=>{
  if(d.moddel!==undefined){const m=meta("modelos");if(!m.list)m.list=JSON.parse(JSON.stringify(DEF_MODELOS));m.list.splice(+d.moddel,1);save();render();return}
  const A=d.act;
  if(A==="logout"){await BE.logout();return}
+ if(A==="redeNova"){redeForm=true;redeCred=null;if(route.v!=="rede")go("rede");else render();setTimeout(()=>{const n=$("rnNome");if(n)n.focus()},50);return}
+ if(A==="redeFechar"){redeForm=false;render();return}
+ if(A==="redeCredOk"){redeCred=null;render();return}
+ if(A==="redeGerar"){const n=$("rnLSenha");if(n)n.value=senhaNova();return}
  if(A==="resetDemo"){LocalBE.resetDemo();await BE.logout();toast("Demonstração restaurada");return}
  if(A==="pagar"){cfgTab="plano";go("config");return}
  if(A==="newAppt"){if(route.v!=="agenda")go("agenda");$("agForm").classList.remove("hide");$("agData").value=dia;$("agForm").scrollIntoView({behavior:"smooth",block:"center"})}
@@ -1905,6 +2001,11 @@ else if(QS){$("root").innerHTML=`<div class="boot">Abrindo documento…</div>`;U
  BE.initPublic().then(()=>BE.getPublic(QS)).then(r=>{if(!r)SIGN={erro:"Documento não encontrado"};else if(r.status==="assinado")SIGN={erro:"Este documento já foi assinado"};else SIGN={mode:"public",token:QS,titulo:r.titulo,texto:r.texto,clinica:r.clinica,logo:r.logo,nome:r.paciente,cpf:r.cpf};render()})
  .catch(e=>{console.error(e);SIGN={erro:"Não foi possível abrir o documento"};render()})}
 else{render();
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-rsw],[data-rlogin]");if(!b)return;e.preventDefault();
+ if(b.dataset.rlogin!==undefined){redeLogin=b.dataset.rlogin||null;render();return}
+ const cid=b.dataset.rsw;const c=REDE.find(x=>x.id===cid);b.disabled=true;
+ try{redeForm=false;redeCred=null;redeLogin=null;$("root").innerHTML=`<div class="boot">Abrindo ${esc(c?c.nome:"clínica")}…</div>`;await BE.switchClinic(cid);window.scrollTo({top:0});toast("Você está na "+(c?c.nome:"clínica"))}
+ catch(err){console.error(err);toast(errMsg(err));render()}});
 BE.init(onUser).catch(err=>{console.error(err);$("root").innerHTML=`<div class="lockscreen"><div class="card"><div class="bigic t-bad">${ic("alert")}</div><h1 class="page">Não foi possível conectar</h1><p class="sub">Verifique a internet e tente de novo.</p><button class="btn pri mt" onclick="location.reload()">Tentar de novo</button></div></div>`});}
 if("serviceWorker" in navigator&&location.protocol.startsWith("http")&&!location.hostname.endsWith("claude.ai")&&!location.hostname.includes("claudeusercontent"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 

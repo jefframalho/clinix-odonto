@@ -52,6 +52,15 @@ COMO VENDER
   - Com 5 dias de atraso o acesso é bloqueado sozinho (os dados ficam guardados).
   - Para mudar o preço de uma clínica: painel > Editar.
 
+VÁRIAS CLÍNICAS (REDE)
+  - A dona da conta vê "Minhas clínicas" na barra lateral (no celular: botão
+    "Clínicas" no topo ou em Mais).
+  - "+ Nova clínica" cria uma clínica separada (dados, equipe e mensalidade
+    próprios, com teste grátis) e já gera o login e a senha dela.
+  - O login gerado entra só naquela clínica. A dona troca de clínica com um clique.
+  - Depois de atualizar o sistema, cole de novo o firestore.rules no Firebase
+    (Firestore Database > Regras > Publicar).
+
 SOFTWARE PARA WINDOWS
   O programa abre o site publicado (sempre atualizado). Se o endereço
   for diferente de jefframalho.github.io/clinix-odonto, troque a linha

@@ -13,6 +13,8 @@ service cloud.firestore {
     function isOwner(cid) { return member(cid) && me().papel == 'dono'; }
     function clinic(cid) { return get(/databases/$(db)/documents/clinicas/$(cid)).data; }
     // Clínica liberada: não bloqueada e vencimento há no máximo 5 dias (carência)
+    // Dono da rede: quem criou a clínica (campo "dono") pode ter várias clínicas
+    function isNetOwner(cid) { return signedIn() && clinic(cid).dono == request.auth.uid; }
     function active(cid) { return clinic(cid).status != 'bloqueado' && clinic(cid).vencimento > request.time - duration.value(5, 'd'); }
 
     // Quem é quem: cada usuário aponta para a sua clínica
@@ -21,21 +23,28 @@ service cloud.firestore {
       allow create: if isAdmin()
         || (request.auth.uid == uid && request.resource.data.papel == 'dono'
             && get(/databases/$(db)/documents/clinicas/$(request.resource.data.cid)).data.dono == uid)
-        || (isOwner(request.resource.data.cid) && request.resource.data.papel == 'equipe');
-      allow update: if isAdmin();
-      allow delete: if isAdmin() || (isOwner(resource.data.cid) && resource.data.papel == 'equipe');
+        || (isOwner(request.resource.data.cid) && request.resource.data.papel == 'equipe')
+        // o dono da rede cria o login de cada clínica dele
+        || (request.auth.uid != uid && isNetOwner(request.resource.data.cid) && request.resource.data.papel in ['dono', 'equipe']);
+      // o dono da rede troca a clínica aberta, só para clínicas que são dele
+      allow update: if isAdmin()
+        || (request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cid'])
+            && isNetOwner(request.resource.data.cid));
+      allow delete: if isAdmin() || (isOwner(resource.data.cid) && resource.data.papel == 'equipe')
+        || (request.auth.uid != uid && isNetOwner(resource.data.cid));
     }
 
     // Clínicas: a dona edita nome/logo, mas só o administrador mexe em plano e vencimento
     match /clinicas/{cid} {
-      allow read: if isAdmin() || member(cid);
+      allow read: if isAdmin() || member(cid) || (signedIn() && resource.data.dono == request.auth.uid);
       allow create: if signedIn()
         && request.resource.data.dono == request.auth.uid
         && request.resource.data.status == 'teste'
         && request.resource.data.vencimento <= request.time + duration.value(15, 'd')
         && !('creditosConsulta' in request.resource.data);
       allow update: if isAdmin() || (isOwner(cid)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'vencimento', 'valor', 'dono', 'pagamentos', 'criadoEm', 'creditosConsulta']));
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'vencimento', 'valor', 'dono', 'pagamentos', 'criadoEm', 'creditosConsulta']))
+        || (signedIn() && resource.data.dono == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['acessos']));
       allow delete: if isAdmin();
 
       // Dados da clínica (pacientes, agenda, etc.): só a equipe da própria clínica, e só com mensalidade em dia.
