@@ -7,15 +7,28 @@ const crypto = require("crypto");
 
 // ---------- simulações ----------
 const pedidos = [];
+const reservas = new Set();
 let agendaFake = null;
 const fakes = {
   "firebase/app": { initializeApp: () => ({}) },
   "firebase/firestore/lite": {
     getFirestore: () => ({}),
-    doc: (_db, ...p) => p.join("/"),
+    doc: (primeiro, ...p) => (typeof primeiro === "string" ? primeiro + "/idAuto" : p.join("/")), // doc(colecao) gera id automático
     collection: (_db, ...p) => p.join("/"),
     getDoc: async () => ({ exists: () => !!agendaFake, data: () => agendaFake }),
     addDoc: async (path, data) => { pedidos.push({ path, data }); return { id: "p" + pedidos.length }; },
+    writeBatch: () => {
+      const ops = [];
+      return {
+        set: (path, data) => ops.push({ path, data }),
+        commit: async () => {
+          const r = ops.find(o => o.path.includes("/reservas/"));
+          if (r && reservas.has(r.path)) throw new Error("permission-denied");
+          if (r) reservas.add(r.path);
+          ops.forEach(o => { if (o.path.includes("/reservas/")) return; pedidos.push({ path: o.path.replace(/\/[^/]*$/, ""), data: o.data }); });
+        },
+      };
+    },
   },
   express: Object.assign(() => {
     const rotas = {};
@@ -92,10 +105,19 @@ const t = (nome, fn) => Promise.resolve().then(fn).then(() => { ok++; console.lo
     assert.strictEqual(pedidos.length, 1);
     const { path, data } = pedidos[0];
     assert.strictEqual(path, "agendas/tok123/pedidos");
-    const permitidas = ["nome", "fone", "data", "hora", "proc", "prof", "obs", "criado"];
+    const permitidas = ["nome", "fone", "data", "hora", "proc", "prof", "obs", "criado", "queixa", "saude", "nasc", "novo", "slot"];
     assert.ok(Object.keys(data).every(k => permitidas.includes(k)), "só campos permitidos");
     assert.ok(typeof data.obs === "string" && data.obs.length <= 200 && data.nome.length <= 100 && data.fone.length <= 20);
     assert.strictEqual(data.data, amanha); assert.strictEqual(data.hora, "10:00");
+  });
+  await t("não deixa outra pessoa reservar o mesmo horário (pedido em análise)", async () => {
+    const conv2 = { hist: [] };
+    const ctx2 = { ...ctx, conv: conv2, fone: "5588888880000" };
+    roteiro.push({ call: { name: "pedir_agendamento", args: { nome: "Joana Souza", data: amanha, hora: "10:00" } } }, { text: "Esse horário acabou de ser reservado." });
+    await ia.responder(conv2, "Quero às 10:00", ctx2, iaFake);
+    assert.strictEqual(pedidos.length, 1, "nenhum pedido novo foi criado");
+    const resp = conv2.hist.find(c => c.parts.some(p => p.functionResponse)).parts[0].functionResponse.response;
+    assert.ok(/reservado/.test(resp.erro), "IA recebe o aviso de horário reservado");
   });
   await t("recusa horário fora da agenda", async () => {
     roteiro.push({ call: { name: "pedir_agendamento", args: { nome: "Maria da Silva", data: amanha, hora: "10:15" } } }, { text: "Esse horário não existe." });

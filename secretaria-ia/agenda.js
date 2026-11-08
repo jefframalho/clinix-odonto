@@ -1,7 +1,7 @@
 // Lê a agenda pública da clínica (a mesma do agendamento online) e calcula os horários livres.
 // Usa as mesmas regras do Clinix: turnos por dia da semana, duração, antecedência mínima e ocupados.
 const { initializeApp } = require("firebase/app");
-const { getFirestore, doc, getDoc, collection, addDoc } = require("firebase/firestore/lite");
+const { getFirestore, doc, getDoc, collection, addDoc, writeBatch } = require("firebase/firestore/lite");
 
 const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
 const pad = n => String(n).padStart(2, "0");
@@ -26,8 +26,29 @@ async function lerAgenda(token) {
   return s.exists() ? s.data() : null;
 }
 
+// Aviso sem horário (falar com a recepção): só cria o pedido.
 async function criarPedido(token, pedido) {
   return addDoc(collection(banco(), "agendas", token, "pedidos"), pedido);
+}
+
+// Mesmo identificador de horário usado pelo site (index.html, função slotId).
+const slotId = (d, h, p) => String(d) + "_" + String(h).replace(":", "") + "_" + String(p || "p0").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
+
+// Pedido com horário: grava o pedido e a RESERVA do horário no mesmo lote.
+// Se outra pessoa já reservou, o Firestore recusa e tentamos o próximo dentista livre; sem nenhum livre, lança erro.
+async function criarPedidoReservando(token, pedido, g) {
+  const oc = new Set((g && g.ocupados) || []);
+  const profs = ((g && g.profs) || []).map(p => p.id);
+  const candidatos = pedido.prof ? [pedido.prof] : profs.length ? profs : [""];
+  for (const id of candidatos) {
+    if (oc.has(pedido.data + " " + pedido.hora + " " + id)) continue;
+    const slot = slotId(pedido.data, pedido.hora, id);
+    const b = writeBatch(banco());
+    b.set(doc(banco(), "agendas", token, "reservas", slot), { criado: pedido.criado, slot });
+    b.set(doc(collection(banco(), "agendas", token, "pedidos")), { ...pedido, prof: id, slot });
+    try { await b.commit(); return slot; } catch (e) { /* horário já reservado: tenta o próximo */ }
+  }
+  throw new Error("HORARIO_RESERVADO");
 }
 
 function slotsDia(cfg, dstr) {
@@ -73,4 +94,4 @@ function horarioEstaLivre(g, data, hora, dentista, agora = new Date()) {
   return !!dias.length && dias[0].data === data && dias[0].horas.includes(hora);
 }
 
-module.exports = { lerAgenda, criarPedido, horariosLivres, horarioEstaLivre, slotsDia, iso, br, DIAS };
+module.exports = { lerAgenda, criarPedido, criarPedidoReservando, slotId, horariosLivres, horarioEstaLivre, slotsDia, iso, br, DIAS };

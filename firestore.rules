@@ -109,13 +109,34 @@ service cloud.firestore {
       allow delete: if member(resource.data.cid) || isAdmin();
       match /pedidos/{id} {
         allow create: if get(/databases/$(db)/documents/agendas/$(token)).data.ativo == true
-          && request.resource.data.keys().hasOnly(['nome', 'fone', 'data', 'hora', 'proc', 'prof', 'obs', 'criado'])
+          && request.resource.data.keys().hasOnly(['nome', 'fone', 'data', 'hora', 'proc', 'prof', 'obs', 'criado', 'queixa', 'saude', 'nasc', 'novo', 'slot'])
           && request.resource.data.nome is string && request.resource.data.nome.size() <= 100
           && request.resource.data.fone is string && request.resource.data.fone.size() <= 20
-          && request.resource.data.obs is string && request.resource.data.obs.size() <= 200;
+          && request.resource.data.obs is string && request.resource.data.obs.size() <= 200
+          && (!('queixa' in request.resource.data) || (request.resource.data.queixa is string && request.resource.data.queixa.size() <= 500))
+          && (!('saude' in request.resource.data) || (request.resource.data.saude is string && request.resource.data.saude.size() <= 500))
+          && (!('nasc' in request.resource.data) || (request.resource.data.nasc is string && request.resource.data.nasc.size() <= 10))
+          && (!('novo' in request.resource.data) || request.resource.data.novo is bool)
+          // pedido com horário só nasce junto com a reserva desse horário (mesmo lote)
+          && (!('slot' in request.resource.data) || (request.resource.data.slot is string
+              && existsAfter(/databases/$(db)/documents/agendas/$(token)/reservas/$(request.resource.data.slot))));
         allow read, delete: if member(get(/databases/$(db)/documents/agendas/$(token)).data.cid)
           || isAdmin();
         allow update: if false;
+      }
+
+      // Reserva de horário: enquanto o pedido está em análise, o horário não pode ser pedido por outra pessoa.
+      // O paciente só cria (uma vez por horário, não dá para trocar) e só consegue ver se UM horário está reservado.
+      // A clínica apaga a reserva ao aceitar ou recusar o pedido.
+      match /reservas/{slot} {
+        allow get: if true;
+        allow list: if false;
+        allow create: if get(/databases/$(db)/documents/agendas/$(token)).data.ativo == true
+          && request.resource.data.keys().hasOnly(['criado', 'slot'])
+          && request.resource.data.slot == slot
+          && slot.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{4}_[A-Za-z0-9_-]{1,40}$');
+        allow update: if false;
+        allow delete: if member(get(/databases/$(db)/documents/agendas/$(token)).data.cid) || isAdmin();
       }
     }
   }

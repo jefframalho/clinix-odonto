@@ -96,7 +96,7 @@ async function executar(nome, args, ctx) {
     if ((ctx.conv.pedidos || 0) >= 2) return { erro: "Este paciente já fez 2 pedidos nesta conversa. Chame a recepção se precisar de mais." };
     const prof = (g.profs || []).some(p => p.id === args.dentista_id) ? args.dentista_id : "";
     if (!agenda.horarioEstaLivre(g, args.data, args.hora, prof)) return { erro: "Esse horário não está livre. Consulte ver_horarios_livres de novo." };
-    await agenda.criarPedido(ctx.token, {
+    try { await agenda.criarPedidoReservando(ctx.token, {
       nome: nomeP.slice(0, 90),
       fone: ctx.fone.slice(0, 20),
       data: args.data,
@@ -105,7 +105,10 @@ async function executar(nome, args, ctx) {
       prof,
       obs: ("Pela secretária IA" + (args.observacao ? ": " + args.observacao : "")).slice(0, 200),
       criado: new Date().toISOString(),
-    });
+    }, g); } catch (e) {
+      if (e && e.message === "HORARIO_RESERVADO") return { erro: "Esse horário acabou de ser reservado por outra pessoa. Consulte ver_horarios_livres de novo e ofereça outro." };
+      throw e;
+    }
     ctx.conv.pedidos = (ctx.conv.pedidos || 0) + 1;
     return { ok: true, aviso: "Pedido enviado. A clínica confirma pelo WhatsApp." };
   }
