@@ -26,7 +26,7 @@ window.CLINIX_CONFIG = {
   },
 
   // Endereço do site publicado (usado nos links de assinatura)
-  appUrl: "https://jefframalho.github.io/clinix-odonto/",
+  appUrl: "https://app.clinixodonto.com.br/",
 
   // Endereço usado no link da "Página da clínica" (bio do Instagram)
   paginaUrl: "https://app.clinixodonto.com.br/",

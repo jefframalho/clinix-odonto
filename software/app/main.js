@@ -4,7 +4,7 @@ const { app, BrowserWindow, shell, Menu } = require("electron");
 const path = require("path");
 
 // Endereço do site publicado (troque depois de publicar no GitHub Pages ou Netlify)
-const APP_URL = "https://jefframalho.github.io/clinix-odonto/";
+const APP_URL = "https://app.clinixodonto.com.br/";
 
 function criarJanela() {
   const win = new BrowserWindow({

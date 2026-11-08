@@ -32,12 +32,12 @@ PASSO 5 — Pegar a configuração do app
 PASSO 6 — Publicar o site
   GitHub Pages: crie o repositório "clinix-odonto" (público) e envie
   os arquivos da pasta "site". Em Settings > Pages escolha a branch main.
-  Endereço: https://jefframalho.github.io/clinix-odonto/
+  Endereço: https://app.clinixodonto.com.br/
   (ou arraste a pasta "site" em app.netlify.com/drop)
 
 PASSO 7 — Liberar o endereço no Firebase
   Authentication > Configurações > Domínios autorizados > Adicionar
-  domínio > jefframalho.github.io  (ou o endereço do Netlify).
+  domínio > app.clinixodonto.com.br  (ou o endereço do Netlify).
 
 PASSO 8 — Criar a SUA conta de administrador  (faça isto antes de divulgar)
   Authentication > aba Usuários > Adicionar usuário >
@@ -63,7 +63,7 @@ VÁRIAS CLÍNICAS (REDE)
 
 SOFTWARE PARA WINDOWS
   O programa abre o site publicado (sempre atualizado). Se o endereço
-  for diferente de jefframalho.github.io/clinix-odonto, troque a linha
+  for diferente de app.clinixodonto.com.br, troque a linha
   APP_URL no arquivo software/app/main.js e gere de novo:
     npm install   e depois   npm run dist
 

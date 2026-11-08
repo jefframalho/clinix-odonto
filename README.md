@@ -2,7 +2,7 @@
 
 Sistema completo para clínicas odontológicas, vendido por assinatura mensal.
 
-**Acesse:** https://jefframalho.github.io/clinix-odonto/
+**Acesse:** https://app.clinixodonto.com.br/
 
 ## O que tem
 - Login para várias clínicas, cada uma com seus próprios dados
