@@ -733,12 +733,13 @@ const FireBE={
  reset(e){return this.auth.sendPasswordResetEmail(e.trim())},
  openClinic(cid,onC,onD){this.close();this.ref=this.db.collection("clinicas").doc(cid);this.subs=[];this.dataSubs=null;
   this.subs.push(this.ref.onSnapshot(s=>{const c={id:s.id,...s.data()};const act=clinicActive(c);
-   if(act&&!this.dataSubs){this.dataSubs=COLS.filter(k=>k!=="fin"||U.papel==="dono").map(k=>this.ref.collection(k).onSnapshot(q=>onD(k,q.docs.map(d=>fromFS(k,{id:d.id,...d.data()}))),()=>{}))}
+   if(act&&!this.dataSubs){this.dataSubs=COLS.filter(k=>k!=="fotos"&&(k!=="fin"||U.papel==="dono")).map(k=>this.ref.collection(k).onSnapshot(q=>onD(k,q.docs.map(d=>fromFS(k,{id:d.id,...d.data()}))),()=>{}))}
    if(!act&&this.dataSubs){this.dataSubs.forEach(f=>f());this.dataSubs=null}
    onC(c)},()=>{}))},
  close(){(this.subs||[]).forEach(f=>f());(this.dataSubs||[]).forEach(f=>f());this.subs=[];this.dataSubs=null;if(this.admUnsub){this.admUnsub();this.admUnsub=null}if(this.teamUnsub){this.teamUnsub();this.teamUnsub=null}if(this.pedUnsub){this.pedUnsub();this.pedUnsub=null}},
  async write(ch){for(let i=0;i<ch.length;i+=400){const b=this.db.batch();ch.slice(i,i+400).forEach(x=>{const r=this.ref.collection(x.col).doc(x.id);if(x.data===null)b.delete(r);else{const d=toFS(x.col,JSON.parse(JSON.stringify(x.data)));delete d.id;b.set(r,d)}});await b.commit()}},
  updateClinic(f){return this.ref.update(f)},
+ loadFotos(pid){const c=this.ref.collection("fotos");return(pid?c.where("pid","==",pid):c).get().then(q=>q.docs.map(d=>fromFS("fotos",{id:d.id,...d.data()})))},
  watchClinics(cb){this.admUnsub=this.db.collection("clinicas").onSnapshot(q=>cb(q.docs.map(d=>({id:d.id,...d.data()}))),e=>toast("Sem permissão de administrador: confira as regras do Firestore"))},
  adminUpdate(cid,f){if(f.vencimento instanceof Date)f.vencimento=firebase.firestore.Timestamp.fromDate(f.vencimento);return this.db.collection("clinicas").doc(cid).update(f)},
  watchTeam(cid,cb){if(this.teamUnsub)this.teamUnsub();this.teamUnsub=this.db.collection("usuarios").where("cid","==",cid).onSnapshot(q=>cb(q.docs.map(d=>({uid:d.id,...d.data()}))),()=>{})},
@@ -805,7 +806,20 @@ async function syncDocs(force){if(!force&&Date.now()-lastSync<20000)return;lastS
  for(const d of pend){try{const r=await BE.getPublic(d.token);if(r&&r.status==="assinado"&&r.assinatura){d.assinatura=r.assinatura;d.status="assinado";ch=true;S.log=S.log||[];S.log.push({id:uid(),data:r.assinatura.data,quem:r.assinatura.nome,email:"",acao:"Paciente assinou pelo link",det:d.titulo})}}catch(e){}}
  if(ch){save();toast("Documento assinado pelo paciente");scheduleRender()}}
 const CLINICA=()=>C?C.nome:"";
-function resetSync(){SYNC={};COLS.forEach(k=>SYNC[k]={})}
+function resetSync(){SYNC={};COLS.forEach(k=>SYNC[k]={});fotosReset()}
+/* FOTOS SOB DEMANDA (Firebase): as fotos não descem junto com a clínica. Só vêm as do paciente aberto.
+   No modo demonstração (dados locais) o BE não tem loadFotos e tudo continua como antes. */
+let FOTOS={},FOTOS_BUSY={};
+function fotosReset(){FOTOS={};FOTOS_BUSY={};if(typeof BE!=="undefined"&&BE&&BE.loadFotos){S.fotos=[];SYNC.fotos={}}}
+const fotosOk=pid=>!BE.loadFotos||!!((FOTOS[pid]&&FOTOS[pid].ok)||(FOTOS["*"]&&FOTOS["*"].ok));
+/* pid vazio = todas as fotos da clínica (só para exportar). Devolve true/false. */
+function loadFotos(pid,force){if(!BE.loadFotos)return Promise.resolve(true);const k=pid||"*",e=FOTOS[k];
+ if(FOTOS_BUSY[k])return FOTOS_BUSY[k];
+ if(!force&&e&&Date.now()-e.t<(e.ok?300000:30000))return Promise.resolve(e.ok);
+ const run=BE.loadFotos(pid).then(arr=>{const have=new Set(S.fotos.map(x=>x.id));(arr||[]).forEach(f=>{if(!have.has(f.id)){S.fotos.push(f);SYNC.fotos[f.id]=stable(f)}});FOTOS[k]={ok:true,t:Date.now()};return true})
+  .catch(err=>{console.error("Clinix: falha ao carregar fotos",err);FOTOS[k]={ok:false,t:Date.now()};return false})
+  .finally(()=>{delete FOTOS_BUSY[k];scheduleRender()});
+ FOTOS_BUSY[k]=run;return run}
 function onData(col,arr){S[col]=arr;SYNC[col]={};arr.forEach(x=>SYNC[col][x.id]=stable(x));READY=true;if(col==="log"&&U&&!U.admin&&!onData.logged){onData.logged=U.uid;setTimeout(()=>logAct("Entrou no sistema"),300)}scheduleRender()}
 function save(){const ch=[];COLS.forEach(k=>{const seen=new Set();(S[k]||[]).forEach(x=>{if(!x.id)x.id=uid();seen.add(x.id);const s=stable(x);if(SYNC[k][x.id]!==s){ch.push({col:k,id:x.id,data:x});SYNC[k][x.id]=s}});Object.keys(SYNC[k]).forEach(id=>{if(!seen.has(id)){ch.push({col:k,id,data:null});delete SYNC[k][id]}})});
  if(ch.some(x=>x.col==="ag"||(x.col==="meta"&&["agonline","profs"].includes(x.id))))pubAgenda();
@@ -966,7 +980,8 @@ function vFicha(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||
  if(fichaTab==="anamnese"){syncAnam();const al=p.anamLink;body=`<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><div style="min-width:0;flex:1"><h3>Anamnese pelo celular</h3><p class="small muted" style="margin:2px 0 0">${al&&al.status==="respondida"?`Respondida pelo paciente em ${new Date(al.resp).toLocaleDateString("pt-BR")}. As respostas já estão abaixo.`:al&&al.enviado?"Link enviado. As respostas entram aqui assim que o paciente terminar.":"Envie um link para o paciente responder antes da consulta."}</p></div><div class="row">${al&&al.status==="respondida"?`<span class="pill dot t-ok">Respondida</span>`:al&&al.enviado?`<span class="pill dot t-warn">Aguardando</span>`:""}<button class="btn sm wa" data-act="anamSend">${WAI}${al&&al.enviado&&al.status!=="respondida"?"Reenviar link":"Enviar link"}</button>${DEMO&&al&&al.enviado&&al.status!=="respondida"?`<button class="btn sm" data-act="anamSim">Simular paciente</button>`:""}</div></div></div>`+`<div class="card"><div class="cardhead"><h3>Questionário de saúde</h3><span class="small muted">Marque o que o paciente informou</span></div><div class="checks">${ANAM.map(k=>`<label class="check ${p.anam[k]?"on":""}"><input type="checkbox" data-anam="${esc(k)}" ${p.anam[k]?"checked":""}>${esc(k)}</label>`).join("")}</div><label class="f mt">Observações (medicamentos, alergias, cirurgias)<textarea data-pf="obs">${esc(p.obs)}</textarea></label></div>`}
  if(fichaTab==="odonto"){body=odTab(p)}
  if(fichaTab==="credito"){body=credTab(p)}
- if(fichaTab==="fotos"){const fs=S.fotos.filter(f=>f.pid===p.id).sort((a,b)=>a.data.localeCompare(b.data));const an=fs.filter(f=>f.tipo==="Antes").slice(-1)[0],de=fs.filter(f=>f.tipo==="Depois").slice(-1)[0];
+ if(fichaTab==="fotos"&&!fotosOk(p.id)){loadFotos(p.id);body=`<div class="card"><h3>Fotos clínicas</h3><p class="small muted">${FOTOS[p.id]&&!FOTOS[p.id].ok?"Não consegui carregar as fotos. Verifique a internet e abra esta aba de novo.":"Carregando fotos…"}</p></div>`}
+ if(fichaTab==="fotos"&&fotosOk(p.id)){loadFotos(p.id);const fs=S.fotos.filter(f=>f.pid===p.id).sort((a,b)=>a.data.localeCompare(b.data));const an=fs.filter(f=>f.tipo==="Antes").slice(-1)[0],de=fs.filter(f=>f.tipo==="Depois").slice(-1)[0];
   body=`<div class="card"><div class="cardhead"><h3>Fotos clínicas</h3><select id="phTipo" style="width:auto"><option>Antes</option><option>Depois</option><option>Raio-X</option><option>Sorriso</option></select></div>
   ${an&&de?`<div class="compare"><div class="ph"><img src="${an.src}" alt="Antes"><span class="tag">Antes</span></div><div class="ph"><img src="${de.src}" alt="Depois"><span class="tag">Depois</span></div></div>`:""}
   <div class="gal"><label class="up">${ic("cam",1.8)}Adicionar foto<input type="file" accept="image/*" multiple data-up="pac"></label>${fs.map(f=>`<div class="ph"><img src="${f.src}" alt="${esc(f.tipo)}"><span class="tag">${esc(f.tipo)}</span><button class="del" data-phdel="${f.id}" aria-label="Remover foto">×</button><span class="dt">${br(f.data)}</span></div>`).join("")}</div>
@@ -1029,7 +1044,7 @@ let COBP=null,LEGAL=null,legalBack=null,ANAMP=null,AGP=null,PEDS=[],pedWatch=nul
  <p><b>Odontograma:</b> ${den.length?den.map(([n,st])=>`dente ${n}: ${(DST.find(x=>x.k===st)||{n:st}).n.toLowerCase()}`).join("; "):"sem marcações"}.</p>${(p.odp||[]).length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Dente</th><th>Procedimento</th><th>Situação</th></tr></thead><tbody>${p.odp.slice().sort((a,b)=>(a.data||"").localeCompare(b.data||"")).map(e=>`<tr><td>${br(e.data)}</td><td><b>${esc(ODG.label(e.dente,e.faces))}</b></td><td>${esc(e.proc)}</td><td>${ODG.STN[e.st]}</td></tr>`).join("")}</tbody></table></div>`:""}${(p.odp||[]).length||den.length?`${ODG.svg(p.odp||[],p.dentes||{},null)}${ODG.legend()}`:""}
  <p><b>Histórico de atendimentos:</b></p>${(p.hist||[]).length?`<ul>${p.hist.slice().sort((a,b)=>a.data.localeCompare(b.data)).map(h=>`<li>${br(h.data)} · ${esc(h.proc)}${h.dente?` (dente ${esc(h.dente)})`:""}${h.obs?` · ${esc(h.obs)}`:""}</li>`).join("")}</ul>`:"<p>Nenhum atendimento registrado.</p>"}
  <p><b>Documentos:</b> ${ds.length?ds.map(d=>`${esc(d.titulo)} (${fullOk(d)?"assinado":pacOk(d)?"assinado pelo paciente":"pendente"})`).join("; "):"nenhum"}.</p>
- <p><b>Fotos clínicas:</b> ${S.fotos.filter(f=>f.pid===p.id).length} arquivo(s) guardado(s) no sistema.</p>
+ <p><b>Fotos clínicas:</b> ${(loadFotos(p.id),fotosOk(p.id))?S.fotos.filter(f=>f.pid===p.id).length+" arquivo(s) guardado(s) no sistema.":(FOTOS[p.id]&&!FOTOS[p.id].ok?"não foi possível conferir agora (sem conexão).":"carregando…")}</p>
  <p class="small" style="color:#5b7480">Emitido em ${new Date().toLocaleString("pt-BR")} pelo ${esc(CFG.produto)}, a pedido do paciente (art. 18 da Lei nº 13.709/2018).</p></div>
  <div class="sigs"><div class="sig">${C.assinatura?`<img src="${C.assinatura}" alt="">`:`<div class="sigline"></div>`}<b>${esc(C.dentista||C.nome)}</b><small>${esc(C.nome)}${C.cro?" · "+esc(C.cro):""}</small></div></div></article>`}
 /* ---- anamnese pelo link ---- */
@@ -1764,7 +1779,7 @@ document.addEventListener("change",async e=>{const t=e.target;
  if(t.dataset.up&&t.files&&t.files.length){try{
   if(t.dataset.up==="clinfoto"){const v=await readImg(t.files[0],400);await BE.updateClinic({foto:v});toast("Foto atualizada")}
   if(t.dataset.up==="logo"){const v=await readImg(t.files[0],300);await BE.updateClinic({logo:v});toast("Logo atualizada")}
-  if(t.dataset.up==="avatar"){P(route.arg).foto=await readImg(t.files[0],300);save();render();toast("Foto do paciente salva")}
+  if(t.dataset.up==="avatar"){P(route.arg).foto=await readImg(t.files[0],192);save();render();toast("Foto do paciente salva")}
   if(t.dataset.up==="pac"){const tipo=$("phTipo").value;for(const f of t.files)S.fotos.push({id:uid(),pid:route.arg,src:await readImg(f,800),tipo,data:T});save();render();toast("Foto adicionada")}
  }catch(err){console.error(err);toast("Não consegui salvar essa imagem")}}});
 document.addEventListener("click",async e=>{
@@ -1864,7 +1879,7 @@ document.addEventListener("click",async e=>{
  if(A==="newFin")$("finForm").classList.remove("hide");if(A==="closeFin")$("finForm").classList.add("hide");
  if(A==="newLab")$("labForm").classList.remove("hide");if(A==="closeLab")$("labForm").classList.add("hide");
  if(A==="newRet")$("retForm").classList.remove("hide");if(A==="closeRet")$("retForm").classList.add("hide");
- if(A==="delPac"){if(b.dataset.sure){const id=route.arg;logAct("Excluiu paciente",(P(id)||{}).nome);S.pac=S.pac.filter(p=>p.id!==id);["ag","fin","ret","lab","fotos"].forEach(k=>S[k]=S[k].filter(x=>x.pid!==id));save();go("pacientes");toast("Paciente excluído")}else{b.dataset.sure="1";b.textContent="Excluir mesmo? O prontuário deve ser guardado pelo prazo legal";b.classList.add("pri")}}
+ if(A==="delPac"){if(b.dataset.sure){const id=route.arg;if(!await loadFotos(id,true)){toast("Não consegui conferir as fotos do paciente. Tente de novo.");return}logAct("Excluiu paciente",(P(id)||{}).nome);S.pac=S.pac.filter(p=>p.id!==id);["ag","fin","ret","lab","fotos"].forEach(k=>S[k]=S[k].filter(x=>x.pid!==id));save();go("pacientes");toast("Paciente excluído")}else{b.dataset.sure="1";b.textContent="Excluir mesmo? O prontuário deve ser guardado pelo prazo legal";b.classList.add("pri")}}
  if(A==="orcFor"){const o=ORC();o.pid=route.arg;o.items=[];save();go("orcamento")}
  if(A==="odToOrc"){const p=P(route.arg);const m={carie:"Restauração em resina",canal:"Tratamento de canal"};const price=n=>(PR().find(x=>x[0]===n)||[n,0])[1];const items=Object.entries(p.dentes).filter(([n,s])=>m[s]).map(([n,s])=>({proc:m[s],dente:n,v:price(m[s])})).concat((p.odp||[]).filter(e=>e.st==="real").map(e=>({proc:e.proc,dente:ODG.label(e.dente,e.faces),v:price(e.proc)})));
   if(!items.length){toast("Marque procedimentos \"A realizar\" no odontograma primeiro");return}const o=ORC();o.pid=p.id;o.items=items;save();go("orcamento");toast(items.length+" procedimentos levados ao orçamento")}
@@ -1873,8 +1888,8 @@ document.addEventListener("click",async e=>{
  if(A==="addProc"){const m=meta("procs");if(!m.list)m.list=DEF_PROCS.map(x=>x.slice());m.list.push(["Novo procedimento",100]);save();render()}
  if(A==="legalBack"){LEGAL=null;render();if(legalBack)window.scrollTo({top:legalBack.scroll||0});return}
  if(A==="aceitar"){if(!$("acOk").checked){toast("Marque que leu e aceita os documentos");return}const ac={versao:TERMOS_VER,data:new Date().toISOString(),por:U.email};await BE.updateClinic({aceite:ac});C.aceite=ac;logAct("Aceitou os Termos e a Política de Privacidade","versão "+br(TERMOS_VER));render();return}
- if(A==="expPac"){const p=P(route.arg);download("paciente-"+slug(p.nome)+"-"+T+".json",pacDados(p));logAct("Exportou dados do paciente",p.nome);return}
- if(A==="expClinic"){const out={exportadoEm:new Date().toISOString(),clinica:{nome:C.nome,responsavel:C.dentista,cro:C.cro||"",cidade:C.cidade,telefone:C.telefone}};COLS.forEach(k=>out[k]=S[k]||[]);download("dados-"+slug(C.nome)+"-"+T+".json",out);logAct("Exportou todos os dados da clínica");return}
+ if(A==="expPac"){const p=P(route.arg);if(!await loadFotos(p.id,true)){toast("Não consegui carregar as fotos do paciente. Tente de novo.");return}download("paciente-"+slug(p.nome)+"-"+T+".json",pacDados(p));logAct("Exportou dados do paciente",p.nome);return}
+ if(A==="expClinic"){toast("Reunindo os dados da clínica…");if(!await loadFotos(null,true)){toast("Não consegui carregar as fotos. Tente de novo.");return}const out={exportadoEm:new Date().toISOString(),clinica:{nome:C.nome,responsavel:C.dentista,cro:C.cro||"",cidade:C.cidade,telefone:C.telefone}};COLS.forEach(k=>out[k]=S[k]||[]);download("dados-"+slug(C.nome)+"-"+T+".json",out);logAct("Exportou todos os dados da clínica");return}
  if(A==="lgpdTerm"){docModel="lgpd";fichaTab="docs";render();setTimeout(()=>{const s=$("docModel");if(s){s.value=MODELOS().some(m=>m.id==="lgpd")?"lgpd":s.value}},0);toast("Escolha o termo LGPD e toque em Gerar documento");return}
  if(A==="anamSend"){const p=P(route.arg);b.disabled=true;try{const link=await sendAnam(p);window.open(wa(p.fone,`Olá, ${first(p.nome)}! Antes da sua consulta na ${C.nome}, responda nossa ficha de saúde pelo celular (leva 2 minutos):\n\n${link}`),"_blank");toast("Link criado. Se o WhatsApp não abrir, copie o link e envie.");render()}catch(e){console.error(e);toast("Não consegui criar o link")}b.disabled=false;return}
  if(A==="anamSim"){const p=P(route.arg);const r=await BE.pubGet("anamneses",p.anamLink.token);ANAMP={token:p.anamLink.token,...r,back:route};render();window.scrollTo({top:0});return}
