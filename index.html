@@ -567,6 +567,12 @@ let lastCob=0;async function syncCob(force){if(!force&&Date.now()-lastCob<30000)
  for(const f of S.fin.filter(x=>!x.pago&&x.cob&&x.cob.token&&x.cob.st!=="informado").slice(0,40)){try{const r=await BE.pubGet("cobrancas",f.cob.token);if(r&&r.status==="informado"){f.cob.st="informado";f.cob.em=r.informadoEm||"";ch=true}}catch(e){}}
  if(ch){save();toast("Paciente avisou que pagou. Confira e confirme no financeiro.");scheduleRender()}}
 let cobOpen=null;
+let finEd=null;
+/* edição de um lançamento do financeiro (aberto ou já recebido) */
+function finEditForm(f){const fm=["Pix","Cartão","Dinheiro","Boleto"];if(f.forma&&!fm.includes(f.forma))fm.push(f.forma);
+ return `<div class="cobp"><div class="fgrid"><label class="f">Descrição<input id="feDesc" value="${esc(f.desc)}"></label><label class="f">Valor (R$)<input id="feVal" type="number" min="0" step="0.01" value="${f.valor}"></label><label class="f">Forma<select id="feForma">${fm.map(o=>`<option ${o===f.forma?"selected":""}>${esc(o)}</option>`).join("")}</select></label><label class="f">${f.pago?"Data do recebimento":"Vencimento"}<input id="feVenc" type="date" value="${f.venc}"></label>${PROFS().length>1?`<label class="f">Profissional${profSel("feProf",f.prof||PROFS()[0].id)}</label>`:""}</div>
+ ${f.pago?`<p class="small muted" style="margin:10px 0 0">Este lançamento já foi recebido. Qualquer alteração fica registrada no histórico de atividades.</p>`:""}
+ <div class="row mt" style="gap:6px;flex-wrap:wrap"><button class="btn sm pri" data-fsave="${f.id}">Salvar alterações</button><button class="btn sm" data-fcancel="1">Cancelar</button>${f.pago?`<button class="btn sm" data-fundo="${f.id}">Desfazer recebimento</button>`:""}<button class="btn sm" data-fdel="${f.id}" style="color:var(--bad)">Excluir lançamento</button></div></div>`}
 function cobPanel(f){const p=P(f.pid)||{nome:"",fone:""};const r=RCB();
  if(!pixClin().chave)return `<div class="cobp"><p class="small" style="margin:0 0 10px">Para cobrar por Pix, cadastre a chave Pix da clínica.</p><button class="btn sm pri" data-go="config" data-cfgtab="receb">Configurar recebimentos</button></div>`;
  const link=cobPub(f);const code=pixCodeFor(pixClin(),f.valor,"F"+String(f.id).slice(-12));
@@ -580,6 +586,7 @@ function cobPanel(f){const p=P(f.pid)||{nome:"",fone:""};const r=RCB();
 function vCobPublic(){const g=COBP;
  if(g.erro)return `<div class="lockscreen"><div class="card"><div class="bigic t-warn">${ic("alert")}</div><h1 class="page">${esc(g.erro)}</h1><p class="sub">Fale com a clínica para receber um novo link.</p></div></div>`;
  const head=`<div class="row">${g.logo?`<img src="${g.logo}" alt="" style="width:46px;height:46px;border-radius:14px;object-fit:cover">`:`<div class="mark" style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--hero-a),var(--hero-b));display:grid;place-items:center;color:var(--hero-ink)">${ic("tooth",1.8)}</div>`}<div style="flex:1"><b>${esc(g.clinica)}</b><small class="muted" style="display:block">Pagamento</small></div></div>`;
+ if(g.status==="cancelada")return `<div class="signwrap"><div class="inner stack">${head}<div class="card" style="text-align:center"><div class="bigic t-warn" style="margin:0 auto 10px">${ic("alert")}</div><h1 class="page" style="font-size:20px">Cobrança cancelada</h1><p class="sub">Esta cobrança não vale mais. Fale com a ${esc(g.clinica)} para receber um novo link.</p></div></div></div>`;
  if(g.status==="paga")return `<div class="signwrap"><div class="inner stack">${head}<div class="card" style="text-align:center"><div class="bigic t-ok" style="margin:0 auto 10px">${ic("check")}</div><h1 class="page" style="font-size:20px">Pagamento confirmado</h1><p class="sub">${esc(g.desc)} · ${brl(g.valor)}. Obrigado, ${esc(g.paciente)}!</p></div></div></div>`;
  const qr=g.pix?qrSVG(g.pix):"";const inf=g.status==="informado";
  return `<div class="signwrap"><div class="inner stack">${head}
@@ -1207,8 +1214,8 @@ async function sendDoc(d){const p=P(d.pid);if(!d.token)d.token=newToken();
  d.enviado=true;save();return docLink(d.token)}
 function finRow(f){const p=P(f.pid)||{id:"x",nome:"Paciente removido",fone:""};const d=diff(f.venc);const st=f.pago?["Pago","t-ok"]:d<0?[`Atrasado ${-d}d`,"t-bad"]:d===0?["Vence hoje","t-warn"]:[`Vence ${br(f.venc)}`,"t-info"];
  const msg=`Olá, ${first(p.nome)}! Aqui é da ${CLINICA()}. Passando para lembrar do pagamento de ${brl(f.valor)} (${f.desc}), com vencimento em ${br(f.venc)}. Pode pagar por Pix ou cartão. Obrigada! 😊`;
- return `<div class="li">${avHTML(p)}<div class="who"><strong>${esc(p.nome)}</strong><small>${esc(f.desc)} · ${esc(f.forma)}</small></div><div class="end">${brl(f.valor)}</div>
- <div class="acts"><span class="pill dot ${st[1]}">${st[0]}</span>${!f.pago?`${f.cob&&f.cob.st==="informado"?`<span class="pill t-ok">Paciente avisou que pagou</span>`:""}<button class="btn sm wa" data-cob="${f.id}">${WAI}Cobrar</button><button class="btn sm" data-pay="${f.id}">Recebi</button>`:`<span class="small muted">${br(f.venc)}</span>`}</div>${!f.pago&&cobOpen===f.id?cobPanel(f):""}</div>`}
+ return `<div class="li">${avHTML(p)}<div class="who"><strong>${esc(p.nome)}</strong><small>${esc(f.desc)} · ${esc(f.forma)}${f.ed?" · editado":""}</small></div><div class="end">${brl(f.valor)}</div>
+ <div class="acts"><span class="pill dot ${st[1]}">${st[0]}</span>${!f.pago?`${f.cob&&f.cob.st==="informado"?`<span class="pill t-ok">Paciente avisou que pagou</span>`:""}<button class="btn sm wa" data-cob="${f.id}">${WAI}Cobrar</button><button class="btn sm" data-pay="${f.id}">Recebi</button>`:`<span class="small muted">${br(f.venc)}</span>`}${DONO()?`<button class="btn sm" data-fedit="${f.id}">${finEd==f.id?"Fechar":"Editar"}</button>`:""}</div>${!f.pago&&cobOpen===f.id?cobPanel(f):""}${finEd!=null&&finEd==f.id&&DONO()?finEditForm(f):""}</div>`}
 
 function vFinanceiro(){if(!DONO())return vHome();const mes=TODAY.getMonth(),ano=TODAY.getFullYear();const inMes=f=>parse(f.venc).getMonth()===mes&&parse(f.venc).getFullYear()===ano;
  const rec=S.fin.filter(f=>f.pago&&inMes(f)).reduce((s,f)=>s+f.valor,0),prev=S.fin.filter(f=>!f.pago&&diff(f.venc)>=0).reduce((s,f)=>s+f.valor,0),atr=S.fin.filter(f=>!f.pago&&diff(f.venc)<0).reduce((s,f)=>s+f.valor,0),lab=S.lab.reduce((s,l)=>s+(+l.valor||0),0);
@@ -1890,7 +1897,7 @@ document.addEventListener("change",async e=>{const t=e.target;
   if(t.dataset.up==="pac"){const tipo=$("phTipo").value;for(const f of t.files)S.fotos.push({id:uid(),pid:route.arg,src:await readImg(f,800),tipo,data:T});save();render();toast("Foto adicionada")}
  }catch(err){console.error(err);toast("Não consegui salvar essa imagem")}}});
 document.addEventListener("click",async e=>{
- const b=e.target.closest("[data-peddone],[data-go],[data-ficha],[data-act],[data-dia],[data-ast],[data-adel],[data-ftab],[data-ctab],[data-tooth],[data-tool],[data-phdel],[data-pay],[data-cob],[data-finf],[data-orm],[data-approve],[data-labst],[data-retok],[data-auth],[data-demo],[data-copy],[data-pdel],[data-staffdel],[data-admf],[data-apay],[data-ablock],[data-aedit],[data-docview],[data-docsign],[data-docsend],[data-doccopy],[data-docsim],[data-docdel],[data-docback],[data-moddel],[data-docf],[data-docclin],[data-legal],[data-go2],[data-agprof],[data-profdel],[data-profcor],[data-profsig],[data-profsigedit],[data-meddel],[data-rxtipo],[data-rxmodo],[data-rxadd],[data-rxdel],[data-rxback],[data-pedok],[data-pedno],[data-apdia],[data-aphora]");if(!b)return;const d=b.dataset;
+ const b=e.target.closest("[data-peddone],[data-go],[data-ficha],[data-act],[data-dia],[data-ast],[data-adel],[data-ftab],[data-ctab],[data-tooth],[data-tool],[data-phdel],[data-pay],[data-cob],[data-fedit],[data-fcancel],[data-fsave],[data-fundo],[data-fdel],[data-finf],[data-orm],[data-approve],[data-labst],[data-retok],[data-auth],[data-demo],[data-copy],[data-pdel],[data-staffdel],[data-admf],[data-apay],[data-ablock],[data-aedit],[data-docview],[data-docsign],[data-docsend],[data-doccopy],[data-docsim],[data-docdel],[data-docback],[data-moddel],[data-docf],[data-docclin],[data-legal],[data-go2],[data-agprof],[data-profdel],[data-profcor],[data-profsig],[data-profsigedit],[data-meddel],[data-rxtipo],[data-rxmodo],[data-rxadd],[data-rxdel],[data-rxback],[data-pedok],[data-pedno],[data-apdia],[data-aphora]");if(!b)return;const d=b.dataset;
  if(d.legal){legalBack={route,scroll:scrollY};LEGAL=d.legal;render();window.scrollTo({top:0});return}
  if(d.go2){const id=route.arg;go(d.go2,id);if(d.go2==="prontuario")logAct("Gerou cópia do prontuário",(P(id)||{}).nome);return}
  if(d.auth){authMode=d.auth;authErr="";render();return}
@@ -1910,7 +1917,30 @@ document.addEventListener("click",async e=>{
  if(d.tool!==undefined){odTool=d.tool;render();return}
  if(d.tooth){const p=P(route.arg),n=d.tooth;if(odTool===""||p.dentes[n]===odTool)delete p.dentes[n];else p.dentes[n]=odTool;save();render();return}
  if(d.phdel){S.fotos=S.fotos.filter(f=>f.id!==d.phdel);save();render();return}
- if(d.pay){const f=S.fin.find(x=>x.id==d.pay);f.pago=true;if(f.venc>T)f.venc=T;if(f.cob&&f.cob.token)BE.pubUpdate("cobrancas",f.cob.token,{status:"paga"}).catch(()=>{});if(cobOpen===f.id)cobOpen=null;save();render();toast("Pagamento recebido");return}
+ if(d.fedit){if(!DONO())return;finEd=finEd==d.fedit?null:d.fedit;if(finEd!=null)cobOpen=null;render();return}
+ if(d.fcancel){finEd=null;render();return}
+ if(d.fsave){if(!DONO())return;const f=S.fin.find(x=>x.id==d.fsave);if(!f)return;
+  const desc=$("feDesc").value.trim(),valor=Math.round((parseFloat($("feVal").value)||0)*100)/100,venc=$("feVenc").value,forma=$("feForma").value,prof=$("feProf")?$("feProf").value:f.prof;
+  if(!desc){toast("Informe a descrição");return}if(!(valor>0)){toast("Informe um valor maior que zero");return}if(!venc){toast("Informe a data");return}
+  if(desc===f.desc&&valor===+f.valor&&venc===f.venc&&forma===f.forma&&prof===f.prof){finEd=null;render();toast("Nada foi alterado");return}
+  if(f.pago&&!b.dataset.sure){b.dataset.sure="1";b.textContent="Confirmar alteração do lançamento recebido";return}
+  const p=P(f.pid)||{nome:"Paciente removido"};const antes=`${f.desc} · ${brl(f.valor)} · ${f.forma} · ${br(f.venc)}`;
+  if(f.pago&&venc!==f.venc)delete f.vencOrig;
+  f.desc=desc;f.valor=valor;f.forma=forma;f.venc=venc;if(prof!==undefined)f.prof=prof;f.ed={em:new Date().toISOString(),por:(U&&(U.nome||U.email))||""};
+  logAct(f.pago?"Editou lançamento já recebido":"Editou lançamento",`${p.nome}: ${antes} → ${desc} · ${brl(valor)} · ${forma} · ${br(venc)}`);
+  finEd=null;if(f.cob&&f.cob.token)cobPub(f);else save();render();toast("Lançamento atualizado");return}
+ if(d.fundo){if(!DONO())return;const f=S.fin.find(x=>x.id==d.fundo);if(!f||!f.pago)return;
+  if(!b.dataset.sure){b.dataset.sure="1";b.textContent="Confirmar: voltar para a receber";b.classList.add("pri");return}
+  const p=P(f.pid)||{nome:"Paciente removido"};f.pago=false;if(f.vencOrig){f.venc=f.vencOrig;delete f.vencOrig}
+  f.ed={em:new Date().toISOString(),por:(U&&(U.nome||U.email))||""};
+  if(f.cob){delete f.cob.st;if(f.cob.token)BE.pubUpdate("cobrancas",f.cob.token,{status:"aberta"}).catch(()=>{})}
+  logAct("Desfez recebimento",`${p.nome}: ${f.desc} · ${brl(f.valor)}`);finEd=null;save();render();toast("Recebimento desfeito: voltou para a receber");return}
+ if(d.fdel){if(!DONO())return;const f=S.fin.find(x=>x.id==d.fdel);if(!f)return;
+  if(!b.dataset.sure){b.dataset.sure="1";b.textContent=f.pago?"Excluir mesmo? Este valor já foi recebido":"Excluir mesmo?";b.classList.add("pri");return}
+  const p=P(f.pid)||{nome:"Paciente removido"};logAct(f.pago?"Excluiu lançamento já recebido":"Excluiu lançamento",`${p.nome}: ${f.desc} · ${brl(f.valor)} · ${f.forma} · ${br(f.venc)}`);
+  if(f.cob&&f.cob.token)BE.pubUpdate("cobrancas",f.cob.token,{status:"cancelada"}).catch(()=>{});
+  S.fin=S.fin.filter(x=>x!==f);if(cobOpen==f.id)cobOpen=null;finEd=null;save();render();toast("Lançamento excluído");return}
+ if(d.pay){const f=S.fin.find(x=>x.id==d.pay);f.pago=true;if(f.venc>T){f.vencOrig=f.venc;f.venc=T}if(f.cob&&f.cob.token)BE.pubUpdate("cobrancas",f.cob.token,{status:"paga"}).catch(()=>{});if(cobOpen===f.id)cobOpen=null;save();render();toast("Pagamento recebido");return}
  if(d.cob){cobOpen=cobOpen===d.cob?null:d.cob;render();return}
  if(d.finf){finF=d.finf;render();return}
  if(d.orm!==undefined){ORC().items.splice(+d.orm,1);save();render();return}
