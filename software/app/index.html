@@ -577,6 +577,8 @@ function vCobPublic(){const g=COBP;
 const DEF_PROCS=[["Avaliação",100],["Limpeza (profilaxia)",150],["Restauração em resina",180],["Tratamento de canal",900],["Extração simples",200],["Clareamento",800],["Coroa de porcelana",1500],["Implante + coroa",3500],["Manutenção de aparelho",120],["Instalação de aparelho",900],["Faceta em resina",450],["Preenchimento labial",1200],["Prótese parcial removível",1300]];
 const ANAM=["Alergia a medicamentos","Diabetes","Hipertensão","Problema cardíaco","Usa anticoagulante","Gestante","Fumante","Sangramento na gengiva","Bruxismo (range os dentes)","Já teve reação à anestesia"];
 const ALERTA=["Alergia a medicamentos","Problema cardíaco","Usa anticoagulante","Gestante","Já teve reação à anestesia","Diabetes","Hipertensão"];
+const ANAM_DEF=ANAM.map(k=>({k,a:ALERTA.includes(k)}));
+let anamEdit=false;
 const DST=[{k:"",n:"Saudável",c:"var(--surface)"},{k:"carie",n:"Cárie",c:"var(--bad)"},{k:"rest",n:"Restaurado",c:"var(--info)"},{k:"canal",n:"Canal",c:"var(--warn)"},{k:"coroa",n:"Coroa",c:"var(--accent-2)"},{k:"impl",n:"Implante",c:"var(--ok)"},{k:"ext",n:"Ausente",c:"var(--line)"}];
 const UP=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28],LO=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
 const DEF_MEDS=[
@@ -782,6 +784,11 @@ let U=null,C=null,S=emptyData(),SYNC={},ADM=[],TEAM=[],READY=false;
 let route={v:"home"},dia=T,finF="todos",fichaTab="dados",busca="",odTool="carie",cfgTab="clinica",admF="todos",admQ="",authMode="entrar",authErr="",admEdit=null,admContrato=null,admCData=null;
 const P=id=>S.pac.find(p=>p.id==id);
 const meta=id=>{let m=S.meta.find(x=>x.id===id);if(!m){m={id};S.meta.push(m)}return m};
+/* Perguntas da anamnese: lista da clínica (meta "anamq"); sem lista própria usa o padrão */
+const anamQ=()=>{const m=S.meta.find(x=>x.id==="anamq");return m&&Array.isArray(m.list)?m.list:ANAM_DEF};
+const anamM=()=>{const m=meta("anamq");if(!Array.isArray(m.list))m.list=JSON.parse(JSON.stringify(ANAM_DEF));return m.list};
+const anamKeys=()=>anamQ().map(q=>q.k);
+const anamAlert=p=>anamQ().filter(q=>q.a&&p.anam&&p.anam[q.k]).map(q=>q.k);
 const PR=()=>{const m=S.meta.find(x=>x.id==="procs");return m&&m.list&&m.list.length?m.list:DEF_PROCS};
 const ORC=()=>{const o=meta("orc");if(!o.items){o.items=[];o.desc=5;o.np=10;o.pid=S.pac[0]&&S.pac[0].id}return o};
 const DONO=()=>U&&U.papel==="dono";
@@ -885,7 +892,7 @@ function vBlocked(){const sit=situacao(C);
 
 /* ---------- navegação ---------- */
 const NAV=[["home","Início","home"],["agenda","Agenda","cal"],["pacientes","Pacientes","users"],["orcamento","Orçamento","doc"],["contratos","Contratos","check"],["financeiro","Financeiro","money",1],["retornos","Retornos","clock"],["lab","Laboratório","lab"],["estoque","Estoque","box"],["config","Configurações","gear",1]];
-function go(v,arg){route={v,arg};if(v==="ficha"&&!arg)route.v="pacientes";render();window.scrollTo({top:0})}
+function go(v,arg){anamEdit=false;route={v,arg};if(v==="ficha"&&!arg)route.v="pacientes";render();window.scrollTo({top:0})}
 function counts(){return{ret:S.ret.filter(r=>diff(iso(addDays(parse(r.ult),r.dias)))<0).length,fin:S.fin.filter(f=>!f.pago&&diff(f.venc)<0).length,lab:S.lab.filter(l=>l.st===1).length,est:(S.est||[]).filter(estLow).length}}
 function brandHTML(){return `<div class="brand">${C&&C.logo?`<img class="logoimg" src="${C.logo}" alt="Logo">`:`<div class="mark">${ic("tooth",1.8)}</div>`}<div><b>${esc(C?C.nome:CFG.produto)}</b><small>${esc(CFG.produto)}</small></div></div>`}
 function shell(inner){
@@ -965,7 +972,7 @@ function vPacientes(){const q=busca.toLowerCase();const its=S.pac.filter(p=>p.no
  <form class="card hide" id="pacForm" style="margin-bottom:12px"><h3 style="margin-bottom:12px">Novo paciente</h3><div class="fgrid"><label class="f">Nome<input id="npNome" required></label><label class="f">WhatsApp<input id="npFone" inputmode="tel" required></label><label class="f">Nascimento<input id="npNasc" type="date"></label></div>
   <div class="row mt"><button class="btn pri" type="submit">Cadastrar e abrir ficha</button><button class="btn" type="button" data-act="closePac">Fechar</button></div></form>
  <div class="search" style="margin-bottom:12px">${ic("search")}<input id="busca" placeholder="Buscar paciente pelo nome" value="${esc(busca)}"></div>
- <div class="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">${its.map(p=>{const nx=S.ag.filter(a=>a.pid===p.id&&a.data>=T&&a.st!=="bad").sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))[0];const al=ALERTA.filter(k=>p.anam&&p.anam[k]).length;
+ <div class="list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px">${its.map(p=>{const nx=S.ag.filter(a=>a.pid===p.id&&a.data>=T&&a.st!=="bad").sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora))[0];const al=anamAlert(p).length;
   return `<div class="li click" data-ficha="${p.id}" style="background:var(--surface);box-shadow:var(--shadow)">${avHTML(p)}<div class="who"><strong>${esc(p.nome)}</strong><small>${nx?"Próxima: "+brShort(nx.data)+" "+nx.hora:(idade(p.nasc)?idade(p.nasc)+" · ":"")+esc(p.fone)}</small></div><div class="end">${al?`<span class="pill t-bad">${ic("alert")}</span>`:""}</div></div>`}).join("")||`<div class="empty">Nenhum paciente encontrado.</div>`}</div>`}
 
 function toothSVG(n,st){const d=DST.find(x=>x.k===(st||""))||DST[0];const molar=[6,7,8].includes(n%10),pre=[4,5].includes(n%10);const up=n<30;
@@ -974,14 +981,14 @@ function toothSVG(n,st){const d=DST.find(x=>x.k===(st||""))||DST[0];const molar=
  return `<svg viewBox="0 0 24 30" style="transform:${up?"scaleY(-1)":"none"}"><path d="${root}" fill="none"/><path d="${crown}" fill="${d.c}"/>${st==="ext"?`<path d="M4 3 L20 15 M20 3 L4 15" style="stroke:var(--bad);stroke-width:2"/>`:""}${st==="impl"?`<path d="M10 16h4M10 19h4M10.5 22h3M11 25h2" style="stroke:var(--ok);stroke-width:1.6"/>`:""}</svg>`}
 
 function vFicha(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||{};p.dentes=p.dentes||{};p.hist=p.hist||[];
- const al=ALERTA.filter(k=>p.anam[k]);const TB=[["dados","Dados"],["anamnese","Anamnese"],["odonto","Odontograma"],["fotos","Fotos"],["hist","Histórico"],["rx","Receitas e atestados"],["docs","Documentos"]].concat(DONO()?[["fin","Financeiro"],["credito","SPC/Serasa"]]:[]);let body="";
+ const al=anamAlert(p);const TB=[["dados","Dados"],["anamnese","Anamnese"],["odonto","Odontograma"],["fotos","Fotos"],["hist","Histórico"],["rx","Receitas e atestados"],["docs","Documentos"]].concat(DONO()?[["fin","Financeiro"],["credito","SPC/Serasa"]]:[]);let body="";
  if(fichaTab==="dados"){const nx=S.ag.filter(a=>a.pid===p.id&&a.data>=T).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
   body=`<div class="cols half"><div class="card"><h3 style="margin-bottom:12px">Cadastro</h3><div class="fgrid"><label class="f">Nome<input data-pf="nome" value="${esc(p.nome)}"></label><label class="f">WhatsApp<input data-pf="fone" value="${esc(p.fone)}"></label><label class="f">Nascimento<input type="date" data-pf="nasc" value="${p.nasc||""}"></label><label class="f">CPF<input data-pf="cpf" inputmode="numeric" value="${esc(p.cpf||"")}" placeholder="000.000.000-00"></label><label class="f" style="grid-column:1/-1">Endereço<input data-pf="end" value="${esc(p.end)}" placeholder="Rua, número, bairro, cidade"></label></div>
   <div class="row mt"><a class="btn wa" target="_blank" rel="noopener" href="${wa(p.fone,"Olá, "+first(p.nome)+"! Aqui é da "+CLINICA()+".")}">${WAI}Abrir conversa</a>${DONO()?`<button class="btn" data-act="delPac">Excluir paciente</button>`:""}</div></div>
   <div class="card"><h3 style="margin-bottom:12px">Próximas consultas</h3><div class="list">${nx.length?nx.map(a=>`<div class="li"><div class="av t-acc" style="width:40px;height:40px">${ic("cal")}</div><div class="who"><strong>${brShort(a.data)} · ${a.hora}</strong><small>${esc(a.proc)}</small></div><div class="end">${stPill(a.st)}</div></div>`).join(""):`<div class="empty">Nenhuma consulta marcada.</div>`}</div></div></div>
   <div class="card mt"><div class="cardhead"><h3>Privacidade do paciente (LGPD)</h3>${ic("lock")}</div><p class="small muted" style="margin:0 0 12px">O paciente tem direito a uma cópia do prontuário e dos dados guardados. O prontuário deve ser guardado pelo prazo legal, mesmo depois do fim do tratamento.</p>
   <div class="row"><button class="btn sm" data-go2="prontuario">${ic("doc")}Cópia do prontuário</button>${DONO()?`<button class="btn sm" data-act="expPac">Baixar todos os dados (arquivo)</button>`:""}<button class="btn sm" data-act="lgpdTerm">Gerar termo de ciência LGPD</button></div></div>`}
- if(fichaTab==="anamnese"){syncAnam();const al=p.anamLink;body=`<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><div style="min-width:0;flex:1"><h3>Anamnese pelo celular</h3><p class="small muted" style="margin:2px 0 0">${al&&al.status==="respondida"?`Respondida pelo paciente em ${new Date(al.resp).toLocaleDateString("pt-BR")}. As respostas já estão abaixo.`:al&&al.enviado?"Link enviado. As respostas entram aqui assim que o paciente terminar.":"Envie um link para o paciente responder antes da consulta."}</p></div><div class="row">${al&&al.status==="respondida"?`<span class="pill dot t-ok">Respondida</span>`:al&&al.enviado?`<span class="pill dot t-warn">Aguardando</span>`:""}<button class="btn sm wa" data-act="anamSend">${WAI}${al&&al.enviado&&al.status!=="respondida"?"Reenviar link":"Enviar link"}</button>${DEMO&&al&&al.enviado&&al.status!=="respondida"?`<button class="btn sm" data-act="anamSim">Simular paciente</button>`:""}</div></div></div>`+`<div class="card"><div class="cardhead"><h3>Questionário de saúde</h3><span class="small muted">Marque o que o paciente informou</span></div><div class="checks">${ANAM.map(k=>`<label class="check ${p.anam[k]?"on":""}"><input type="checkbox" data-anam="${esc(k)}" ${p.anam[k]?"checked":""}>${esc(k)}</label>`).join("")}</div><label class="f mt">Observações (medicamentos, alergias, cirurgias)<textarea data-pf="obs">${esc(p.obs)}</textarea></label></div>`}
+ if(fichaTab==="anamnese"){syncAnam();const al=p.anamLink;body=`<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between"><div style="min-width:0;flex:1"><h3>Anamnese pelo celular</h3><p class="small muted" style="margin:2px 0 0">${al&&al.status==="respondida"?`Respondida pelo paciente em ${new Date(al.resp).toLocaleDateString("pt-BR")}. As respostas já estão abaixo.`:al&&al.enviado?"Link enviado. As respostas entram aqui assim que o paciente terminar.":"Envie um link para o paciente responder antes da consulta."}</p></div><div class="row">${al&&al.status==="respondida"?`<span class="pill dot t-ok">Respondida</span>`:al&&al.enviado?`<span class="pill dot t-warn">Aguardando</span>`:""}<button class="btn sm wa" data-act="anamSend">${WAI}${al&&al.enviado&&al.status!=="respondida"?"Reenviar link":"Enviar link"}</button>${DEMO&&al&&al.enviado&&al.status!=="respondida"?`<button class="btn sm" data-act="anamSim">Simular paciente</button>`:""}</div></div></div>`+(anamEdit?anamEditor():"")+`<div class="card"><div class="cardhead"><h3>Questionário de saúde</h3><div class="row" style="gap:10px;align-items:center"><span class="small muted">Marque o que o paciente informou</span><button class="btn sm" data-anamedit>${anamEdit?"Fechar edição":"Personalizar perguntas"}</button></div></div>${anamQ().length?"":`<p class="small muted">Nenhuma pergunta cadastrada. Use "Personalizar perguntas" para adicionar.</p>`}<div class="checks">${anamKeys().map(k=>`<label class="check ${p.anam[k]?"on":""}"><input type="checkbox" data-anam="${esc(k)}" ${p.anam[k]?"checked":""}>${esc(k)}</label>`).join("")}</div><label class="f mt">Observações (medicamentos, alergias, cirurgias)<textarea data-pf="obs">${esc(p.obs)}</textarea></label></div>`}
  if(fichaTab==="odonto"){body=odTab(p)}
  if(fichaTab==="credito"){body=credTab(p)}
  if(fichaTab==="fotos"&&!fotosOk(p.id)){loadFotos(p.id);body=`<div class="card"><h3>Fotos clínicas</h3><p class="small muted">${FOTOS[p.id]&&!FOTOS[p.id].ok?"Não consegui carregar as fotos. Verifique a internet e abra esta aba de novo.":"Carregando fotos…"}</p></div>`}
@@ -1039,7 +1046,7 @@ function vDoc(){const d=S.docs.find(x=>x.id===route.arg);if(!d)return vPacientes
  ${pend&&!cliOk(d)?`<details class="card" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700">Editar o texto antes de assinar</summary><textarea class="big mt" data-doctext="${d.id}">${esc(d.texto)}</textarea><p class="small muted">As alterações são salvas sozinhas. Se o link já foi enviado, envie de novo para o paciente ver a versão nova.</p></details>`:""}
  ${docPaper(d)}
  ${(pend&&!cliOk(d))||DONO()||d.tipo?`<div class="row mt" style="justify-content:center"><button class="btn sm" data-docdel="${d.id}">Excluir documento</button></div>`:""}`}
-let COBP=null,LEGAL=null,legalBack=null,ANAMP=null,AGP=null,PEDS=[],pedWatch=null;function vProntuario(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||{};const an=ANAM.filter(k=>p.anam[k]);const den=Object.entries(p.dentes||{}).sort((a,b)=>a[0]-b[0]);const ds=S.docs.filter(d=>d.pid===p.id);
+let COBP=null,LEGAL=null,legalBack=null,ANAMP=null,AGP=null,PEDS=[],pedWatch=null;function vProntuario(){const p=P(route.arg);if(!p)return vPacientes();p.anam=p.anam||{};const an=anamKeys().filter(k=>p.anam[k]);const den=Object.entries(p.dentes||{}).sort((a,b)=>a[0]-b[0]);const ds=S.docs.filter(d=>d.pid===p.id);
  return `<div class="row" style="margin-bottom:12px;justify-content:space-between"><button class="btn sm" data-ficha="${p.id}">${ic("back")}${esc(p.nome)}</button><button class="btn sm pri" data-act="print">${ic("doc")}Imprimir ou salvar PDF</button></div>
  <article class="paper" id="paper"><header class="paperhead">${C.logo?`<img src="${C.logo}" alt="">`:""}<div><b>${esc(C.nome)}</b><small>${esc(C.cidade||"")}${C.cro?" · "+esc(C.cro):""}</small></div></header>
  <h2>Cópia do prontuário odontológico</h2>
@@ -1053,7 +1060,7 @@ let COBP=null,LEGAL=null,legalBack=null,ANAMP=null,AGP=null,PEDS=[],pedWatch=nul
  <div class="sigs"><div class="sig">${C.assinatura?`<img src="${C.assinatura}" alt="">`:`<div class="sigline"></div>`}<b>${esc(C.dentista||C.nome)}</b><small>${esc(C.nome)}${C.cro?" · "+esc(C.cro):""}</small></div></div></article>`}
 /* ---- anamnese pelo link ---- */
 async function sendAnam(p){if(!p.anamLink||p.anamLink.status==="respondida")p.anamLink={token:newToken(),status:"pendente",criado:T};
- await BE.pubSet("anamneses",p.anamLink.token,{cid:C.id,pid:p.id,clinica:C.nome,logo:C.logo||"",paciente:p.nome,cpf:p.cpf||"",nasc:p.nasc||"",end:p.end||"",perguntas:ANAM,status:"pendente",criado:new Date().toISOString()});
+ await BE.pubSet("anamneses",p.anamLink.token,{cid:C.id,pid:p.id,clinica:C.nome,logo:C.logo||"",paciente:p.nome,cpf:p.cpf||"",nasc:p.nasc||"",end:p.end||"",perguntas:anamKeys(),status:"pendente",criado:new Date().toISOString()});
  p.anamLink.enviado=true;save();return (CFG.appUrl||(location.origin+location.pathname))+"?anamnese="+p.anamLink.token}
 let lastAnam=0;async function syncAnam(force){if(!force&&Date.now()-lastAnam<20000)return;lastAnam=Date.now();let ch=false;
  for(const p of S.pac.filter(x=>x.anamLink&&x.anamLink.enviado&&x.anamLink.status!=="respondida").slice(0,30)){try{const r=await BE.pubGet("anamneses",p.anamLink.token);if(r&&r.status==="respondida"&&r.respostas){applyAnam(p,r.respostas);ch=true}}catch(e){}}
@@ -1581,6 +1588,25 @@ document.addEventListener("change",e=>{const id=e.target&&e.target.id;if(route.v
  if(id==="odDen"){odKeep();odDen=e.target.value==="D"?"D":"P";if(odSel&&(String(odSel)[0]>="5")!==(odDen==="D")){odSel=null;odFz=""}render()}
  else if(id==="odDente"){odKeep();const v=e.target.value||null;if(v!==odSel){odSel=v;odFz=""}render()}});
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="odObs"){const c=$("odObsN");if(c)c.textContent=e.target.value.length}});
+function anamEditor(){const L=anamQ();return `<div class="card" style="margin-bottom:12px"><div class="cardhead"><h3>Personalizar perguntas</h3><button class="btn sm pri" data-anamedit>Concluir</button></div>
+ <p class="small muted" style="margin:0 0 10px">Estas perguntas valem para todos os pacientes da clínica e para o link enviado pelo WhatsApp. Marque <b>Alerta</b> nas que devem aparecer em destaque na ficha do paciente.</p>
+ <div class="stack" style="gap:8px">${L.map((q,i)=>`<div class="row" style="gap:6px;align-items:center;flex-wrap:nowrap"><input data-aqtext="${i}" value="${esc(q.k)}" maxlength="80" style="flex:1;min-width:0"><button class="btn sm ${q.a?"pri":""}" data-aqalert="${i}" title="Mostrar como alerta na ficha">Alerta</button><button class="btn sm" data-aqup="${i}" aria-label="Subir" ${i===0?"disabled":""}>↑</button><button class="btn sm" data-aqdown="${i}" aria-label="Descer" ${i===L.length-1?"disabled":""}>↓</button><button class="btn sm" data-aqdel="${i}" aria-label="Remover">×</button></div>`).join("")||`<p class="small muted">Nenhuma pergunta. Adicione abaixo.</p>`}</div>
+ <div class="row mt" style="gap:6px"><input id="aqNew" placeholder="Nova pergunta, ex.: Já fez tratamento de canal?" maxlength="80" style="flex:1;min-width:0"><button class="btn pri" data-aqadd>Adicionar</button></div>
+ <div class="row mt"><button class="btn sm" data-aqreset>Restaurar perguntas padrão</button></div></div>`}
+document.addEventListener("click",e=>{if(route.v!=="ficha"||fichaTab!=="anamnese")return;const t=e.target.closest("[data-anamedit],[data-aqalert],[data-aqup],[data-aqdown],[data-aqdel],[data-aqadd],[data-aqreset]");if(!t)return;const d=t.dataset;
+ if(d.anamedit!==undefined){anamEdit=!anamEdit;render();return}
+ const L=anamM();
+ if(d.aqalert!==undefined){const q=L[+d.aqalert];if(q){q.a=!q.a;save();render()}return}
+ if(d.aqup!==undefined||d.aqdown!==undefined){const i=+(d.aqup!==undefined?d.aqup:d.aqdown),j=d.aqup!==undefined?i-1:i+1;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];save();render();return}
+ if(d.aqdel!==undefined){if(!t.dataset.sure){t.dataset.sure="1";t.textContent="Remover?";t.classList.add("pri");return}L.splice(+d.aqdel,1);save();render();toast("Pergunta removida");return}
+ if(d.aqadd!==undefined){const el=$("aqNew"),k=(el.value||"").trim();if(!k){toast("Escreva a pergunta");return}if(L.some(q=>q.k.toLowerCase()===k.toLowerCase())){toast("Essa pergunta já existe");return}L.push({k,a:false});save();render();setTimeout(()=>{const n=$("aqNew");if(n)n.focus()},50);return}
+ if(d.aqreset!==undefined){if(!t.dataset.sure){t.dataset.sure="1";t.textContent="Confirmar: voltar ao padrão";t.classList.add("pri");return}meta("anamq").list=JSON.parse(JSON.stringify(ANAM_DEF));save();render();toast("Perguntas padrão restauradas")}});
+/* renomear: as respostas já marcadas nos pacientes acompanham o novo texto. Não redesenha a tela (evita perder o clique seguinte). */
+document.addEventListener("change",e=>{const t=e.target;if(!t||!t.dataset||t.dataset.aqtext===undefined||route.v!=="ficha"||fichaTab!=="anamnese")return;const L=anamM(),i=+t.dataset.aqtext,q=L[i];if(!q)return;const nk=t.value.trim();
+ if(!nk){t.value=q.k;toast("A pergunta não pode ficar vazia");return}
+ if(nk===q.k)return;if(L.some((x,j)=>j!==i&&x.k.toLowerCase()===nk.toLowerCase())){t.value=q.k;toast("Essa pergunta já existe");return}
+ const old=q.k;q.k=nk;S.pac.forEach(p=>{if(p.anam&&p.anam[old]){p.anam[nk]=p.anam[old];delete p.anam[old]}});
+ document.querySelectorAll("[data-anam]").forEach(c=>{if(c.dataset.anam===old){c.dataset.anam=nk;c.parentNode.lastChild.textContent=nk}});save()});
 function odTab(p){const n=odSel,ents=ODP(p);
  const F=ODG.FACES,fz=odFz;
  const procs=PR().map(x=>x[0]);
@@ -1864,7 +1890,7 @@ document.addEventListener("click",async e=>{
  if(d.dia){dia=d.dia;render();return}
  if(d.ast){const a=S.ag.find(x=>x.id==d.id);a.st=d.ast;if(a.st==="done"){const p=P(a.pid);if(p)p.hist.push({data:a.data,proc:a.proc,dente:"",obs:""})}save();render();toast({ok:"Consulta confirmada",bad:"Horário livre para encaixe",done:"Atendimento registrado no histórico"}[a.st]);return}
  if(d.adel){S.ag=S.ag.filter(x=>x.id!=d.adel);save();render();toast("Vaga liberada");return}
- if(d.ftab){fichaTab=d.ftab;render();return}
+ if(d.ftab){anamEdit=false;fichaTab=d.ftab;render();return}
  if(d.ctab){cfgTab=d.ctab;render();return}
  if(d.tool!==undefined){odTool=d.tool;render();return}
  if(d.tooth){const p=P(route.arg),n=d.tooth;if(odTool===""||p.dentes[n]===odTool)delete p.dentes[n];else p.dentes[n]=odTool;save();render();return}
