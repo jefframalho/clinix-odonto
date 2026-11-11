@@ -1396,8 +1396,8 @@ const ODG=(()=>{
  const roots=n=>{const t=typ(n),up=n<30,d=n%10;if(t==="m")return up?3:2;if(up&&d===4)return 2;return 1};
  const anterior=n=>["i","c"].includes(typ(n));
  /* nomes das faces conforme o dente */
- const faceName=(n,f)=>({M:"Mesial",D:"Distal",O:anterior(n)?"Incisal":"Oclusal",V:"Vestibular",P:n<30?"Palatina":"Lingual",C:"Cervical"})[f];
- const faceCode=(n,f)=>f==="O"&&anterior(n)?"I":f==="P"&&n>30?"L":f;
+ const faceName=(n,f)=>({M:"Mesial",D:"Distal",O:anterior(n)?"Incisal":"Oclusal",V:"Vestibular",P:[1,2,5,6].includes(Math.floor(n/10))?"Palatina":"Lingual",C:"Cervical"})[f];
+ const faceCode=(n,f)=>f==="O"&&anterior(n)?"I":f==="P"&&![1,2,5,6].includes(Math.floor(n/10))?"L":f;
  const label=(n,faces)=>String(n)+(faces||"").split("").map(f=>faceCode(n,f)).join("");
  const FACES=["M","D","O","V","P","C"];
  /* cor de cada face a partir das entradas do paciente (a última vence) */
@@ -1553,7 +1553,10 @@ ODG_STYLE();
 
 
 /* ============ ODONTOGRAMA POR FACES (tela do paciente) ============ */
-let odSel=null,odFz="",odSt="real",odProcV="";
+let odSel=null,odFz="",odSt="real",odProcV="",odOpen=false,odDen="P",odData="",odProf="",odProx="",odObs="";
+const OD_PERM=[11,12,13,14,15,16,17,18,21,22,23,24,25,26,27,28,31,32,33,34,35,36,37,38,41,42,43,44,45,46,47,48];
+const OD_DEC=[51,52,53,54,55,61,62,63,64,65,71,72,73,74,75,81,82,83,84,85];
+function odKeep(){const g=id=>{const el=$(id);return el?el.value:null};const a=g("odProc");if(a!==null)odProcV=a;const b=g("odData");if(b!==null)odData=b;const c=g("odProf");if(c!==null)odProf=c;const d=g("odProx");if(d!==null)odProx=d;const e=g("odObs");if(e!==null)odObs=e}
 const ODP=p=>p.odp||(p.odp=[]);
 const BOCA={"11":[441,380,62,88],"12":[331,384,42,72],"13":[257,385,34,76],"14":[205,392,26,60],"15":[169,393,20,50],"16":[144,397,15,45],"21":[577,380,62,88],"22":[688,384,42,72],"23":[765,385,34,76],"24":[818,392,26,60],"25":[852,393,20,50],"26":[877,397,15,45],"41":[472,641,38,66],"42":[396,640,37,66],"43":[330,647,30,60],"44":[281,622,30,58],"45":[230,597,28,50],"46":[185,562,25,48],"47":[162,530,16,38],"31":[552,641,38,66],"32":[630,640,37,66],"33":[697,647,30,60],"34":[742,622,30,58],"35":[793,597,28,50],"36":[836,562,25,48],"37":[864,530,16,38]};
 let odView="arcada";
@@ -1569,42 +1572,53 @@ function bocaSVG(p,sel){const ents=ODP(p),den=p.dentes||{};
  return `<div class="boca"><svg viewBox="90 240 844 500" role="img" aria-label="Boca do paciente"><image href="boca.webp" x="0" y="0" width="1024" height="1024"/>${sp}</svg></div>
  <p class="small muted" style="margin:6px 0 0;text-align:center">Toque no dente para marcar. Os dentes do fundo (7 e 8) e as faces e raízes ficam no odontograma.</p>`}
 /* Faces do dente (V P M D I/O C), como no Clinicorp. O "I" aparece em dentes da frente e o "O" nos de trás; "L" no lugar de "P" na arcada inferior. */
+const isFDI=v=>/^([1-4][1-8]|[5-8][1-5])$/.test(v);
 function faceBoxes(pfx){return `<div class="f mt"><span style="font-size:13px;font-weight:600;color:var(--muted)">Faces do dente <span class="small muted" style="font-weight:500">(opcional, informe um único dente)</span></span><div class="fbox" id="${pfx}Faces">${["V","P","M","D","O","C"].map(f=>`<label class="fb" title="${ODG.faceName(11,f)}"><input type="checkbox" value="${f}"><span data-fl="${f}">${f==="O"?"I/O":f==="P"?"P/L":f}</span></label>`).join("")}</div></div>`}
 function faceSel(pfx){const on=[...document.querySelectorAll("#"+pfx+"Faces input:checked")].map(x=>x.value);return ODG.FACES.filter(f=>on.includes(f)).join("")}
-function faceLabels(pfx){const el=$(pfx+"Dente"),v=el?el.value.trim():"",ok=/^[1-4][1-8]$/.test(v),n=+v;document.querySelectorAll("#"+pfx+"Faces label").forEach(l=>{const f=l.querySelector("input").value,sp=l.querySelector("span");sp.textContent=ok?ODG.faceCode(n,f):(f==="O"?"I/O":f==="P"?"P/L":f);l.title=ok?ODG.faceName(n,f):ODG.faceName(11,f)})}
+function faceLabels(pfx){const el=$(pfx+"Dente"),v=el?el.value.trim():"",ok=isFDI(v),n=+v;document.querySelectorAll("#"+pfx+"Faces label").forEach(l=>{const f=l.querySelector("input").value,sp=l.querySelector("span");sp.textContent=ok?ODG.faceCode(n,f):(f==="O"?"I/O":f==="P"?"P/L":f);l.title=ok?ODG.faceName(n,f):ODG.faceName(11,f)})}
 document.addEventListener("input",e=>{const id=e.target&&e.target.id;if(id==="hDente")faceLabels("h");else if(id==="oDente")faceLabels("o")});
+document.addEventListener("change",e=>{const id=e.target&&e.target.id;if(route.v!=="ficha"||fichaTab!=="odonto")return;
+ if(id==="odDen"){odKeep();odDen=e.target.value==="D"?"D":"P";if(odSel&&(String(odSel)[0]>="5")!==(odDen==="D")){odSel=null;odFz=""}render()}
+ else if(id==="odDente"){odKeep();const v=e.target.value||null;if(v!==odSel){odSel=v;odFz=""}render()}});
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="odObs"){const c=$("odObsN");if(c)c.textContent=e.target.value.length}});
 function odTab(p){const n=odSel,ents=ODP(p);
  const F=ODG.FACES,fz=odFz;
  const procs=PR().map(x=>x[0]);
- const panel=n?`<div class="odpanel"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Dente ${n}</h3><button class="btn sm" data-odclose>Fechar</button></div>
-  <p class="small muted" style="margin:4px 0 10px">Escolha as faces (ou deixe sem nenhuma para o dente inteiro), o procedimento e a situação.</p>
-  <div class="chips">${F.map(f=>`<button class="chip ${fz.includes(f)?"on":""}" data-odface="${f}">${ODG.faceName(n,f)} (${ODG.faceCode(n,f)})</button>`).join("")}</div>
+ const dent=odDen==="D"?"D":"P",teeth=dent==="D"?OD_DEC:OD_PERM;
+ const facesHtml=n?`<div class="chips mt">${F.map(f=>`<button class="chip ${fz.includes(f)?"on":""}" data-odface="${f}">${ODG.faceName(n,f)} (${ODG.faceCode(n,f)})</button>`).join("")}</div>`:`<p class="small muted" style="margin:10px 0 0">Escolha o dente para marcar as faces.</p>`;
+ const panel=(n||odOpen)?`<div class="odpanel"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">${n?"Dente "+n:"Adicionar procedimento"}</h3><button class="btn sm" data-odclose>Fechar</button></div>
+  <div class="fgrid mt"><label class="f">Data<input id="odData" type="date" value="${odData||T}"></label><label class="f">Profissional${profSel("odProf",odProf||PROFS()[0].id)}</label><label class="f">Dentição<select id="odDen"><option value="P" ${dent==="P"?"selected":""}>Permanente</option><option value="D" ${dent==="D"?"selected":""}>Decídua</option></select></label><label class="f">Dente<select id="odDente"><option value="">Selecione</option>${teeth.map(t=>`<option ${String(n)===String(t)?"selected":""}>${t}</option>`).join("")}</select></label></div>
+  <p class="small muted" style="margin:10px 0 0">Escolha as faces (ou deixe sem nenhuma para o dente inteiro), o procedimento e a situação.</p>
+  ${facesHtml}
   <div class="fgrid mt"><label class="f">Procedimento<input id="odProc" list="odProcL" value="${esc(odProcV||procs[0]||"")}" placeholder="ex.: Restauração em resina"><datalist id="odProcL">${procs.map(x=>`<option value="${esc(x)}">`).join("")}</datalist></label></div>
   <div class="chips mt">${Object.keys(ODG.STN).map(k=>`<button class="chip ${odSt===k?"on":""}" data-odst="${k}"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${ODG.COL[k]};margin-right:6px"></i>${ODG.STN[k]}</button>`).join("")}</div>
-  <div class="row mt"><button class="btn pri" data-odadd>Adicionar ${ODG.label(n,F.filter(f=>fz.includes(f)).join(""))}</button></div>
-  <div class="mt"><p class="small muted" style="margin:0 0 6px">Situação do dente inteiro</p><div class="chips">${DST.map(d=>`<button class="chip ${(p.dentes[n]||"")===d.k?"on":""}" data-odwhole="${d.k}">${d.n}</button>`).join("")}</div></div></div>`
-  :`<p class="small muted" style="margin:8px 0 0;text-align:center">Toque em um dente para marcar. Na vista oclusal, dá para tocar direto na face.</p>`;
- const rows=ents.slice().sort((a,b)=>(b.data||"").localeCompare(a.data||"")).map(e=>`<tr><td>${br(e.data)}</td><td><b>${esc(ODG.label(e.dente,e.faces))}</b></td><td>${esc(e.proc)}</td><td><span class="pill" style="background:${ODG.COL[e.st]}22;color:${ODG.COL[e.st]}">${ODG.STN[e.st]}</span></td><td style="text-align:right;white-space:nowrap">${e.st==="real"?`<button class="btn sm" data-odexec="${e.id}">${ic("check")}Executado</button>`:""}<button class="btn sm" data-oddel="${e.id}" aria-label="Remover">×</button></td></tr>`).join("");
+  <label class="f mt">Detalhes da próxima consulta<textarea id="odProx" rows="2" maxlength="500" placeholder="ex.: remover sutura, fazer o acabamento">${esc(odProx)}</textarea></label>
+  <label class="f mt">Observações da clínica<textarea id="odObs" rows="2" maxlength="1500" placeholder="Anotações internas sobre este procedimento">${esc(odObs)}</textarea><span class="small muted">Uso interno: não aparece nos documentos do paciente · <span id="odObsN">${odObs.length}</span>/1500 caracteres</span></label>
+  <div class="row mt"><button class="btn pri" data-odadd>Adicionar ${n?ODG.label(n,F.filter(f=>fz.includes(f)).join("")):"procedimento"}</button></div>
+  ${n&&dent==="P"?`<div class="mt"><p class="small muted" style="margin:0 0 6px">Situação do dente inteiro</p><div class="chips">${DST.map(d=>`<button class="chip ${(p.dentes[n]||"")===d.k?"on":""}" data-odwhole="${d.k}">${d.n}</button>`).join("")}</div></div>`:""}</div>`
+  :`<p class="small muted" style="margin:8px 0 0;text-align:center">Toque em um dente para marcar. Na vista oclusal, dá para tocar direto na face. Dente de leite: use "Adicionar procedimento".</p>`;
+ const rows=ents.slice().sort((a,b)=>(b.data||"").localeCompare(a.data||"")).map(e=>`<tr><td>${br(e.data)}</td><td><b>${esc(ODG.label(e.dente,e.faces))}</b></td><td>${esc(e.proc)}${e.dent==="D"?` <span class="small muted">(decídua)</span>`:""}${e.prof?`<div class="small muted">${esc(PF(e.prof).nome)}</div>`:""}${e.prox?`<div class="small muted">Próxima consulta: ${esc(e.prox)}</div>`:""}${e.obs?`<div class="small muted">🔒 ${esc(e.obs)}</div>`:""}</td><td><span class="pill" style="background:${ODG.COL[e.st]}22;color:${ODG.COL[e.st]}">${ODG.STN[e.st]}</span></td><td style="text-align:right;white-space:nowrap">${e.st==="real"?`<button class="btn sm" data-odexec="${e.id}">${ic("check")}Executado</button>`:""}<button class="btn sm" data-oddel="${e.id}" aria-label="Remover">×</button></td></tr>`).join("");
  return `<div class="card"><div class="cardhead"><h3>Odontograma</h3><div class="odview"><button class="${odView==="arcada"?"on":""}" data-odview="arcada">Arcada</button><button class="${odView==="boca"?"on":""}" data-odview="boca">Boca</button><button class="${odView==="3d"?"on":""}" data-odview="3d">3D</button></div></div>
   ${odView==="3d"?(setTimeout(()=>a3dMount(p,n),0),`<div class="a3d" id="a3dHost"></div><div class="a3d-bar"><button class="btn sm" data-a3v="frente">Frente</button><button class="btn sm" data-a3v="dir">Lado direito</button><button class="btn sm" data-a3v="esq">Lado esquerdo</button><button class="btn sm" data-a3v="cima">De cima</button><button class="btn sm" data-a3v="baixo">De baixo</button><button class="btn sm pri" data-a3open>Abrir / fechar a boca</button></div><p class="small muted" style="margin:6px 0 0;text-align:center">Arraste para girar · rodinha ou pinça para zoom · toque no dente para marcar</p>`):odView==="boca"?bocaSVG(p,n):`<div class="odwrap2">${ODG.svg(ents,p.dentes,n)}</div>`}${ODG.legend()}${panel}</div>
-  <div class="card mt"><div class="cardhead"><h3>Procedimentos</h3><span class="small muted">${ents.length} registro(s)</span></div>
+  <div class="card mt"><div class="cardhead"><h3>Procedimentos</h3><div class="row" style="gap:10px;align-items:center"><span class="small muted">${ents.length} registro(s)</span><button class="btn pri sm" data-odnew>+ Adicionar procedimento</button></div></div>
   ${ents.length?`<div class="odtable"><table><thead><tr><th>Data</th><th>Dente</th><th>Procedimento</th><th>Situação</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`:`<div class="empty">Nenhum procedimento marcado ainda.</div>`}
   <div class="row mt"><button class="btn sm" data-act="odToOrc">Levar "A realizar" para o orçamento</button></div></div>`}
 document.addEventListener("click",e=>{if(route.v!=="ficha"||fichaTab!=="odonto")return;const p=P(route.arg);if(!p)return;
- const t=e.target.closest("[data-a3v],[data-a3open],[data-odview],[data-otooth],[data-odface],[data-odst],[data-odadd],[data-odexec],[data-oddel],[data-odwhole],[data-odclose]");if(!t)return;const d=t.dataset;
- const keep=()=>{const i=$("odProc");if(i)odProcV=i.value};
- if(d.otooth){keep();const fzEl=e.target.closest("[data-fz]");const n=d.otooth;if(odSel!==n){odSel=n;odFz=""}if(fzEl){const f=fzEl.dataset.fz;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f}render();return}
+ const t=e.target.closest("[data-a3v],[data-a3open],[data-odview],[data-otooth],[data-odface],[data-odst],[data-odadd],[data-odexec],[data-oddel],[data-odwhole],[data-odclose],[data-odnew]");if(!t)return;const d=t.dataset;
+ const keep=odKeep;
+ if(d.otooth){keep();const fzEl=e.target.closest("[data-fz]");const n=d.otooth;if(odSel!==n){odSel=n;odFz=""}odDen="P";if(fzEl){const f=fzEl.dataset.fz;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f}render();return}
  if(d.odview){keep();odView=d.odview;render();return}
  if(d.a3v){window.A3D&&A3D.view(d.a3v);return}
  if(d.a3open!==undefined){window.A3D&&A3D.abrir();return}
- if(d.odclose!==undefined){odSel=null;odFz="";render();return}
+ if(d.odclose!==undefined){keep();odSel=null;odFz="";odOpen=false;render();return}
+ if(d.odnew!==undefined){keep();odOpen=true;render();setTimeout(()=>{const el=document.querySelector(".odpanel");if(el)el.scrollIntoView({behavior:"smooth",block:"center"})},60);return}
  if(d.odface){keep();const f=d.odface;odFz=odFz.includes(f)?odFz.replace(f,""):odFz+f;render();return}
  if(d.odst){keep();odSt=d.odst;render();return}
  if(d.odwhole!==undefined){const n=odSel;if(!n)return;if(!d.odwhole)delete p.dentes[n];else p.dentes[n]=d.odwhole;save();render();return}
- if(d.odadd!==undefined){const proc=($("odProc").value||"").trim();if(!proc){toast("Escolha o procedimento");return}odProcV=proc;
-  const faces=ODG.FACES.filter(f=>odFz.includes(f)).join("");const ent={id:uid(),data:T,dente:String(odSel),faces,proc,st:odSt};ODP(p).push(ent);
-  if(odSt==="exec")(p.hist=p.hist||[]).push({data:T,proc,dente:ODG.label(odSel,faces),obs:""});
-  logAct("Odontograma: "+ODG.STN[odSt].toLowerCase(),p.nome+" · "+ODG.label(odSel,faces)+" "+proc);odFz="";save();render();toast(ODG.label(ent.dente,faces)+" adicionado");return}
+ if(d.odadd!==undefined){keep();const proc=($("odProc").value||"").trim();if(!odSel){toast("Escolha o dente");return}if(!proc){toast("Escolha o procedimento");return}odProcV=proc;
+  const faces=ODG.FACES.filter(f=>odFz.includes(f)).join("");const data=odData||T;const ent={id:uid(),data,dente:String(odSel),faces,proc,st:odSt,prof:odProf||PROFS()[0].id};if(odDen==="D")ent.dent="D";if(odProx.trim())ent.prox=odProx.trim();if(odObs.trim())ent.obs=odObs.trim();ODP(p).push(ent);
+  if(odSt==="exec")(p.hist=p.hist||[]).push({data,proc,dente:ODG.label(odSel,faces),obs:""});
+  logAct("Odontograma: "+ODG.STN[odSt].toLowerCase(),p.nome+" · "+ODG.label(odSel,faces)+" "+proc);odFz="";odProx="";odObs="";save();render();toast(ODG.label(ent.dente,faces)+" adicionado");return}
  if(d.odexec){const x=ODP(p).find(i=>i.id===d.odexec);if(!x)return;x.st="exec";x.exec=T;(p.hist=p.hist||[]).push({data:T,proc:x.proc,dente:ODG.label(x.dente,x.faces),obs:""});save();render();toast("Marcado como executado e lançado no histórico");return}
  if(d.oddel){if(t.dataset.sure){p.odp=ODP(p).filter(i=>i.id!==d.oddel);save();render();toast("Procedimento removido")}else{t.dataset.sure="1";t.textContent="Remover?";t.classList.add("pri")}return}
 });
@@ -1935,8 +1949,8 @@ document.addEventListener("click",async e=>{
  if(A==="orcFor"){const o=ORC();o.pid=route.arg;o.items=[];save();go("orcamento")}
  if(A==="odToOrc"){const p=P(route.arg);const m={carie:"Restauração em resina",canal:"Tratamento de canal"};const price=n=>(PR().find(x=>x[0]===n)||[n,0])[1];const items=Object.entries(p.dentes).filter(([n,s])=>m[s]).map(([n,s])=>({proc:m[s],dente:n,v:price(m[s])})).concat((p.odp||[]).filter(e=>e.st==="real").map(e=>({proc:e.proc,dente:ODG.label(e.dente,e.faces),v:price(e.proc)})));
   if(!items.length){toast("Marque procedimentos \"A realizar\" no odontograma primeiro");return}const o=ORC();o.pid=p.id;o.items=items;save();go("orcamento");toast(items.length+" procedimentos levados ao orçamento")}
- if(A==="oAdd"){const v=+$("oVal").value||0;if(!v){toast("Informe o valor");return}const dn=$("oDente").value.trim(),fc=faceSel("o");if(fc&&!/^[1-4][1-8]$/.test(dn)){toast("Para marcar faces, informe um único dente (ex.: 36)");return}ORC().items.push({proc:PR()[$("oProc").value][0],dente:fc?ODG.label(dn,fc):(dn||"—"),v});save();render();toast("Adicionado ao plano")}
- if(A==="addHist"){const p=P(route.arg);const dn=$("hDente").value.trim(),fc=faceSel("h");if(fc&&!/^[1-4][1-8]$/.test(dn)){toast("Para marcar faces, informe um único dente (ex.: 36)");return}p.hist.push({data:$("hData").value||T,proc:$("hProc").value,dente:fc?ODG.label(dn,fc):dn,obs:$("hObs").value.trim()});save();render();toast("Atendimento salvo")}
+ if(A==="oAdd"){const v=+$("oVal").value||0;if(!v){toast("Informe o valor");return}const dn=$("oDente").value.trim(),fc=faceSel("o");if(fc&&!isFDI(dn)){toast("Para marcar faces, informe um único dente (ex.: 36)");return}ORC().items.push({proc:PR()[$("oProc").value][0],dente:fc?ODG.label(dn,fc):(dn||"—"),v});save();render();toast("Adicionado ao plano")}
+ if(A==="addHist"){const p=P(route.arg);const dn=$("hDente").value.trim(),fc=faceSel("h");if(fc&&!isFDI(dn)){toast("Para marcar faces, informe um único dente (ex.: 36)");return}p.hist.push({data:$("hData").value||T,proc:$("hProc").value,dente:fc?ODG.label(dn,fc):dn,obs:$("hObs").value.trim()});save();render();toast("Atendimento salvo")}
  if(A==="addProc"){const m=meta("procs");if(!m.list)m.list=DEF_PROCS.map(x=>x.slice());m.list.push(["Novo procedimento",100]);save();render()}
  if(A==="legalBack"){LEGAL=null;render();if(legalBack)window.scrollTo({top:legalBack.scroll||0});return}
  if(A==="aceitar"){if(!$("acOk").checked){toast("Marque que leu e aceita os documentos");return}const ac={versao:TERMOS_VER,data:new Date().toISOString(),por:U.email};await BE.updateClinic({aceite:ac});C.aceite=ac;logAct("Aceitou os Termos e a Política de Privacidade","versão "+br(TERMOS_VER));render();return}
