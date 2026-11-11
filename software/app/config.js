@@ -15,6 +15,12 @@ window.CLINIX_CONFIG = {
   admins: ["jeffersonramalhopb@gmail.com"],
 
   vendedor: "Jefferson Ramalho",
+
+  // Dados que aparecem no contrato de assinatura enviado às clínicas (preencha se quiser)
+  contrato: {
+    cpfCnpj: "",
+    endereco: ""
+  },
   suporteWhatsApp: "(83) 9 2141-8988",
   emailSuporte: "jeffersonramalhopb@gmail.com",  // aparece nos Termos e na Política de Privacidade
 

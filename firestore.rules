@@ -61,7 +61,7 @@ service cloud.firestore {
     match /assinaturas/{token} {
       allow get: if true;
       allow list: if false;
-      allow create: if member(request.resource.data.cid) && active(request.resource.data.cid);
+      allow create: if isAdmin() || (member(request.resource.data.cid) && active(request.resource.data.cid));
       allow update: if member(resource.data.cid)
         || (resource.data.status == 'pendente' && request.resource.data.status == 'assinado'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'assinatura']));
