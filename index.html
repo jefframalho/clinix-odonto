@@ -820,7 +820,7 @@ const FireBE={
 };
 /* Firestore não aceita listas dentro de listas: procedimentos viram objetos */
 function toFS(col,d){if(col==="meta"&&Array.isArray(d.list))d.list=d.list.map(p=>Array.isArray(p)?{n:p[0],v:p[1]}:p);return d}
-function fromFS(col,d){if(col==="meta"&&Array.isArray(d.list))d.list=d.list.map(p=>Array.isArray(p)?p:[p.n,p.v]);return d}
+function fromFS(col,d){if(col==="meta"&&Array.isArray(d.list))d.list=d.list.map(p=>p&&typeof p==="object"&&!Array.isArray(p)&&"n" in p&&Object.keys(p).every(k=>k==="n"||k==="v")?[p.n,p.v]:p);return d}
 const BE=DEMO?LocalBE:FireBE;
 
 /* ---------- situação da mensalidade ---------- */
