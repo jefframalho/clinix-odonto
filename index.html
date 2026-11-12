@@ -885,7 +885,7 @@ const senhaNova=()=>{const L="abcdefghjkmnpqrstuvwxyz",D="23456789";let s="";for
 const appLink=()=>(/^https?:$/.test(location.protocol)?location.origin+location.pathname:(CFG.paginaUrl||CFG.appUrl));
 const credMsg=c=>`Olá, ${first(c.nome)||""}! Seu acesso ao ${CFG.produto} da *${c.clinica}* está pronto:\n\nSite: ${appLink()}\nE-mail: ${c.email}\nSenha: ${c.senha}\n\nNo primeiro acesso, troque a senha em "Esqueci minha senha" se preferir.`;
 const PCOR=["#0B86AE","#23845A","#A06300","#6B4BB0","#B0463A","#2E7F86"];
-const PROFS=()=>{const m=S.meta.find(x=>x.id==="profs");return m&&m.list&&m.list.length?m.list:[{id:"principal",nome:(C&&(C.dentista||C.nome))||"Dentista",cro:(C&&C.cro)||"",cor:PCOR[0],com:0,ass:(C&&C.assinatura)||""}]};
+const PROFS=()=>{const m=S.meta.find(x=>x.id==="profs");if(m&&m.list&&m.list.length){const seen=new Set();let fx=false;m.list.forEach(p=>{if(!p.id||seen.has(p.id)){p.id=uid();fx=true}seen.add(p.id)});if(fx)saveSoon();return m.list}return [{id:"principal",nome:(C&&(C.dentista||C.nome))||"Dentista",cro:(C&&C.cro)||"",cor:PCOR[0],com:0,ass:(C&&C.assinatura)||""}]};
 const profsM=()=>{const m=meta("profs");if(!m.list||!m.list.length)m.list=JSON.parse(JSON.stringify(PROFS()));return m.list};
 const PF=id=>PROFS().find(p=>p.id===id)||PROFS()[0];
 const MEDS=()=>{const m=S.meta.find(x=>x.id==="meds");return m&&m.list&&m.list.length?m.list:DEF_MEDS};
