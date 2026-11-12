@@ -923,11 +923,11 @@ function loadFotos(pid,force){if(!BE.loadFotos)return Promise.resolve(true);cons
   .catch(err=>{console.error("Clinix: falha ao carregar fotos",err);FOTOS[k]={ok:false,t:Date.now()};return false})
   .finally(()=>{delete FOTOS_BUSY[k];scheduleRender()});
  FOTOS_BUSY[k]=run;return run}
-function onData(col,arr){S[col]=arr;SYNC[col]={};arr.forEach(x=>SYNC[col][x.id]=stable(x));READY=true;if(col==="log"&&U&&!U.admin&&!onData.logged){onData.logged=U.uid;setTimeout(()=>logAct("Entrou no sistema"),300)}scheduleRender()}
-function save(){const ch=[];COLS.forEach(k=>{const seen=new Set();(S[k]||[]).forEach(x=>{if(!x.id)x.id=uid();seen.add(x.id);const s=stable(x);if(SYNC[k][x.id]!==s){ch.push({col:k,id:x.id,data:x});SYNC[k][x.id]=s}});Object.keys(SYNC[k]).forEach(id=>{if(!seen.has(id)){ch.push({col:k,id,data:null});delete SYNC[k][id]}})});
+function onData(col,arr){if(saveDirty){save();if(col==="meta"||col==="ag")return}S[col]=arr;SYNC[col]={};arr.forEach(x=>SYNC[col][x.id]=stable(x));READY=true;if(col==="log"&&U&&!U.admin&&!onData.logged){onData.logged=U.uid;setTimeout(()=>logAct("Entrou no sistema"),300)}scheduleRender()}
+let saveDirty=false;function save(){saveDirty=false;clearTimeout(saveT);const ch=[];COLS.forEach(k=>{const seen=new Set();(S[k]||[]).forEach(x=>{if(!x.id)x.id=uid();seen.add(x.id);const s=stable(x);if(SYNC[k][x.id]!==s){ch.push({col:k,id:x.id,data:x});SYNC[k][x.id]=s}});Object.keys(SYNC[k]).forEach(id=>{if(!seen.has(id)){ch.push({col:k,id,data:null});delete SYNC[k][id]}})});
  if(ch.some(x=>x.col==="ag"||(x.col==="meta"&&["agonline","profs"].includes(x.id))))pubAgenda();
  if(ch.length)BE.write(ch).catch(e=>{console.error(e);toast("Não consegui salvar: verifique a internet")})}
-let saveT;const saveSoon=()=>{clearTimeout(saveT);saveT=setTimeout(save,500)};
+let saveT;const saveSoon=()=>{saveDirty=true;clearTimeout(saveT);saveT=setTimeout(save,500)};
 let pendRender=false;function scheduleRender(){if(SIGN||LEGAL||ANAMP||AGP)return;if($("pad")&&!PAD.empty){pendRender=true;return}const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&$("root").contains(a)){pendRender=true;return}render()}
 document.addEventListener("focusout",()=>{if(pendRender){pendRender=false;setTimeout(()=>{const a=document.activeElement;if(!a||!/INPUT|TEXTAREA|SELECT/.test(a.tagName))render();else pendRender=true},50)}});
 
